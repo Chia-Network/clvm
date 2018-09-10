@@ -1,4 +1,3 @@
-import enum
 import msgpack
 
 from dataclasses import dataclass

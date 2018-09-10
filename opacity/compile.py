@@ -62,31 +62,55 @@ def consume_until_whitespace(sexp: str, offset):
     return sexp[start:offset], offset
 
 
-def compile_str(sexp: str, offset):
+def compile_atom(token):
+    c = token[0]
+    if c in "\'\"":
+        if c != token[-1] or len(token) < 2:
+            raise SyntaxError("unterminated string starting at %s" % token)
+        return token[1:-1].encode("utf8")
+
+    for f in [parse_as_int, parse_as_var, parse_as_hex]:
+        v = f(token)
+        if v is not None:
+            return v
+    raise SyntaxError("can't parse %s" % token)
+
+
+def compile_list(tokens):
+    if len(tokens) == 0:
+        return []
+
+    r = []
+    if isinstance(tokens[0], str):
+        keyword = KEYWORD_TO_INT.get(tokens[0].lower())
+        if keyword:
+            r.append(keyword)
+            tokens = tokens[1:]
+
+    for token in tokens:
+        r.append(compile_token(token))
+
+    return r
+
+
+def compile_token(token):
+    if isinstance(token, str):
+        return compile_atom(token)
+    return compile_list(token)
+
+
+def tokenize_str(sexp: str, offset):
     start = offset
     initial_c = sexp[start]
     offset += 1
     while offset < len(sexp) and sexp[offset] != initial_c:
         offset += 1
     if offset < len(sexp):
-        return sexp[start+1:offset].encode("utf8"), offset + 1
+        return sexp[start:offset+1], offset + 1
     raise SyntaxError("unterminated string starting at %d: %s" % (start, sexp[start:]))
 
 
-def compile_atom(sexp: str, offset):
-    c = sexp[offset]
-    if c in "\'\"":
-        return compile_str(sexp, offset)
-
-    item, offset = consume_until_whitespace(sexp, offset)
-    for f in [parse_as_int, parse_as_var, parse_as_hex, parse_as_keyword]:
-        v = f(item)
-        if v is not None:
-            return v, offset
-    raise SyntaxError("can't parse %s at %d" % (item, offset))
-
-
-def compile_list(sexp: str, offset):
+def tokenize_list(sexp: str, offset):
     c = sexp[offset]
     assert c == "("
     offset += 1
@@ -100,25 +124,36 @@ def compile_list(sexp: str, offset):
         if c == ")":
             return r, offset + 1
 
-        t, offset = compile_sexp(sexp, offset)
+        t, offset = tokenize_sexp(sexp, offset)
         r.append(t)
         offset = consume_whitespace(sexp, offset)
 
     raise SyntaxError("missing )")
 
 
-def compile_sexp(sexp: str, offset=0):
+def tokenize_atom(sexp: str, offset):
+    c = sexp[offset]
+    if c in "\'\"":
+        return tokenize_str(sexp, offset)
+
+    item, offset = consume_until_whitespace(sexp, offset)
+    return item, offset
+
+
+def tokenize_sexp(sexp: str, offset: int):
     offset = consume_whitespace(sexp, offset)
 
     if sexp[offset] == "(":
-        return compile_list(sexp, offset)
+        return tokenize_list(sexp, offset)
 
-    return compile_atom(sexp, offset)
+    return tokenize_atom(sexp, offset)
 
 
 def compile_text(program: str):
     "Read an expression from a string."
-    return wrap_blobs(compile_sexp(program)[0])
+    tokenized, offset = tokenize_sexp(program, 0)
+    compiled = compile_token(tokenized)
+    return wrap_blobs(compiled)
 
 
 def disassemble_unwrapped(form):

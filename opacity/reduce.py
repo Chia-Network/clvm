@@ -97,6 +97,13 @@ def do_equal(form, bindings):
     return int_to_bytes(0 if any(_ != items[0] for _ in items[1:]) else 1)
 
 
+def do_reduce(form, bindings):
+    items = [reduce(_, bindings) for _ in form[1:]]
+    new_form = unwrap_blob(items[0])
+    new_bindings = unwrap_blob(items[1])
+    return reduce(new_form, new_bindings)
+
+
 def build_reduce_lookup(keyword_to_int):
     remap = {
         "+": do_add,
