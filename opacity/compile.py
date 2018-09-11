@@ -10,6 +10,13 @@ def b2h(the_bytes):
     return binascii.hexlify(the_bytes).decode("utf8")
 
 
+class Token(str):
+    def __new__(self, s, offset):
+        self = str.__new__(self, s)
+        self._offset = offset
+        return self
+
+
 class bytes_as_hex(bytes):
     def __str__(self):
         return "0x%s" % b2h(self)
@@ -38,7 +45,7 @@ def parse_as_hex(token):
         try:
             return bytes_as_hex(binascii.unhexlify(token[2:]))
         except Exception:
-            raise SyntaxError("invalid hex: %s" % token[2:])
+            raise SyntaxError("invalid hex at %d: %s" % (token._offset, token))
 
 
 def parse_as_var(token):
@@ -46,7 +53,7 @@ def parse_as_var(token):
         try:
             return Var(int(token[1:]))
         except Exception:
-            raise SyntaxError("invalid int: %s" % token[1:])
+            raise SyntaxError("invalid variable at %d: %s" % (token._offset, token))
 
 
 def consume_whitespace(sexp: str, offset):
@@ -65,15 +72,14 @@ def consume_until_whitespace(sexp: str, offset):
 def compile_atom(token):
     c = token[0]
     if c in "\'\"":
-        if c != token[-1] or len(token) < 2:
-            raise SyntaxError("unterminated string starting at %s" % token)
+        assert c == token[-1] and len(token) >= 2
         return token[1:-1].encode("utf8")
 
     for f in [parse_as_int, parse_as_var, parse_as_hex]:
         v = f(token)
         if v is not None:
             return v
-    raise SyntaxError("can't parse %s" % token)
+    raise SyntaxError("can't parse %s at %d" % (token, token._offset))
 
 
 def compile_list(tokens):
@@ -106,7 +112,8 @@ def tokenize_str(sexp: str, offset):
     while offset < len(sexp) and sexp[offset] != initial_c:
         offset += 1
     if offset < len(sexp):
-        return sexp[start:offset+1], offset + 1
+        token = Token(sexp[start:offset+1], start)
+        return token, offset + 1
     raise SyntaxError("unterminated string starting at %d: %s" % (start, sexp[start:]))
 
 
@@ -136,12 +143,16 @@ def tokenize_atom(sexp: str, offset):
     if c in "\'\"":
         return tokenize_str(sexp, offset)
 
+    start_offset = offset
     item, offset = consume_until_whitespace(sexp, offset)
-    return item, offset
+    return Token(item, start_offset), offset
 
 
 def tokenize_sexp(sexp: str, offset: int):
     offset = consume_whitespace(sexp, offset)
+
+    if sexp[offset] == ")":
+        raise SyntaxError("unexpected )")
 
     if sexp[offset] == "(":
         return tokenize_list(sexp, offset)

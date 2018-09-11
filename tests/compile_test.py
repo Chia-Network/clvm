@@ -201,6 +201,68 @@ def test_partial_bindings():
     assert v == "((equal 400 x7) (equal 600 x2))"
 
 
+def test_compile_unterminated_str():
+    script_source = "(equal 'foo 100)"
+    try:
+        script_bin = compile_text(script_source)
+        assert 0
+    except SyntaxError as ex:
+        msg = ex.msg
+        assert msg == "unterminated string starting at 7: 'foo 100)"
+
+
+def test_compile_invalid_hex():
+    for h in ["1009f", "1abefg"]:
+        script_source = "(equal x0 0x%s)" % h
+        try:
+            script_bin = compile_text(script_source)
+            assert 0
+        except SyntaxError as ex:
+            msg = ex.msg
+            assert msg == "invalid hex at 10: 0x%s" % h
+
+
+def test_compile_invalid_var():
+    for v in ["xa", "x10038k", "x"]:
+        script_source = "(equal x0 %s)" % v
+        try:
+            script_bin = compile_text(script_source)
+            assert 0
+        except SyntaxError as ex:
+            msg = ex.msg
+            assert msg == "invalid variable at 10: %s" % v
+
+
+def test_compile_missing_close_paren():
+    script_source = "(equal x0 100"
+    try:
+        script_bin = compile_text(script_source)
+        assert 0
+    except SyntaxError as ex:
+        msg = ex.msg
+        assert msg == "missing )"
+
+
+def test_compile_unexpected_close_paren():
+    script_source = ")"
+    try:
+        script_bin = compile_text(script_source)
+        assert 0
+    except SyntaxError as ex:
+        msg = ex.msg
+        assert msg == "unexpected )"
+
+
+def test_compile_unparsable():
+    script_source = "(foo bar)"
+    try:
+        script_bin = compile_text(script_source)
+        assert 0
+    except SyntaxError as ex:
+        msg = ex.msg
+        assert msg == "can't parse foo at 1"
+
+
 input = """(((equal x0 0x8020304055))  ; x0 is the public key
      ((equal (x1 (sha256 x2 consumed_path)))) (apply x2)
        ; x1 is the hash that includes x2
