@@ -124,7 +124,6 @@ def compile_macro(tokens):
 
     macro_declaration = tokens[1]
     macro_name = tokens[1][0]
-    var_indices_by_names = {v: k for (k, v) in enumerate(macro_declaration[1:])}
     return macro_name, {"template": tokens[2], "declaration": macro_declaration}
 
 
