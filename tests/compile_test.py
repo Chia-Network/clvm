@@ -2,7 +2,6 @@ import binascii
 import hashlib
 
 from opacity.compile import compile_text, disassemble
-from opacity.keywords import KEYWORD_TO_INT
 
 from opacity.serialize import unwrap_blob, wrap_blobs, Var
 from opacity.reduce import int_to_bytes, reduce
@@ -135,7 +134,8 @@ def test_apply():
 
 def test_p2sh():
     underlying_script = compile_text("((equal x0 500) (equal x1 600))")
-    script_source = "((equal (sha256 x1) 0x%s) (apply x0 x1))" % hashlib.sha256(underlying_script).hexdigest()
+    script_source = "((equal (sha256 x1) 0x%s) (apply x0 x1))" % hashlib.sha256(
+        underlying_script).hexdigest()
     bindings = [int_to_bytes(2), underlying_script, int_to_bytes(500), int_to_bytes(600)]
     v = reduce(unwrap_blob(compile_text(script_source)), bindings)
     assert v == int_to_bytes(1)
@@ -204,7 +204,7 @@ def test_partial_bindings():
 def test_compile_unterminated_str():
     script_source = "(equal 'foo 100)"
     try:
-        script_bin = compile_text(script_source)
+        compile_text(script_source)
         assert 0
     except SyntaxError as ex:
         msg = ex.msg
@@ -215,7 +215,7 @@ def test_compile_invalid_hex():
     for h in ["1009f", "1abefg"]:
         script_source = "(equal x0 0x%s)" % h
         try:
-            script_bin = compile_text(script_source)
+            compile_text(script_source)
             assert 0
         except SyntaxError as ex:
             msg = ex.msg
@@ -226,7 +226,7 @@ def test_compile_invalid_var():
     for v in ["xa", "x10038k", "x"]:
         script_source = "(equal x0 %s)" % v
         try:
-            script_bin = compile_text(script_source)
+            compile_text(script_source)
             assert 0
         except SyntaxError as ex:
             msg = ex.msg
@@ -236,7 +236,7 @@ def test_compile_invalid_var():
 def test_compile_missing_close_paren():
     script_source = "(equal x0 100"
     try:
-        script_bin = compile_text(script_source)
+        compile_text(script_source)
         assert 0
     except SyntaxError as ex:
         msg = ex.msg
@@ -246,7 +246,7 @@ def test_compile_missing_close_paren():
 def test_compile_unexpected_close_paren():
     script_source = ")"
     try:
-        script_bin = compile_text(script_source)
+        compile_text(script_source)
         assert 0
     except SyntaxError as ex:
         msg = ex.msg
@@ -256,11 +256,18 @@ def test_compile_unexpected_close_paren():
 def test_compile_unparsable():
     script_source = "(foo bar)"
     try:
-        script_bin = compile_text(script_source)
+        compile_text(script_source)
         assert 0
     except SyntaxError as ex:
         msg = ex.msg
         assert msg == "can't parse foo at 1"
+
+
+def test_compile_macro():
+    script_source = "((macro (foo a b c) (equal a (+ b c))) (foo 15 5 10) (foo 50 40 30))"
+    script_bin = compile_text(script_source)
+    v = disassemble(script_bin)
+    assert v == "(() (equal 15 (+ 5 10)) (equal 50 (+ 40 30)))"
 
 
 input = """(((equal x0 0x8020304055))  ; x0 is the public key

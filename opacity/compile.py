@@ -105,6 +105,44 @@ def compile_token(token):
     return compile_list(token)
 
 
+def expand_macro(tokens, macro_info):
+
+    def expand(template, lookup):
+        if isinstance(template, list):
+            return [expand(_, lookup) for _ in template]
+        return lookup.get(template, template)
+
+    lookup = dict(zip(macro_info["declaration"][1:], tokens[1:]))
+
+    return expand(macro_info["template"], lookup)
+
+
+def compile_macro(tokens):
+    # (macro (macroname var0 var1 ...) (expansion))
+    if len(tokens) != 3 or any(not isinstance(_, list) for _ in tokens[1:]):
+        raise SyntaxError("macro requires exactly two list parameters")
+
+    macro_declaration = tokens[1]
+    macro_name = tokens[1][0]
+    var_indices_by_names = {v: k for (k, v) in enumerate(macro_declaration[1:])}
+    return macro_name, {"template": tokens[2], "declaration": macro_declaration}
+
+
+def macro_expansion(token, macros):
+    if isinstance(token, list):
+        if len(token) > 0:
+            if token[0] == "macro":
+                name, macro = compile_macro(token)
+                macros[name] = macro
+                return []
+            if not isinstance(token[0], list):
+                macro = macros.get(token[0])
+                if macro:
+                    return expand_macro(token, macro)
+        return [macro_expansion(_, macros) for _ in token]
+    return token
+
+
 def tokenize_str(sexp: str, offset):
     start = offset
     initial_c = sexp[start]
@@ -163,6 +201,7 @@ def tokenize_sexp(sexp: str, offset: int):
 def compile_text(program: str):
     "Read an expression from a string."
     tokenized, offset = tokenize_sexp(program, 0)
+    tokenized = macro_expansion(tokenized, {})
     compiled = compile_token(tokenized)
     return wrap_blobs(compiled)
 
