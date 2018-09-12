@@ -130,16 +130,21 @@ def compile_macro(tokens):
 def macro_expansion(token, macros):
     if isinstance(token, list):
         if len(token) > 0:
-            if token[0] == "macro":
-                name, macro = compile_macro(token)
-                macros[name] = macro
-                return []
             if not isinstance(token[0], list):
                 macro = macros.get(token[0])
                 if macro:
                     return expand_macro(token, macro)
         return [macro_expansion(_, macros) for _ in token]
     return token
+
+
+def parse_macro_def(token, macros):
+    if not isinstance(token, list):
+        raise SyntaxError("macro expected, got %s" % token)
+    name, macro = compile_macro(token)
+    if name in macros:
+        raise SyntaxError("macro %s redefined" % name)
+    macros[name] = macro
 
 
 def tokenize_str(sexp: str, offset):
@@ -197,12 +202,24 @@ def tokenize_sexp(sexp: str, offset: int):
     return tokenize_atom(sexp, offset)
 
 
-def compile_text(program: str):
+def tokenize_program(sexp: str):
+    return tokenize_sexp(sexp, 0)[0]
+
+
+def compile_text(program: str, macros={}):
     "Read an expression from a string."
-    tokenized, offset = tokenize_sexp(program, 0)
-    tokenized = macro_expansion(tokenized, {})
+    tokenized = tokenize_program(program)
+    tokenized = macro_expansion(tokenized, macros)
     compiled = compile_token(tokenized)
     return wrap_blobs(compiled)
+
+
+def parse_macros(program: str, macros: dict=None):
+    if macros is None:
+        macros = {}
+    for macro_def in tokenize_program(program):
+        parse_macro_def(macro_def, macros)
+    return macros
 
 
 def disassemble_unwrapped(form):

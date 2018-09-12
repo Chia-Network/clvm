@@ -1,7 +1,7 @@
 import binascii
 import hashlib
 
-from opacity.compile import compile_text, disassemble
+from opacity.compile import compile_text, disassemble, parse_macros
 
 from opacity.serialize import unwrap_blob, wrap_blobs, Var
 from opacity.reduce import int_to_bytes, reduce
@@ -264,10 +264,12 @@ def test_compile_unparsable():
 
 
 def test_compile_macro():
-    script_source = "((macro (foo a b c) (equal a (+ b c))) (foo 15 5 10) (foo 50 40 30))"
-    script_bin = compile_text(script_source)
+    macro_source = "((macro (foo a b c) (equal a (+ b c))))"
+    macros = parse_macros(macro_source)
+    script_source = "((foo 15 5 10) (foo 50 40 30))"
+    script_bin = compile_text(script_source, macros)
     v = disassemble(script_bin)
-    assert v == "(() (equal 15 (+ 5 10)) (equal 50 (+ 40 30)))"
+    assert v == "((equal 15 (+ 5 10)) (equal 50 (+ 40 30)))"
 
 
 input = """(((equal x0 0x8020304055))  ; x0 is the public key
