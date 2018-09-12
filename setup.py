@@ -16,6 +16,7 @@ setup(
         'console_scripts':
             [
                 'opc = opacity.cmds:opc',
+                'opd = opacity.cmds:opd',
             ]
         },
     author_email="kiss@chia.net",
