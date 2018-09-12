@@ -1,9 +1,16 @@
-((macro
-    (sum_equals a b c)
-    (equal a (+ b c))
+(
+  (macro (pay_to_taproot P which_branch x1 x2 x3 x4 x5)
+    (
+        (choose1 which_branch
+         ((aggsig x1 x2) ; standard branch
+          (reduce x2 x3)
+         )
+         ((equal x4 (point_add x1 x3)) ; taproot branch
+          (equal x3 (pubkey_for_exp (hash x1 x2)))
+          (reduce x2 x5)
+         )
+         (equal x1 P) ; x1 = P1 = P + hash(P||S)
+        )
     )
- (macro
-    (increasing x y z)
-    (> x y z)
- )
+  )
 )

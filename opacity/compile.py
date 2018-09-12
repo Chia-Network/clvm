@@ -57,8 +57,16 @@ def parse_as_var(token):
 
 
 def consume_whitespace(sexp: str, offset):
-    while offset < len(sexp) and sexp[offset].isspace():
-        offset += 1
+    """
+    This also deals with comments.
+    """
+    while True:
+        while offset < len(sexp) and sexp[offset].isspace():
+            offset += 1
+        if offset >= len(sexp) or sexp[offset] != ";":
+            break
+        while offset < len(sexp) and sexp[offset] not in "\n\r":
+            offset += 1
     return offset
 
 
@@ -190,11 +198,15 @@ def tokenize_atom(sexp: str, offset):
     return Token(item, start_offset), offset
 
 
+def consume_to_eol(sexp:str, offset: int):
+    return offset
+
+
 def tokenize_sexp(sexp: str, offset: int):
     offset = consume_whitespace(sexp, offset)
 
     if sexp[offset] == ")":
-        raise SyntaxError("unexpected )")
+        raise SyntaxError("unexpected ) at %d" % offset)
 
     if sexp[offset] == "(":
         return tokenize_list(sexp, offset)

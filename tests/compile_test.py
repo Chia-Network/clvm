@@ -1,7 +1,7 @@
 import binascii
 import hashlib
 
-from opacity.compile import compile_text, disassemble, parse_macros
+from opacity.compile import compile_text, disassemble, parse_macros, tokenize_program
 
 from opacity.serialize import unwrap_blob, wrap_blobs, Var
 from opacity.reduce import int_to_bytes, reduce
@@ -201,6 +201,12 @@ def test_partial_bindings():
     assert v == "((equal 400 x7) (equal 600 x2))"
 
 
+def test_tokenize_comments():
+    script_source = "(equal 7 (+ 5 ;foo bar\n   2))"
+    t = tokenize_program(script_source)
+    assert t == ["equal", "7", ["+", "5", "2"]]
+
+
 def test_compile_unterminated_str():
     script_source = "(equal 'foo 100)"
     try:
@@ -250,7 +256,7 @@ def test_compile_unexpected_close_paren():
         assert 0
     except SyntaxError as ex:
         msg = ex.msg
-        assert msg == "unexpected )"
+        assert msg == "unexpected ) at 0"
 
 
 def test_compile_unparsable():
