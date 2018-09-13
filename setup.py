@@ -17,6 +17,7 @@ setup(
             [
                 'opc = opacity.cmds:opc',
                 'opd = opacity.cmds:opd',
+                'reduce = opacity.cmds:reduce',
             ]
         },
     author_email="kiss@chia.net",

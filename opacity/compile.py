@@ -126,13 +126,13 @@ def expand_macro(tokens, macro_info):
 
 
 def compile_macro(tokens):
-    # (macro (macroname var0 var1 ...) (expansion))
-    if len(tokens) != 3 or any(not isinstance(_, list) for _ in tokens[1:]):
-        raise SyntaxError("macro requires exactly two list parameters")
+    # (macro (macroname var0 var1 ...) (expansion_term_0) (expansion_term_1)... )
+    if len(tokens) < 3:
+        raise SyntaxError("macro requires at least three list parameters")
 
     macro_declaration = tokens[1]
     macro_name = tokens[1][0]
-    return macro_name, {"template": tokens[2], "declaration": macro_declaration}
+    return macro_name, {"template": tokens[2:], "declaration": macro_declaration}
 
 
 def macro_expansion(token, macros):
@@ -141,7 +141,10 @@ def macro_expansion(token, macros):
             if not isinstance(token[0], list):
                 macro = macros.get(token[0])
                 if macro:
-                    return expand_macro(token, macro)
+                    r = []
+                    for item in expand_macro(token, macro):
+                        r.extend(item)
+                    return r
         return [macro_expansion(_, macros) for _ in token]
     return token
 
@@ -234,17 +237,18 @@ def parse_macros(program: str, macros: dict=None):
     return macros
 
 
-def disassemble_unwrapped(form):
+def disassemble_unwrapped(form, is_first_element=False):
 
     if isinstance(form, list):
-        return "(%s)" % ' '.join(str(disassemble_unwrapped(_)) for _ in form)
+        return "(%s)" % ' '.join(str(disassemble_unwrapped(f, _ == 0)) for _, f in enumerate(form))
 
     if isinstance(form, Var):
         return "x%d" % form.index
 
     if isinstance(form, int):
-        if form < len(KEYWORD_FROM_INT):
+        if is_first_element and form < len(KEYWORD_FROM_INT):
             return KEYWORD_FROM_INT[form]
+        return form
 
     if len(form) > 4:
         return bytes_as_hex(form)

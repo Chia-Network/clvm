@@ -4,6 +4,8 @@ import hashlib
 import sys
 
 from .compile import compile_text, disassemble, parse_macros
+from .reduce import reduce as do_reduce
+from .serialize import unwrap_blob, wrap_blobs
 
 
 def opc(args=sys.argv):
@@ -18,6 +20,7 @@ def opc(args=sys.argv):
     parser.add_argument(
         "-m", "--macro", action="append", type=textfile, help="Path to preprocessing macro file")
     parser.add_argument("-c", "--code", action="append", help="Literal code to compile")
+    parser.add_argument("-s", "--script_hash", action="store_true", help="Show sha256 script hash")
     parser.add_argument("path", nargs="*", type=textfile, help="path opacity script")
     args = parser.parse_args(args=args[1:])
 
@@ -28,7 +31,8 @@ def opc(args=sys.argv):
     for text in (args.code or []) + args.path:
         compiled_script = compile_text(text, macros)
         script_hash = hashlib.sha256(compiled_script).hexdigest()
-        print(script_hash)
+        if args.script_hash:
+            print(script_hash)
         print(binascii.hexlify(compiled_script).decode())
 
 
@@ -43,6 +47,20 @@ def opd(args=sys.argv):
     for blob in args.hexstring:
         text = disassemble(blob)
         print(text)
+
+
+def reduce(args=sys.argv):
+    parser = argparse.ArgumentParser(
+        description='Reduce an opacity script.'
+    )
+    parser.add_argument(
+        "script_hex", type=binascii.unhexlify, help="hex version of script")
+    parser.add_argument(
+        "solution_hex", type=binascii.unhexlify, help="hex version of solution")
+    args = parser.parse_args(args=args[1:])
+
+    reductions = do_reduce(unwrap_blob(args.script_hex), unwrap_blob(args.solution_hex))
+    print(disassemble(wrap_blobs(reductions)))
 
 
 """

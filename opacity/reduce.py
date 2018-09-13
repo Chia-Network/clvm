@@ -104,6 +104,10 @@ def do_reduce(form, bindings):
     return reduce(new_form, new_bindings)
 
 
+def do_recursive_reduce(form, bindings):
+    return form[:1] + [reduce(_, bindings) for _ in form[1:]]
+
+
 def build_reduce_lookup(keyword_to_int):
     remap = {
         "+": do_add,
@@ -114,7 +118,7 @@ def build_reduce_lookup(keyword_to_int):
         if k in remap:
             d[i] = remap[k]
         else:
-            d[i] = g.get("do_%s" % k, do_nop)
+            d[i] = g.get("do_%s" % k, do_recursive_reduce)
     return d
 
 

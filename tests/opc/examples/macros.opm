@@ -1,16 +1,51 @@
 (
-  (macro (pay_to_taproot P which_branch x1 x2 x3 x4 x5)
-    (
-        (choose1 which_branch
-         ((aggsig x1 x2) ; standard branch
-          (reduce x2 x3)
-         )
-         ((equal x4 (point_add x1 x3)) ; taproot branch
-          (equal x3 (pubkey_for_exp (hash x1 x2)))
-          (reduce x2 x5)
-         )
-         (equal x1 P) ; x1 = P1 = P + hash(P||S)
+    (macro (pay_to_taproot P x_which_branch x1 x2 x3 x4 x5)
+        (choose1 x_which_branch
+            ((aggsig x1 x2) ; standard branch
+             (reduce x2 x3)
+            )
+            ((equal x4 (point_add x1 x3)) ; taproot branch
+             (equal x3 (pubkey_for_exp (hash x1 x2)))
+             (reduce x2 x5)
+            )
+            (equal x1 P) ; x1 = P1 = P + hash(P||S)
         )
     )
-  )
+    (macro (pay_to_pubkey pubkey signed_script signed_script_solution)
+        (aggsig pubkey signed_script) (reduce signed_script signed_script_solution)
+    )
+
+    (macro (pay-to-hash x10 x0 x1)
+        (reduce x0 x1)
+        (equal (hash x0) x10)
+    )
+
+    (macro (timelock x_branch_chosen deadline pretimelock_condition)
+        (choose1
+            x_branch_chosen
+            (
+                pretimelock_condition
+                (assert_confirm_timestamp_exceeds deadline)
+            )
+        )
+    )
+
+    (macro (enforce-clawback-timelock x0 x1 x2 x3 x4 delay clawback_script)
+        (is_equal (current_input) (make_input x0 x1 x2))
+        (assert_output (make_output (
+            x3
+            (hash
+                (compile
+                    (choose1 x0
+                        (
+                            (assert_confirm_timestamp_exceeds delay)
+                            (unescape x4)
+                        )
+                        clawback_script
+                    )
+                )
+            )
+            x2)
+        ))
+    )
 )
