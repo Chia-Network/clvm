@@ -328,7 +328,7 @@ This will allow the script to be hidden as a preimage of a hash until the coins 
 This is another good candidate for a macro.
 
 ```scheme
-  (macro pay-to-hash (x10 x0 x1)
+  (macro (pay-to-hash x10 x0 x1)
     (reduce x0 x1)
     (equal (hash x0) x10)
   )
@@ -381,7 +381,7 @@ A test of the completeness of a system to encumber funds is to determine how to 
 We define a macro which will be useful for contracts that have two cases: a "payable now" clause and a "payable after time T" clause.
 
 ```scheme
-  (macro timelock (x0 x1 x2)
+  (macro (timelock x0 x1 x2)
     (choose1
       x0
       (
@@ -479,22 +479,24 @@ This is pretty confusing due to name collision. One thing to note is that the in
 We create a macro to encapsulate this functionality too.
 
 ```scheme
-(macro enforce-clawback-timelock (x0 x1 x2 x3 x4 delay clawback_script))
-  (is_equal (current_input) (make_input x0 x1 x2))
-  (assert_output (make_output (
-    x3
-    (hash
-      (compile
-        (choose1 x0
-          (
-            (assert_confirm_timestamp_exceeds delay)
-            (unescape x4)
+(macro (enforce-clawback-timelock x0 x1 x2 x3 x4 delay clawback_script))
+  (
+    (is_equal (current_input) (make_input x0 x1 x2))
+    (assert_output (make_output (
+      x3
+      (hash
+        (compile
+          (choose1 x0
+            (
+              (assert_confirm_timestamp_exceeds delay)
+              (unescape x4)
+            )
+            clawback_script
           )
-          clawback_script
         )
       )
-    )
-    x2)))
+      x2)))
+  )
 )
 ```
 
