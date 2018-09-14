@@ -2,7 +2,7 @@
 
 import binascii
 
-from .serialize import unwrap_blob, wrap_blobs, Var
+from .serialize import unwrap_blob, wrap_blobs, Var, sexp_from_keyword
 from .keywords import KEYWORD_FROM_INT, KEYWORD_TO_INT
 
 
@@ -28,16 +28,9 @@ class bytes_as_hex(bytes):
 def parse_as_int(token):
     try:
         v = int(token)
-        byte_count = (v.bit_length() + 7) >> 3
-        return v.to_bytes(byte_count, "big", signed=True)
+        return v
     except (ValueError, TypeError):
         pass
-
-
-def parse_as_keyword(token):
-    v = KEYWORD_TO_INT.get(token.lower())
-    if v is not None:
-        return v
 
 
 def parse_as_hex(token):
@@ -95,10 +88,10 @@ def compile_list(tokens):
         return []
 
     r = []
-    if isinstance(tokens[0], str):
+    if not isinstance(tokens[0], list):
         keyword = KEYWORD_TO_INT.get(tokens[0].lower())
         if keyword:
-            r.append(keyword)
+            r.append(sexp_from_keyword(keyword))
             tokens = tokens[1:]
 
     for token in tokens:
@@ -201,10 +194,6 @@ def tokenize_atom(sexp: str, offset):
     return Token(item, start_offset), offset
 
 
-def consume_to_eol(sexp:str, offset: int):
-    return offset
-
-
 def tokenize_sexp(sexp: str, offset: int):
     offset = consume_whitespace(sexp, offset)
 
@@ -239,21 +228,20 @@ def parse_macros(program: str, macros: dict=None):
 
 def disassemble_unwrapped(form, is_first_element=False):
 
-    if isinstance(form, list):
-        return "(%s)" % ' '.join(str(disassemble_unwrapped(f, _ == 0)) for _, f in enumerate(form))
+    if form.is_list():
+        return "(%s)" % ' '.join(str(disassemble_unwrapped(f, _ == 0)) for _, f in enumerate(
+            form.as_list()))
 
-    if isinstance(form, Var):
-        return "x%d" % form.index
+    if form.is_var():
+        return "x%d" % form.var_index()
 
-    if isinstance(form, int):
-        if is_first_element and form < len(KEYWORD_FROM_INT):
-            return KEYWORD_FROM_INT[form]
-        return form
+    if is_first_element and form.as_keyword_index() < len(KEYWORD_FROM_INT):
+        return KEYWORD_FROM_INT[form.as_keyword_index()]
 
-    if len(form) > 4:
-        return bytes_as_hex(form)
+    if len(form.as_bytes()) > 4:
+        return bytes_as_hex(form.as_bytes())
 
-    return str(int.from_bytes(form, "big", signed=True))
+    return str(form.as_int())
 
 
 def disassemble(blob):

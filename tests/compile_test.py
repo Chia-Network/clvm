@@ -4,7 +4,7 @@ import hashlib
 from opacity.compile import compile_text, disassemble, parse_macros, tokenize_program
 
 from opacity.serialize import unwrap_blob, wrap_blobs, Var
-from opacity.reduce import int_to_bytes, reduce
+from opacity.reduce import reduce
 
 
 def test_1():
@@ -36,8 +36,8 @@ def test_simple_add():
     t = disassemble(script_bin)
     assert t == script_source
     form = unwrap_blob(script_bin)
-    v = reduce(form, {})
-    assert v == int_to_bytes(30)
+    v = reduce(form, [])
+    assert v == 30
 
 
 def test_var_binding():
@@ -84,65 +84,65 @@ def test_sha256():
 
 def test_nested():
     script_source = "(+ (+ 5 x0) x1)"
-    v = reduce(unwrap_blob(compile_text(script_source)), [int_to_bytes(9), int_to_bytes(1000)])
-    assert v == int_to_bytes(1014)
+    v = reduce(unwrap_blob(compile_text(script_source)), [9, 1000])
+    assert v == 1014
 
 
 def test_implicit_and():
     script_source = "(1 2 3)"
     v = reduce(unwrap_blob(compile_text(script_source)), [])
-    assert v == int_to_bytes(1)
+    assert v == 1
 
     script_source = "(1 0 3)"
     v = reduce(unwrap_blob(compile_text(script_source)), [])
-    assert v == int_to_bytes(0)
+    assert v == 0
 
     script_source = "(0 1 3)"
     v = reduce(unwrap_blob(compile_text(script_source)), [])
-    assert v == int_to_bytes(0)
+    assert v == 0
 
 
 def test_equal():
     script_source = "(equal 2 3)"
     v = reduce(unwrap_blob(compile_text(script_source)), [])
-    assert v == int_to_bytes(0)
+    assert v == 0
 
     script_source = "(equal 3 3)"
     v = reduce(unwrap_blob(compile_text(script_source)), [])
-    assert v == int_to_bytes(1)
+    assert v == 1
 
     script_source = "(equal x0 (+ x1 x2))"
-    v = reduce(unwrap_blob(compile_text(script_source)), [int_to_bytes(_) for _ in [7, 3, 4]])
-    assert v == int_to_bytes(1)
+    v = reduce(unwrap_blob(compile_text(script_source)), [7, 3, 4])
+    assert v == 1
 
     script_source = "(equal x0 (+ x1 x2))"
-    v = reduce(unwrap_blob(compile_text(script_source)), [int_to_bytes(_) for _ in [7, 3, 3]])
-    assert v == int_to_bytes(0)
+    v = reduce(unwrap_blob(compile_text(script_source)), [7, 3, 3])
+    assert v == 0
 
 
 def test_apply():
     script_source = "((equal x1 500) (equal x2 600) (apply 1 x0))"
 
-    bindings = [compile_text("(equal x1 600)"), int_to_bytes(500), int_to_bytes(600)]
+    bindings = [compile_text("(equal x1 600)"), 500, 600]
     v = reduce(unwrap_blob(compile_text(script_source)), bindings)
-    assert v == int_to_bytes(1)
+    assert v == 1
 
-    bindings = [compile_text("(equal x1 600)"), int_to_bytes(500), int_to_bytes(700)]
+    bindings = [compile_text("(equal x1 600)"), 500, 700]
     v = reduce(unwrap_blob(compile_text(script_source)), bindings)
-    assert v == int_to_bytes(0)
+    assert v == 0
 
 
 def test_p2sh():
     underlying_script = compile_text("((equal x0 500) (equal x1 600))")
     script_source = "((equal (sha256 x1) 0x%s) (apply x0 x1))" % hashlib.sha256(
         underlying_script).hexdigest()
-    bindings = [int_to_bytes(2), underlying_script, int_to_bytes(500), int_to_bytes(600)]
+    bindings = [2, underlying_script, 500, 600]
     v = reduce(unwrap_blob(compile_text(script_source)), bindings)
-    assert v == int_to_bytes(1)
+    assert v == 1
 
-    bindings[-1] = int_to_bytes(599)
+    bindings[-1] = 599
     v = reduce(unwrap_blob(compile_text(script_source)), bindings)
-    assert v == int_to_bytes(0)
+    assert v == 0
 
 
 def test_top_level_script():
@@ -150,53 +150,53 @@ def test_top_level_script():
     script_bin = compile_text(script_source)
     underlying_script = compile_text("((equal x0 500) (equal x1 600) (equal x2 (+ x0 x1)))")
     p2sh = hashlib.sha256(underlying_script).digest()
-    bindings = [p2sh, underlying_script] + [int_to_bytes(_) for _ in [500, 600, 1100]]
+    bindings = [p2sh, underlying_script, 500, 600, 1100]
     v = reduce(unwrap_blob(script_bin), bindings)
-    assert v == int_to_bytes(1)
+    assert v == 1
 
-    bindings = [p2sh, underlying_script] + [int_to_bytes(_) for _ in [500, 600, 1101]]
+    bindings = [p2sh, underlying_script, 500, 600, 1101]
     v = reduce(unwrap_blob(script_bin), bindings)
-    assert v == int_to_bytes(0)
+    assert v == 0
 
 
 def test_choose1():
     script_source = "(choose1 x0 (equal 500 x1) (equal 600 x1))"
     script_bin = compile_text(script_source)
 
-    bindings = [int_to_bytes(_) for _ in [0, 500]]
+    bindings = [0, 500]
     v = reduce(unwrap_blob(script_bin), bindings)
-    assert v == int_to_bytes(1)
+    assert v == 1
 
-    bindings = [int_to_bytes(_) for _ in [0, 600]]
+    bindings = [0, 600]
     v = reduce(unwrap_blob(script_bin), bindings)
-    assert v == int_to_bytes(0)
+    assert v == 0
 
-    bindings = [int_to_bytes(_) for _ in [1, 600]]
+    bindings = [1, 600]
     v = reduce(unwrap_blob(script_bin), bindings)
-    assert v == int_to_bytes(1)
+    assert v == 1
 
-    bindings = [int_to_bytes(_) for _ in [1, 500]]
+    bindings = [1, 500]
     v = reduce(unwrap_blob(script_bin), bindings)
-    assert v == int_to_bytes(0)
+    assert v == 0
 
-    bindings = [int_to_bytes(_) for _ in [-20, 500]]
+    bindings = [-20, 500]
     v = reduce(unwrap_blob(script_bin), bindings)
-    assert v == int_to_bytes(0)
+    assert v == 0
 
-    bindings = [int_to_bytes(_) for _ in [-20, 600]]
+    bindings = [-20, 600]
     v = reduce(unwrap_blob(script_bin), bindings)
-    assert v == int_to_bytes(0)
+    assert v == 0
 
 
 def test_partial_bindings():
     script_source = "((equal 400 x0) (equal 500 x1) (equal 600 x2))"
     script_bin = compile_text(script_source)
 
-    bindings = [int_to_bytes(400)]
+    bindings = [400]
     v = disassemble(wrap_blobs(reduce(unwrap_blob(script_bin), bindings)))
     assert v == "((equal 500 x1) (equal 600 x2))"
 
-    bindings = [Var(7), int_to_bytes(500)]
+    bindings = [Var(7), 500]
     v = disassemble(wrap_blobs(reduce(unwrap_blob(script_bin), bindings)))
     assert v == "((equal 400 x7) (equal 600 x2))"
 

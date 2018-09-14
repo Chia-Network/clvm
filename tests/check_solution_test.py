@@ -15,7 +15,7 @@ def test_check_solution_1():
     underlying_solution = compile_text("(100)")
     solution_blob = wrap_blobs([compiled_script, underlying_solution])
     r = check_solution(script_hash, solution_blob)
-    assert r == b'\1'
+    assert r == 1
 
 
 def test_check_solution_2():
@@ -27,4 +27,4 @@ def test_check_solution_2():
     underlying_solution = compile_text("(30 17 13)")
     solution_blob = wrap_blobs([compiled_script, underlying_solution])
     r = check_solution(script_hash, solution_blob)
-    assert r == b'\1'
+    assert r == 1
