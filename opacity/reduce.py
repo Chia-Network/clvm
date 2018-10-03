@@ -79,8 +79,8 @@ def do_equal(form, bindings):
 
 def do_reduce(form, bindings):
     items = [reduce(_, bindings) for _ in form[1:]]
-    new_form = unwrap_blob(items[0])
-    new_bindings = unwrap_blob(items[1])
+    new_form = unwrap_blob(items[0].as_bytes())
+    new_bindings = unwrap_blob(items[1].as_bytes())
     return reduce(new_form, new_bindings)
 
 

@@ -11,7 +11,7 @@ def test_1():
     pubkey_text = hashlib.sha256(b'').hexdigest()
     input = "(((equal (sha256 x0) 0x%s)) (apply x0))" % pubkey_text
     result = compile_text(input)
-    d = binascii.unhexlify("929193089209ffda0020%s9204ff" % pubkey_text)
+    d = binascii.unhexlify("828183088209c06020%s8204c0" % pubkey_text)
     assert result == d
     t = disassemble(result)
     assert t == input
@@ -89,15 +89,15 @@ def test_nested():
 
 
 def test_implicit_and():
-    script_source = "(1 2 3)"
+    script_source = "((equal 1 1) (equal 2 2) (equal 3 3))"
     v = reduce(unwrap_blob(compile_text(script_source)), [])
     assert v == 1
 
-    script_source = "(1 0 3)"
+    script_source = "((equal 1 1) (equal 2 4) (equal 3 3))"
     v = reduce(unwrap_blob(compile_text(script_source)), [])
     assert v == 0
 
-    script_source = "(0 1 3)"
+    script_source = "((equal 1 2) (equal 2 2) (equal 3 3))"
     v = reduce(unwrap_blob(compile_text(script_source)), [])
     assert v == 0
 

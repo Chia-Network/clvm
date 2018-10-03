@@ -1,8 +1,7 @@
 import enum
+import io
 
 from dataclasses import dataclass
-
-import msgpack
 
 
 from .keywords import KEYWORD_FROM_INT
@@ -21,9 +20,9 @@ def int_from_bytes(blob):
 
 
 def int_to_bytes(v):
-    byte_count = (v.bit_length() + 7) >> 3
+    byte_count = (v.bit_length() + 8) >> 3
     if byte_count > 16:
-        v = 0
+        raise ValueError("int too large: %d" % v)
     if v == 0:
         return b''
     return v.to_bytes(byte_count, "big", signed=True)
@@ -49,7 +48,7 @@ def sexp_from_int(v):
 
 
 def sexp_from_keyword(v):
-    return SExp(v, ATOM_TYPES.KEYWORD)
+    return sexp_from_int(v)
 
 
 @dataclass
@@ -61,21 +60,20 @@ class SExp:
         return self.type == ATOM_TYPES.VAR
 
     def is_bytes(self):
-        return self.type == ATOM_TYPES["BLOB"]
+        return self.type == ATOM_TYPES.BLOB
 
     def is_list(self):
-        return self.type == ATOM_TYPES["LIST"]
+        return self.type == ATOM_TYPES.LIST
 
     def is_keyword(self):
-        return self.type == ATOM_TYPES.KEYWORD
+        return self.is_bytes()
 
     def var_index(self):
         if self.is_var():
             return self.item
 
     def as_keyword_index(self):
-        if self.is_keyword():
-            return self.item
+        return self.as_int()
 
     def as_int(self):
         if self.is_bytes():
@@ -175,9 +173,106 @@ def cs_types_to_msgpack_types(t):
     assert 0
 
 
+def encode_size(initial_byte_mask, initial_bit, size, f):
+    size_bit_length = size.bit_length() or 1
+
+    bits_allocated = (initial_bit-1).bit_length()
+    while bits_allocated < size_bit_length:
+        initial_byte_mask |= initial_bit
+        initial_bit >>= 1
+        bits_allocated += 7
+
+    encoded_size_bytes = bytearray(size.to_bytes((bits_allocated+7) >> 3, "big", signed=False))
+
+    # it fits just fine
+    encoded_size_bytes[0] |= initial_byte_mask
+    f.write(encoded_size_bytes)
+    return
+
+
+def to_stream(v, f):
+    if v.is_bytes():
+        blob = v.as_bytes()
+        size = len(blob)
+        if size == 0:
+            f.write(b'\0')
+            return
+        if size == 1:
+            v1 = v.as_int()
+            if v1 and abs(v1) <= 31:
+                f.write(bytes([v1 & 0x3f]))
+                return
+        encode_size(0x40, 0x20, size, f)
+        f.write(blob)
+        return
+
+    if v.is_list():
+        items = v.as_list()
+        encode_size(0x80, 0x20, len(items), f)
+        for _ in items:
+            to_stream(_, f)
+        return
+
+    if v.is_var():
+        encode_size(0x80 + 0x40, 0x20, v.var_index(), f)
+        return
+
+    assert 0
+
+
+def decode_size(v, current_bit, f):
+    count = 0
+    while v & current_bit:
+        count += 1
+        current_bit >>= 1
+        if current_bit == 0:
+            v = f.read(1)[0]
+            current_bit = 0x80
+    mask = current_bit * 2 - 1
+    v &= mask
+    for _ in range(count):
+        v <<= 8
+        v += f.read(1)[0]
+    return v
+
+
+def from_stream(f):
+    v = f.read(1)[0]
+    if v == 0:
+        return sexp_from_bytes(b'')
+    if v & 0x80 == 0:
+        # it's a blob
+        if v & 0x40 == 0:
+            # it's encoded here
+            k = v & 0x3f
+            if k & 0x20 != 0:
+                k = k - 64
+            return sexp_from_int(k)
+        size = decode_size(v, 0x20, f)
+        blob = f.read(size)
+        return sexp_from_bytes(blob)
+
+    # it's a list or a Var
+    is_list = (v & 0x40 == 0)
+    size_or_index = decode_size(v, 0x20, f)
+    if is_list:
+        return sexp_from_list([from_stream(f) for _ in range(size_or_index)])
+    return sexp_from_var(size_or_index)
+
+
 def unwrap_blob(blob):
-    return msgpack_types_to_cs_types(msgpack.loads(from_sexp(blob)))
+    return from_stream(io.BytesIO(blob))
 
 
 def wrap_blobs(blob_list):
-    return msgpack.dumps(cs_types_to_msgpack_types(to_sexp(blob_list)))
+    f = io.BytesIO()
+    to_stream(to_sexp(blob_list), f)
+    return f.getvalue()
+
+
+def serialize_sexp(sexp):
+    return wrap_blobs(sexp)
+
+
+def deserialize_sexp(f):
+    return from_stream(f)
