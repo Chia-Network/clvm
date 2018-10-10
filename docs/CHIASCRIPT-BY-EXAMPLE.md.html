@@ -14,11 +14,12 @@ A puzzle script loosely represents boolean expressions in values `x0, x1, ... x_
 ```scheme
   100   ; two's complement integer, compiles to the binary blob `binascii.unhexlify("64")`
   0x64  ; also compiles to `binascii.unhexlify("64")`
+  0     ; an exception to integer streaming; compiles to the 0-length blob b''
   x1    ; the free variable x1
   x7    ; the free variable x7
 ```
 
-All atoms are typed as binary blobs.
+All atoms are typed as either binary blobs or variables (vars).
 
 
 ## Examples of lists
@@ -186,9 +187,8 @@ Taproot allows the script to be redeemed if either the condition `S` becomes tru
      ((aggsig x1 x2) ; standard branch
       (reduce x2 x3)
      )
-     ((equal x4 (point_add x1 x3)) ; taproot branch
-      (equal x3 (pubkey_for_exp (hash x1 x2)))
-      (reduce x2 x5)
+     ((equal x1 (point_add (pubkey_for_exp (hash x1 x2)) x4)) ; taproot branch
+      (reduce x2 x3)
      )
    )
    (equal x1 0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb) ; x1 = P1 = P + hash(P||S)
@@ -204,9 +204,8 @@ standard branch:
 
 taproot branch:
 - x2 = S
-- x3 = hash(P || S)
+- x3 = proof of S
 - x4 = P
-- x5 = proof of S
 
 The main benefit of Taproot is that contracts can be completely hidden. This benefit is largest when all users of pay-to-address use scripts of this form. Since this form is much larger than a simpler version, to encourage its use, we will need to provide a discount to scripts of this form.
 
@@ -215,17 +214,16 @@ The main benefit of Taproot is that contracts can be completely hidden. This ben
 
 Being LISP-ish, we can develop macros that do simple expansion in a pretty obvious way.
 
-Note that the free variables `x0`, `x1`, etc. here mean something different: they are string-substituted with the S-expressions passed in their place. Macros are evaulated at compile time, not at "run-time" (ie. when "reduce" is applied).
+Note that the free variables `x0`, `x1`, etc. here mean something different: they are string-substituted with the S-expressions passed in their place. Macros are evaulated at compile time, not at "run-time" (ie. when "reduce" is applied). For that reason, we can use names beyond variables (as we do with `P` in this example).
 
 ```scheme
-  (macro pay_to_taproot (P x0 x1 x2 x3 x4 x5)
+  (macro pay_to_taproot (P x0 x1 x2 x3 x4)
    (choose1 x0
      ((aggsig x1 x2) ; standard branch
       (reduce x2 x3)
      )
-     ((equal x4 (point_add x1 x3)) ; taproot branch
-      (equal x3 (pubkey_for_exp (hash x1 x2)))
-      (reduce x2 x5)
+     ((equal x1 (point_add (pubkey_for_exp (hash x1 x2)) x4)) ; taproot branch
+      (reduce x2 x3)
      )
    )
    (equal x1 P) ; x1 = P1 = P + hash(P||S)
@@ -235,12 +233,12 @@ Note that the free variables `x0`, `x1`, etc. here mean something different: the
 Then to expand a taproot branch, we can pass to the compiler
 
 ```scheme
-   (pay_to_taproot 0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb x0 x1 x2 x3 x4 x5 x6)
+   (pay_to_taproot 0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb x0 x1 x2 x3 x4)
 ```
 
 When compiling a statement, we now need a macro context. The compiler can decide for itself how it will do this.
 
-Macros don't decrease the size or complexity of a compiled script; their main goal is to improve readability for humans by hiding repeated details.
+Macros don't decrease the size or complexity of a compiled script; their main goal is to improve readability for humans by hiding repeated details or commonly-used structures.
 
 When using the taproot expansion from here on out, we will use this macro.
 
@@ -279,17 +277,17 @@ You could team this up with taproot, but notice the number of potential witnesse
 
 ```scheme
   (
-   (pay_to_taproot  x0  x1  x2  x3  x4  x5  x6  x7)
-   (pay_to_taproot  x8  x9 x10 x11 x12 x13 x14 x15)
-   (pay_to_taproot x16 x17 x18 x19 x20 x21 x22 x23)
-   (((not (equal x0 x8)) (not (equal x0 x16)) (not (equal x8 x16)))) ; ensure all pubkeys are different
+   (pay_to_taproot  x0  x1  x2  x3  x4  x5  x6)
+   (pay_to_taproot  x7  x8  x9 x10 x11 x12 x13)
+   (pay_to_taproot x14 x15 x16 x17 x18 x19 x20)
+   (((not (equal x0 x7)) (not (equal x0 x14)) (not (equal x7 x14)))) ; ensure all pubkeys are different
    (members (
      0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb
      0x020572cbea904d67468808c8eb5...ae28f75bb8f1c7c42c39a8c5529bf0f4e
      0x0309ece308f9d1f0131765212de...981747a0b2ca2179b96d2c0c9024e5224
      0x030c9b60d5afcbd5663a8a44b7c...97feb04decc694b13e08587f3ff9b5b60
      0x0210e7791fb972fe014159aa33a...7a91a8c46e59a00dca575af0f18fb13dc
-   ) x0 x3 x6)
+   ) x0 x7 x14)
   )
 ```
 
@@ -381,20 +379,22 @@ A test of the completeness of a system to encumber funds is to determine how to 
 We define a macro which will be useful for contracts that have two cases: a "payable now" clause and a "payable after time T" clause.
 
 ```scheme
-  (macro (timelock x0 x1 x2)
+  (macro (timelock x0 x1 x2 x3)
     (choose1
       x0
+      x1
       (
-        x1
-        (assert_confirm_timestamp_exceeds x2)
+        x2
+        (assert_confirm_timestamp_exceeds x3)
       )
     )
   )
 ```
 
-- `x0` = script for payable now
-- `x1` = script for payable after time T
-- `x2` = time T
+- `x0` = choice variable
+- `x1` = script for payable now
+- `x2` = script for payable after time T
+- `x3` = time T
 
 
 ### custody
@@ -596,5 +596,7 @@ Often, `e0` will be the constant hash expansion, which is an S-expression, so `e
 
 - a limit on how many opcodes are run as a function of fees, to remove potential denial-of-service attacks via repeated use of `(reduce x0 x1)`
 
+- how do we prevent infinite recursion on "reduce"?
+- maybe require the two parameters to reduce to be variables, so the size always decreases
 
 <!-- Markdeep: --><style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js?"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
