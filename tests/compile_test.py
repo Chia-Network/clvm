@@ -11,7 +11,7 @@ def test_1():
     pubkey_text = hashlib.sha256(b'').hexdigest()
     input = "(((equal (sha256 x0) 0x%s)) (apply x0))" % pubkey_text
     result = compile_text(input)
-    d = binascii.unhexlify("828183088209c06020%s8204c0" % pubkey_text)
+    d = binascii.unhexlify("2221230822094080%s220440" % pubkey_text)
     assert result == d
     t = disassemble(result)
     assert t == input

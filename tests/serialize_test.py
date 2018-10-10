@@ -13,7 +13,6 @@ class SerializeTest(unittest.TestCase):
         print("%s: %d %s %s" % (v, len(b), b, v1))
         if v != v1:
             print("%s: %s %s" % (v, b, v1))
-            v1 = deserialize_sexp(f)
         self.assertEqual(v, v1)
 
     def test_empty_string(self):

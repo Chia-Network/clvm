@@ -173,21 +173,11 @@ def cs_types_to_msgpack_types(t):
     assert 0
 
 
-def encode_size(initial_byte_mask, initial_bit, size, f):
-    size_bit_length = size.bit_length() or 1
-
-    bits_allocated = (initial_bit-1).bit_length()
-    while bits_allocated < size_bit_length:
-        initial_byte_mask |= initial_bit
-        initial_bit >>= 1
-        bits_allocated += 7
-
-    encoded_size_bytes = bytearray(size.to_bytes((bits_allocated+7) >> 3, "big", signed=False))
-
-    # it fits just fine
-    encoded_size_bytes[0] |= initial_byte_mask
-    f.write(encoded_size_bytes)
-    return
+def encode_size(f, size, step_size, base_byte_int):
+    assert size < step_size
+    step_count, remainder = divmod(size, step_size)
+    assert step_count == 0
+    f.write(bytes([base_byte_int+remainder]))
 
 
 def to_stream(v, f):
@@ -199,65 +189,55 @@ def to_stream(v, f):
             return
         if size == 1:
             v1 = v.as_int()
-            if v1 and abs(v1) <= 31:
+            if v1 and 0 < v1 <= 31:
                 f.write(bytes([v1 & 0x3f]))
                 return
-        encode_size(0x40, 0x20, size, f)
+        encode_size(f, size, 160, 0x60)
         f.write(blob)
         return
 
     if v.is_list():
         items = v.as_list()
-        encode_size(0x80, 0x20, len(items), f)
+        encode_size(f, len(items), 32, 0x20)
         for _ in items:
             to_stream(_, f)
         return
 
     if v.is_var():
-        encode_size(0x80 + 0x40, 0x20, v.var_index(), f)
+        encode_size(f, v.var_index(), 32, 0x40)
         return
 
     assert 0
 
 
-def decode_size(v, current_bit, f):
-    count = 0
-    while v & current_bit:
-        count += 1
-        current_bit >>= 1
-        if current_bit == 0:
-            v = f.read(1)[0]
-            current_bit = 0x80
-    mask = current_bit * 2 - 1
-    v &= mask
-    for _ in range(count):
-        v <<= 8
-        v += f.read(1)[0]
-    return v
+def decode_size(f):
+    v = f.read(1)[0]
+    if v == 0x60:
+        assert 0
+
+    return 0, v
 
 
 def from_stream(f):
-    v = f.read(1)[0]
+    steps, v = decode_size(f)
     if v == 0:
         return sexp_from_bytes(b'')
-    if v & 0x80 == 0:
-        # it's a blob
-        if v & 0x40 == 0:
-            # it's encoded here
-            k = v & 0x3f
-            if k & 0x20 != 0:
-                k = k - 64
-            return sexp_from_int(k)
-        size = decode_size(v, 0x20, f)
-        blob = f.read(size)
-        return sexp_from_bytes(blob)
 
-    # it's a list or a Var
-    is_list = (v & 0x40 == 0)
-    size_or_index = decode_size(v, 0x20, f)
-    if is_list:
-        return sexp_from_list([from_stream(f) for _ in range(size_or_index)])
-    return sexp_from_var(size_or_index)
+    if v < 0x20:
+        return sexp_from_bytes(bytes([v]))
+
+    if v < 0x40:
+        size = v - 0x20 + steps * 0x20
+        items = [from_stream(f) for _ in range(size)]
+        return sexp_from_list(items)
+
+    if v < 0x60:
+        index = v - 0x40 + steps * 160
+        return sexp_from_var(index)
+
+    size = v - 0x60 + steps * 160
+    blob = f.read(size)
+    return sexp_from_bytes(blob)
 
 
 def unwrap_blob(blob):

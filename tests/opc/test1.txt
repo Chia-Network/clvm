@@ -1,3 +1,3 @@
 opc -s -m tests/opc/examples/simple-macros.opm tests/opc/examples/equal.op
-f872652c318be817f7a6a7eeb52dff1a3a336b2c4e1561bdb0efb03010a7fe57
-83080f830b050a
+cff7f4d392baad4f32e38993998bf9ae5c53b9e0ef9924235af75d7db045d505
+23080f230b050a
