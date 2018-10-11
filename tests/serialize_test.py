@@ -1,21 +1,20 @@
 import io
 import unittest
 
-from opacity.serialize import Var, to_sexp, serialize_sexp, deserialize_sexp
+from opacity.serialize import Var, SExp, sexp_from_blob
 
 
 class SerializeTest(unittest.TestCase):
     def check_serde(self, s):
-        v = to_sexp(s)
-        b = serialize_sexp(v)
-        f = io.BytesIO(b)
-        v1 = deserialize_sexp(f)
+        v = SExp(s)
+        b = v.as_bin()
+        v1 = sexp_from_blob(b)
         if v != v1:
             print("%s: %d %s %s" % (v, len(b), b, v1))
             breakpoint()
             f = io.BytesIO(b)
-            b = serialize_sexp(v)
-            v1 = deserialize_sexp(f)
+            b = v.as_bin()
+            v1 = sexp_from_blob(f)
         self.assertEqual(v, v1)
 
     def test_empty_string(self):

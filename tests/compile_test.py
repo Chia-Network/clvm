@@ -3,7 +3,7 @@ import hashlib
 
 from opacity.compile import compile_text, disassemble, parse_macros, tokenize_program
 
-from opacity.serialize import unwrap_blob, wrap_blobs, Var
+from opacity.serialize import sexp_from_blob, Var
 from opacity.reduce import reduce
 
 
@@ -35,7 +35,7 @@ def test_simple_add():
     script_bin = compile_text(script_source)
     t = disassemble(script_bin)
     assert t == script_source
-    form = unwrap_blob(script_bin)
+    form = sexp_from_blob(script_bin)
     v = reduce(form, [])
     assert v == 30
 
@@ -45,7 +45,7 @@ def test_var_binding():
     script_bin = compile_text(script_source)
     t = disassemble(script_bin)
     assert t == script_source
-    form = unwrap_blob(script_bin)
+    form = sexp_from_blob(script_bin)
     blob = b"foobarbaz"
     v = reduce(form, [blob])
     assert v == blob
@@ -54,7 +54,7 @@ def test_var_binding():
     script_bin = compile_text(script_source)
     t = disassemble(script_bin)
     assert t == script_source
-    form = unwrap_blob(script_bin)
+    form = sexp_from_blob(script_bin)
     junk = b"junk"
     blob = b"foobarbaz"
     v = reduce(form, [junk, junk, junk, blob, junk])
@@ -68,55 +68,55 @@ def test_sha256():
     script_bin = compile_text(script_source)
     t = disassemble(script_bin)
     assert t == script_source
-    form = unwrap_blob(script_bin)
+    form = sexp_from_blob(script_bin)
     v = reduce(form, [blob])
     assert v == hashed_value
 
     s = blob.decode("utf8")
     script_source = "(sha256 '%s' '%s')" % (s[:3], s[3:])
-    v = reduce(unwrap_blob(compile_text(script_source)), [])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [])
     assert v == hashed_value
 
     script_source = "(sha256 x0 x1)"
-    v = reduce(unwrap_blob(compile_text(script_source)), [blob[:3], blob[3:]])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [blob[:3], blob[3:]])
     assert v == hashed_value
 
 
 def test_nested():
     script_source = "(+ (+ 5 x0) x1)"
-    v = reduce(unwrap_blob(compile_text(script_source)), [9, 1000])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [9, 1000])
     assert v == 1014
 
 
 def test_implicit_and():
     script_source = "((equal 1 1) (equal 2 2) (equal 3 3))"
-    v = reduce(unwrap_blob(compile_text(script_source)), [])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [])
     assert v == 1
 
     script_source = "((equal 1 1) (equal 2 4) (equal 3 3))"
-    v = reduce(unwrap_blob(compile_text(script_source)), [])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [])
     assert v == 0
 
     script_source = "((equal 1 2) (equal 2 2) (equal 3 3))"
-    v = reduce(unwrap_blob(compile_text(script_source)), [])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [])
     assert v == 0
 
 
 def test_equal():
     script_source = "(equal 2 3)"
-    v = reduce(unwrap_blob(compile_text(script_source)), [])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [])
     assert v == 0
 
     script_source = "(equal 3 3)"
-    v = reduce(unwrap_blob(compile_text(script_source)), [])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [])
     assert v == 1
 
     script_source = "(equal x0 (+ x1 x2))"
-    v = reduce(unwrap_blob(compile_text(script_source)), [7, 3, 4])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [7, 3, 4])
     assert v == 1
 
     script_source = "(equal x0 (+ x1 x2))"
-    v = reduce(unwrap_blob(compile_text(script_source)), [7, 3, 3])
+    v = reduce(sexp_from_blob(compile_text(script_source)), [7, 3, 3])
     assert v == 0
 
 
@@ -124,11 +124,11 @@ def test_apply():
     script_source = "((equal x1 500) (equal x2 600) (apply 1 x0))"
 
     bindings = [compile_text("(equal x1 600)"), 500, 600]
-    v = reduce(unwrap_blob(compile_text(script_source)), bindings)
+    v = reduce(sexp_from_blob(compile_text(script_source)), bindings)
     assert v == 1
 
     bindings = [compile_text("(equal x1 600)"), 500, 700]
-    v = reduce(unwrap_blob(compile_text(script_source)), bindings)
+    v = reduce(sexp_from_blob(compile_text(script_source)), bindings)
     assert v == 0
 
 
@@ -137,11 +137,11 @@ def test_p2sh():
     script_source = "((equal (sha256 x1) 0x%s) (apply x0 x1))" % hashlib.sha256(
         underlying_script).hexdigest()
     bindings = [2, underlying_script, 500, 600]
-    v = reduce(unwrap_blob(compile_text(script_source)), bindings)
+    v = reduce(sexp_from_blob(compile_text(script_source)), bindings)
     assert v == 1
 
     bindings[-1] = 599
-    v = reduce(unwrap_blob(compile_text(script_source)), bindings)
+    v = reduce(sexp_from_blob(compile_text(script_source)), bindings)
     assert v == 0
 
 
@@ -151,11 +151,11 @@ def test_top_level_script():
     underlying_script = compile_text("((equal x0 500) (equal x1 600) (equal x2 (+ x0 x1)))")
     p2sh = hashlib.sha256(underlying_script).digest()
     bindings = [p2sh, underlying_script, 500, 600, 1100]
-    v = reduce(unwrap_blob(script_bin), bindings)
+    v = reduce(sexp_from_blob(script_bin), bindings)
     assert v == 1
 
     bindings = [p2sh, underlying_script, 500, 600, 1101]
-    v = reduce(unwrap_blob(script_bin), bindings)
+    v = reduce(sexp_from_blob(script_bin), bindings)
     assert v == 0
 
 
@@ -164,27 +164,27 @@ def test_choose1():
     script_bin = compile_text(script_source)
 
     bindings = [0, 500]
-    v = reduce(unwrap_blob(script_bin), bindings)
+    v = reduce(sexp_from_blob(script_bin), bindings)
     assert v == 1
 
     bindings = [0, 600]
-    v = reduce(unwrap_blob(script_bin), bindings)
+    v = reduce(sexp_from_blob(script_bin), bindings)
     assert v == 0
 
     bindings = [1, 600]
-    v = reduce(unwrap_blob(script_bin), bindings)
+    v = reduce(sexp_from_blob(script_bin), bindings)
     assert v == 1
 
     bindings = [1, 500]
-    v = reduce(unwrap_blob(script_bin), bindings)
+    v = reduce(sexp_from_blob(script_bin), bindings)
     assert v == 0
 
     bindings = [-20, 500]
-    v = reduce(unwrap_blob(script_bin), bindings)
+    v = reduce(sexp_from_blob(script_bin), bindings)
     assert v == 0
 
     bindings = [-20, 600]
-    v = reduce(unwrap_blob(script_bin), bindings)
+    v = reduce(sexp_from_blob(script_bin), bindings)
     assert v == 0
 
 
@@ -193,11 +193,11 @@ def test_partial_bindings():
     script_bin = compile_text(script_source)
 
     bindings = [400]
-    v = disassemble(wrap_blobs(reduce(unwrap_blob(script_bin), bindings)))
+    v = disassemble((reduce(sexp_from_blob(script_bin), bindings)).as_bin())
     assert v == "((equal 500 x1) (equal 600 x2))"
 
     bindings = [Var(7), 500]
-    v = disassemble(wrap_blobs(reduce(unwrap_blob(script_bin), bindings)))
+    v = disassemble((reduce(sexp_from_blob(script_bin), bindings)).as_bin())
     assert v == "((equal 400 x7) (equal 600 x2))"
 
 

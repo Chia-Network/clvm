@@ -2,7 +2,7 @@
 
 import binascii
 
-from .serialize import unwrap_blob, wrap_blobs, Var, sexp_from_keyword
+from .serialize import sexp_from_blob, Var, SExp
 from .keywords import KEYWORD_FROM_INT, KEYWORD_TO_INT
 
 
@@ -28,7 +28,7 @@ class bytes_as_hex(bytes):
 def parse_as_int(token):
     try:
         v = int(token)
-        return v
+        return SExp(v)
     except (ValueError, TypeError):
         pass
 
@@ -36,7 +36,7 @@ def parse_as_int(token):
 def parse_as_hex(token):
     if token[:2].upper() == "0X":
         try:
-            return bytes_as_hex(binascii.unhexlify(token[2:]))
+            return SExp(bytes_as_hex(binascii.unhexlify(token[2:])))
         except Exception:
             raise SyntaxError("invalid hex at %d: %s" % (token._offset, token))
 
@@ -44,7 +44,7 @@ def parse_as_hex(token):
 def parse_as_var(token):
     if token[:1].upper() == "X":
         try:
-            return Var(int(token[1:]))
+            return SExp.from_var_index(int(token[1:]))
         except Exception:
             raise SyntaxError("invalid variable at %d: %s" % (token._offset, token))
 
@@ -74,7 +74,7 @@ def compile_atom(token):
     c = token[0]
     if c in "\'\"":
         assert c == token[-1] and len(token) >= 2
-        return token[1:-1].encode("utf8")
+        return SExp(token[1:-1].encode("utf8"))
 
     for f in [parse_as_int, parse_as_var, parse_as_hex]:
         v = f(token)
@@ -91,13 +91,13 @@ def compile_list(tokens):
     if not isinstance(tokens[0], list):
         keyword = KEYWORD_TO_INT.get(tokens[0].lower())
         if keyword:
-            r.append(sexp_from_keyword(keyword))
+            r.append(SExp(keyword))
             tokens = tokens[1:]
 
     for token in tokens:
         r.append(compile_token(token))
 
-    return r
+    return SExp(r)
 
 
 def compile_token(token):
@@ -215,7 +215,7 @@ def compile_text(program: str, macros={}):
     tokenized = tokenize_program(program)
     tokenized = macro_expansion(tokenized, macros)
     compiled = compile_token(tokenized)
-    return wrap_blobs(compiled)
+    return compiled.as_bin()
 
 
 def parse_macros(program: str, macros: dict=None):
@@ -226,17 +226,17 @@ def parse_macros(program: str, macros: dict=None):
     return macros
 
 
-def disassemble_unwrapped(form, is_first_element=False):
+def disassemble_sexp(form, is_first_element=False):
 
     if form.is_list():
-        return "(%s)" % ' '.join(str(disassemble_unwrapped(f, _ == 0)) for _, f in enumerate(
+        return "(%s)" % ' '.join(str(disassemble_sexp(f, _ == 0)) for _, f in enumerate(
             form.as_list()))
 
     if form.is_var():
         return "x%d" % form.var_index()
 
-    if is_first_element and form.as_keyword_index() < len(KEYWORD_FROM_INT):
-        return KEYWORD_FROM_INT[form.as_keyword_index()]
+    if is_first_element and form.as_int() < len(KEYWORD_FROM_INT):
+        return KEYWORD_FROM_INT[form.as_int()]
 
     if len(form.as_bytes()) > 4:
         return bytes_as_hex(form.as_bytes())
@@ -245,4 +245,4 @@ def disassemble_unwrapped(form, is_first_element=False):
 
 
 def disassemble(blob):
-    return disassemble_unwrapped(unwrap_blob(blob))
+    return disassemble_sexp(sexp_from_blob(blob))

@@ -3,7 +3,7 @@ import hashlib
 
 from opacity.check_solution import check_solution
 from opacity.compile import compile_text
-from opacity.serialize import to_sexp
+from opacity.serialize import SExp
 
 
 def do_test(expected_hash, encumber_script, solution_script):
@@ -11,7 +11,7 @@ def do_test(expected_hash, encumber_script, solution_script):
     script_hash = hashlib.sha256(compiled_script).digest()
     assert binascii.hexlify(script_hash) == expected_hash.encode("utf8")
     underlying_solution = compile_text(solution_script)
-    solution_blob = to_sexp([compiled_script, underlying_solution])
+    solution_blob = SExp([compiled_script, underlying_solution])
     r = check_solution(script_hash, solution_blob)
     assert r == 1
 

@@ -5,7 +5,7 @@ import sys
 
 from .compile import compile_text, disassemble, parse_macros
 from .reduce import reduce as do_reduce
-from .serialize import unwrap_blob, wrap_blobs
+from .serialize import sexp_from_blob
 
 
 def opc(args=sys.argv):
@@ -59,8 +59,8 @@ def reduce(args=sys.argv):
         "solution_hex", type=binascii.unhexlify, help="hex version of solution")
     args = parser.parse_args(args=args[1:])
 
-    reductions = do_reduce(unwrap_blob(args.script_hex), unwrap_blob(args.solution_hex))
-    print(disassemble(wrap_blobs(reductions)))
+    reductions = do_reduce(sexp_from_blob(args.script_hex), sexp_from_blob(args.solution_hex))
+    print(disassemble(reductions.as_bin()))
 
 
 """

@@ -11,6 +11,9 @@ from .keywords import KEYWORD_FROM_INT
 class Var:
     index: int
 
+    def __repr__(self):
+        return "x%d" % self.index
+
 
 def int_from_bytes(blob):
     size = len(blob)
@@ -31,30 +34,40 @@ def int_to_bytes(v):
 ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB LIST KEYWORD")
 
 
-def sexp_from_var(index):
-    return SExp(index, ATOM_TYPES.VAR)
-
-
-def sexp_from_list(iter):
-    return SExp(list(iter), ATOM_TYPES.LIST)
-
-
-def sexp_from_bytes(blob):
-    return SExp(blob, ATOM_TYPES.BLOB)
-
-
-def sexp_from_int(v):
-    return sexp_from_bytes(int_to_bytes(v))
-
-
-def sexp_from_keyword(v):
-    return sexp_from_int(v)
-
-
-@dataclass
 class SExp:
     item: object
     type: ATOM_TYPES
+
+    def __init__(self, v):
+
+        if isinstance(v, SExp):
+            self.item = v.item
+            self.type = v.type
+            return
+
+        def to_sexp(v):
+            if isinstance(v, SExp):
+                return v
+            return SExp(v)
+
+        if isinstance(v, int):
+            v = int_to_bytes(v)
+
+        if isinstance(v, bytes):
+            self.item = v
+            self.type = ATOM_TYPES.BLOB
+        elif isinstance(v, Var):
+            self.item = v.index
+            self.type = ATOM_TYPES.VAR
+        elif hasattr(v, "__iter__"):
+            self.item = [to_sexp(_) for _ in v]
+            self.type = ATOM_TYPES.LIST
+        else:
+            raise ValueError("bad type for %s" % v)
+
+    @classmethod
+    def from_var_index(class_, index):
+        return class_(Var(index))
 
     def is_var(self):
         return self.type == ATOM_TYPES.VAR
@@ -65,15 +78,9 @@ class SExp:
     def is_list(self):
         return self.type == ATOM_TYPES.LIST
 
-    def is_keyword(self):
-        return self.is_bytes()
-
     def var_index(self):
         if self.is_var():
             return self.item
-
-    def as_keyword_index(self):
-        return self.as_int()
 
     def as_int(self):
         if self.is_bytes():
@@ -87,61 +94,43 @@ class SExp:
         if self.is_list():
             return self.item
 
+    def as_bin(self):
+        f = io.BytesIO()
+        self.stream(f)
+        return f.getvalue()
+
+    def stream(self, f):
+        sexp_to_stream(self, f)
+
+    def __iter__(self):
+        return self.as_list().__iter__()
+
+    def as_obj(self):
+        type = self.type
+        if type == ATOM_TYPES.VAR:
+            return Var(index=self.var_index())
+        if type == ATOM_TYPES.BLOB:
+            return self.item
+        if type == ATOM_TYPES.LIST:
+            return [_.as_obj() for _ in self.item]
+        assert 0
+
     def __repr__(self):
+        t = "??"
         if self.is_var():
-            return "x%d" % self.item
+            t = "x%d" % self.item
         if self.is_bytes():
-            return repr(self.item)
+            t = repr(self.item)
         if self.is_list():
-            return repr(self.item)
-        if self.is_keyword():
-            _ = self.as_keyword_index()
-            if _ < len(KEYWORD_FROM_INT):
-                return KEYWORD_FROM_INT[_]
-        return "??"
+            t = repr([_.as_obj() for _ in self.item])
+        return "SExp(%s)" % t
 
     def __eq__(self, other):
-        other = to_sexp(other)
+        try:
+            other = SExp(other)
+        except ValueError:
+            return False
         return other.type == self.type and other.item == self.item
-
-
-def to_sexp(v, is_first=False):
-    if isinstance(v, SExp):
-        return v
-
-    if isinstance(v, (list, tuple)):
-        return sexp_from_list([to_sexp(_, idx == 0) for idx, _ in enumerate(v)])
-
-    if isinstance(v, int):
-        return sexp_from_int(v)
-
-    if isinstance(v, bytes):
-        return sexp_from_bytes(v)
-
-    if isinstance(v, str):
-        return sexp_from_bytes(v.encode("utf8"))
-
-    if isinstance(v, Var):
-        return sexp_from_var(v.index)
-
-    assert 0
-
-
-def from_sexp(v):
-    if not isinstance(v, SExp):
-        return v
-
-    if v.is_list():
-        return [from_sexp(_) for _ in v.as_list()]
-
-    if v.is_var():
-        return Var(v.var_index())
-
-    if v.is_bytes():
-        return v.as_bytes()
-
-    if v.is_keyword():
-        return v.as_int()
 
 
 def encode_size(f, size, step_size, base_byte_int):
@@ -155,7 +144,7 @@ def encode_size(f, size, step_size, base_byte_int):
     f.write(bytes([base_byte_int+remainder]))
 
 
-def to_stream(v, f):
+def sexp_to_stream(v, f):
     if v.is_bytes():
         blob = v.as_bytes()
         size = len(blob)
@@ -175,7 +164,7 @@ def to_stream(v, f):
         items = v.as_list()
         encode_size(f, len(items), 32, 0x20)
         for _ in items:
-            to_stream(_, f)
+            sexp_to_stream(_, f)
         return
 
     if v.is_var():
@@ -201,41 +190,27 @@ def decode_size(f):
     return steps, v
 
 
-def from_stream(f):
+def sexp_from_stream(f):
     steps, v = decode_size(f)
     if v == 0:
-        return sexp_from_bytes(b'')
+        return SExp(b'')
 
     if v < 0x20:
-        return sexp_from_bytes(bytes([v]))
+        return SExp(bytes([v]))
 
     if v < 0x40:
         size = v - 0x20 + steps * 0x20
-        items = [from_stream(f) for _ in range(size)]
-        return sexp_from_list(items)
+        items = [sexp_from_stream(f) for _ in range(size)]
+        return SExp(items)
 
     if v < 0x60:
         index = v - 0x40 + steps * 0x20
-        return sexp_from_var(index)
+        return SExp.from_var_index(index)
 
     size = v - 0x60 + steps * 160
     blob = f.read(size)
-    return sexp_from_bytes(blob)
+    return SExp(blob)
 
 
-def unwrap_blob(blob):
-    return from_stream(io.BytesIO(blob))
-
-
-def wrap_blobs(blob_list):
-    f = io.BytesIO()
-    to_stream(to_sexp(blob_list), f)
-    return f.getvalue()
-
-
-def serialize_sexp(sexp):
-    return wrap_blobs(sexp)
-
-
-def deserialize_sexp(f):
-    return from_stream(f)
+def sexp_from_blob(blob):
+    return sexp_from_stream(io.BytesIO(blob))
