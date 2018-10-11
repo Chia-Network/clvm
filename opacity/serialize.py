@@ -174,9 +174,10 @@ def cs_types_to_msgpack_types(t):
 
 
 def encode_size(f, size, step_size, base_byte_int):
-    assert size < step_size
     step_count, remainder = divmod(size, step_size)
-    assert step_count == 0
+    assert step_count < 2
+    if step_count == 1:
+        f.write(b'\x60')
     f.write(bytes([base_byte_int+remainder]))
 
 
@@ -211,11 +212,13 @@ def to_stream(v, f):
 
 
 def decode_size(f):
+    steps = 0
     v = f.read(1)[0]
     if v == 0x60:
-        assert 0
+        steps = 1
+        v = f.read(1)[0]
 
-    return 0, v
+    return steps, v
 
 
 def from_stream(f):
@@ -232,7 +235,7 @@ def from_stream(f):
         return sexp_from_list(items)
 
     if v < 0x60:
-        index = v - 0x40 + steps * 160
+        index = v - 0x40 + steps * 0x20
         return sexp_from_var(index)
 
     size = v - 0x60 + steps * 160
