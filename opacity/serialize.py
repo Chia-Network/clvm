@@ -144,35 +144,6 @@ def from_sexp(v):
         return v.as_int()
 
 
-def msgpack_types_to_cs_types(t):
-    if isinstance(t, list):
-        return sexp_from_list([msgpack_types_to_cs_types(_) for _ in t])
-
-    if isinstance(t, int):
-        if t >= 0:
-            return sexp_from_keyword(t)
-        else:
-            return sexp_from_var(-t-1)
-
-    return sexp_from_bytes(t)
-
-
-def cs_types_to_msgpack_types(t):
-    if t.is_list():
-        return [cs_types_to_msgpack_types(_) for _ in t.as_list()]
-
-    if t.is_bytes():
-        return t.as_bytes()
-
-    if t.is_var():
-        return - t.var_index() - 1
-
-    if t.is_keyword():
-        return t.as_keyword_index()
-
-    assert 0
-
-
 def encode_size(f, size, step_size, base_byte_int):
     step_count, remainder = divmod(size, step_size)
     if step_count > 0:
