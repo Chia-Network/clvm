@@ -10,9 +10,12 @@ class SerializeTest(unittest.TestCase):
         b = serialize_sexp(v)
         f = io.BytesIO(b)
         v1 = deserialize_sexp(f)
-        print("%s: %d %s %s" % (v, len(b), b, v1))
         if v != v1:
-            print("%s: %s %s" % (v, b, v1))
+            print("%s: %d %s %s" % (v, len(b), b, v1))
+            breakpoint()
+            f = io.BytesIO(b)
+            b = serialize_sexp(v)
+            v1 = deserialize_sexp(f)
         self.assertEqual(v, v1)
 
     def test_empty_string(self):

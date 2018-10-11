@@ -175,9 +175,12 @@ def cs_types_to_msgpack_types(t):
 
 def encode_size(f, size, step_size, base_byte_int):
     step_count, remainder = divmod(size, step_size)
-    assert step_count < 2
-    if step_count == 1:
+    if step_count > 0:
         f.write(b'\x60')
+        step_count -= 1
+        while step_count > 0:
+            step_count, r = divmod(step_count, 32)
+            f.write(bytes([r]))
     f.write(bytes([base_byte_int+remainder]))
 
 
@@ -216,7 +219,13 @@ def decode_size(f):
     v = f.read(1)[0]
     if v == 0x60:
         steps = 1
-        v = f.read(1)[0]
+        shift_count = 0
+        while True:
+            v = f.read(1)[0]
+            if v >= 0x20:
+                break
+            steps += (v << shift_count)
+            shift_count += 5
 
     return steps, v
 
