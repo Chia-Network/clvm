@@ -9,9 +9,9 @@ from opacity.reduce import reduce
 
 def test_1():
     pubkey_text = hashlib.sha256(b'').hexdigest()
-    input = "(((equal (sha256 x0) 0x%s)) (apply x0))" % pubkey_text
+    input = "(((equal (sha256 x0) 0x%s)) (reduce x0 x2))" % pubkey_text
     result = compile_text(input)
-    d = binascii.unhexlify("2221230822094080%s220440" % pubkey_text)
+    d = binascii.unhexlify("2221230822094080%s230a4042" % pubkey_text)
     assert result == d
     t = disassemble(result)
     assert t == input
@@ -19,7 +19,7 @@ def test_1():
 
 def test_compile_disassemble():
     SCRIPTS = [
-        "(((equal (sha256 x0) x1)) (apply x0))",
+        "(((equal (sha256 x0) x1)) (reduce x1 x2))",
         #"(sha256 'hello' 'there')",
         #"(sha256 'the quick brown fox jumps ' 'over the lazy dogs')",
         #'(sha256 "the quick brown fox jumps" " over the lazy dogs")',
@@ -120,41 +120,29 @@ def test_equal():
     assert v == 0
 
 
-def test_apply():
-    script_source = "((equal x1 500) (equal x2 600) (apply 1 x0))"
-
-    bindings = [compile_text("(equal x1 600)"), 500, 600]
-    v = reduce(SExp.from_blob(compile_text(script_source)), bindings)
-    assert v == 1
-
-    bindings = [compile_text("(equal x1 600)"), 500, 700]
-    v = reduce(SExp.from_blob(compile_text(script_source)), bindings)
-    assert v == 0
-
-
 def test_p2sh():
     underlying_script = compile_text("((equal x0 500) (equal x1 600))")
-    script_source = "((equal (sha256 x1) 0x%s) (apply x0 x1))" % hashlib.sha256(
+    script_source = "((equal (sha256 x0) 0x%s) (reduce x0 x1))" % hashlib.sha256(
         underlying_script).hexdigest()
-    bindings = [2, underlying_script, 500, 600]
+    bindings = [underlying_script, SExp([500, 600]).as_bin()]
     v = reduce(SExp.from_blob(compile_text(script_source)), bindings)
     assert v == 1
 
-    bindings[-1] = 599
+    bindings[-1] = SExp([500, 599]).as_bin()
     v = reduce(SExp.from_blob(compile_text(script_source)), bindings)
     assert v == 0
 
 
 def test_top_level_script():
-    script_source = "((equal (sha256 x1) x0) (apply 2 x1))"
+    script_source = "((equal (sha256 x1) x0) (reduce x1 x2))"
     script_bin = compile_text(script_source)
     underlying_script = compile_text("((equal x0 500) (equal x1 600) (equal x2 (+ x0 x1)))")
     p2sh = hashlib.sha256(underlying_script).digest()
-    bindings = [p2sh, underlying_script, 500, 600, 1100]
+    bindings = [p2sh, underlying_script, SExp([500, 600, 1100]).as_bin()]
     v = reduce(SExp.from_blob(script_bin), bindings)
     assert v == 1
 
-    bindings = [p2sh, underlying_script, 500, 600, 1101]
+    bindings = [p2sh, underlying_script, SExp([500, 600, 1101]).as_bin()]
     v = reduce(SExp.from_blob(script_bin), bindings)
     assert v == 0
 
@@ -276,13 +264,3 @@ def test_compile_macro():
     script_bin = compile_text(script_source, macros)
     v = disassemble(script_bin)
     assert v == "((equal 15 (+ 5 10)) (equal 50 (+ 40 30)))"
-
-
-input = """(((equal x0 0x8020304055))  ; x0 is the public key
-     ((equal (x1 (sha256 x2 consumed_path)))) (apply x2)
-       ; x1 is the hash that includes x2
-       ; x2 must also be satisfied
-       ; restrictions on inputs consumed and outputs created can be placed here
-     (checksig x0 x1)
-       ; ensure that we have a signature of the message x1 using pk x0 = PUBKEY
-)"""

@@ -44,20 +44,6 @@ def do_add(form, bindings):
     return SExp(sum(_.as_int() for _ in items) & ((1 << 128) - 1))
 
 
-def do_apply(form, bindings):
-    if len(form) != 3:
-        return SExp(1)
-    items = [reduce(_, bindings) for _ in form[1:3]]
-    if has_unbound_values(items):
-        return [form[0]] + items
-    truncate_count, wrapped_form = items
-    new_bindings = bindings
-    v = truncate_count.as_int()
-    if v > 0:
-        new_bindings = new_bindings.as_list()[v:]
-    return reduce(SExp.from_blob(wrapped_form.as_bytes()), new_bindings)
-
-
 def do_sha256(form, bindings):
     items = [reduce(_, bindings) for _ in form[1:]]
     if has_unbound_values(items):
