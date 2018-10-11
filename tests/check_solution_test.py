@@ -3,7 +3,7 @@ import hashlib
 
 from opacity.check_solution import check_solution
 from opacity.compile import compile_text
-from opacity.serialize import SExp
+from opacity.SExp import SExp
 
 
 def do_test(expected_hash, encumber_script, solution_script):

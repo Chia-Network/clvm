@@ -2,7 +2,7 @@
 
 import binascii
 
-from .serialize import sexp_from_blob, Var, SExp
+from .SExp import SExp
 from .keywords import KEYWORD_FROM_INT, KEYWORD_TO_INT
 
 
@@ -245,4 +245,4 @@ def disassemble_sexp(form, is_first_element=False):
 
 
 def disassemble(blob):
-    return disassemble_sexp(sexp_from_blob(blob))
+    return disassemble_sexp(SExp.from_blob(blob))

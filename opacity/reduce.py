@@ -2,7 +2,7 @@ import hashlib
 
 from .keywords import KEYWORD_TO_INT
 
-from .serialize import sexp_from_blob, SExp
+from .SExp import SExp
 
 
 S_False = SExp(0)
@@ -55,7 +55,7 @@ def do_apply(form, bindings):
     v = truncate_count.as_int()
     if v > 0:
         new_bindings = new_bindings.as_list()[v:]
-    return reduce(sexp_from_blob(wrapped_form.as_bytes()), new_bindings)
+    return reduce(SExp.from_blob(wrapped_form.as_bytes()), new_bindings)
 
 
 def do_sha256(form, bindings):
@@ -79,8 +79,8 @@ def do_equal(form, bindings):
 
 def do_reduce(form, bindings):
     items = [reduce(_, bindings) for _ in form[1:]]
-    new_form = sexp_from_blob(items[0].as_bytes())
-    new_bindings = sexp_from_blob(items[1].as_bytes())
+    new_form = SExp.from_blob(items[0].as_bytes())
+    new_bindings = SExp.from_blob(items[1].as_bytes())
     return reduce(new_form, new_bindings)
 
 
