@@ -312,14 +312,13 @@ We can simulate a pay-to-hash with something like this:
 
 ```scheme
   (
-    (reduce x1 x2)
-    (equal (hash x1) 0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)
+    (reduce x0 x1)
+    (equal (hash x0) 0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)
   )
 ```
 
-- x0 = the constant value
-- x1 = the script that hashes to x0
-- x2 = the solution to x1
+- x0 = the script that hashes to the constant
+- x1 = the solution to x0
 
 This will allow the script to be hidden as a preimage of a hash until the coins are redeemed. Coins will be encumbered by pay-to-hashes that look like this, so that the "pay-to" field of an output is a fixed size of 256 bits.
 
