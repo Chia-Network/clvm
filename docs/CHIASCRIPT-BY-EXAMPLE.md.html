@@ -103,9 +103,18 @@ If `x0` and `x1` can vary however we want, this is a pretty easy condition to sa
   )
 ```
 
-(We introduce an implicit "and" of two conditions here.) This pair of conditions at least requires the pubkey to be something specific. However, it places no restrictions on the outputs, so miners can still steal the funds. We need to include a restriction on the outputs.
+(We introduce an implicit "and" of two conditions here.)
 
-Also, it seems wasteful to have to set `x0` equal to a constant that is already in the script. We'll have to deal with this too.
+or more simply,
+
+```scheme
+  (
+    (aggsig 0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb x0)
+  )
+```
+
+This constant at least requires the pubkey to be something specific. However, it places no restrictions on the outputs, so miners can still steal the funds. We need to include a restriction on the outputs.
+
 
 ### assert_output
 
@@ -127,20 +136,23 @@ This unwraps the blob in x0 as a script, and applies "reduce" to it using the bi
 ## All together now: a first crack at a pay-to-address
 
 ```scheme
-  ((aggsig x0 x1)
-   (equal x0 0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb)
-   (reduce x1 x2)
+  ((aggsig 0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb x0)
+   (reduce x0 x1)
   )
 ```
 
-We set `x0` equal to the pubkey, and sign a script `x1` that contains something like
+We sign a script `x0` that contains something like
 ```scheme
   (assert_output K0 K1 K2) ; where K0 K1 K2 are constants that represent outputs that MUST exist
 ```
 
 and we finally have a solution `(x0, x1)` that miners cannot change because the signature is tied to particular outputs.
 
+Since `x0` has no free variables in it, we can set `x1` to the empty list `()`.
+
 Note, however, that the signature only depends upon the *outputs*. We also need the signature to depend upon the input, so that two unspents with the same pay-to-script can't be unlocked with the same witnesses. So although `x1` *must* change the message we sign, we may want other information mixed in there too, like the input and the exact location within the script.
+
+** TODO: solve this
 
 
 ## 1 of 2
@@ -170,6 +182,8 @@ Using `chose1`, here is a 1-of-2.
 - `x2` = the conditions being signed
 - `x3` = the solution to the conditions
 
+It seems wasteful to have to set `x1` equal to a long constant that is already in the script. We'll have to deal with this too.
+
 
 ## Graftroot
 
@@ -184,13 +198,10 @@ Taproot allows the script to be redeemed if either the condition `S` becomes tru
 
 ```scheme
   ((choose1 x0
-     ((aggsig x1 x2) ; standard branch
-      (reduce x2 x3)
-     )
-     ((equal x1 (point_add (pubkey_for_exp (hash x1 x2)) x4)) ; taproot branch
-      (reduce x2 x3)
-     )
+     (aggsig x1 x2) ; standard branch
+     (equal x1 (point_add (pubkey_for_exp (hash x1 x2)) x4)) ; taproot branch
    )
+   (reduce x2 x3)
    (equal x1 0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb) ; x1 = P1 = P + hash(P||S)
   )
 ```
@@ -218,14 +229,11 @@ Note that the free variables `x0`, `x1`, etc. here mean something different: the
 
 ```scheme
   (macro pay_to_taproot (P x0 x1 x2 x3 x4)
-   (choose1 x0
-     ((aggsig x1 x2) ; standard branch
-      (reduce x2 x3)
-     )
-     ((equal x1 (point_add (pubkey_for_exp (hash x1 x2)) x4)) ; taproot branch
-      (reduce x2 x3)
-     )
+   (choose1 x0 (
+     (aggsig x1 x2) ; standard branch
+     (equal x1 (point_add (pubkey_for_exp (hash x1 x2)) x4)) ; taproot branch
    )
+   (reduce x2 x3)
    (equal x1 P) ; x1 = P1 = P + hash(P||S)
   )
 ```
@@ -277,21 +285,21 @@ You could team this up with taproot, but notice the number of potential witnesse
 
 ```scheme
   (
-   (pay_to_taproot  x0  x1  x2  x3  x4  x5  x6)
-   (pay_to_taproot  x7  x8  x9 x10 x11 x12 x13)
-   (pay_to_taproot x14 x15 x16 x17 x18 x19 x20)
-   (((not (equal x0 x7)) (not (equal x0 x14)) (not (equal x7 x14)))) ; ensure all pubkeys are different
+   (pay_to_taproot  x0  x1  x2  x3  x4  x5)
+   (pay_to_taproot  x6  x7  x8  x9 x10 x11)
+   (pay_to_taproot x12 x13 x14 x15 x16 x17)
+   (((not (equal x0 x6)) (not (equal x0 x12)) (not (equal x6 x12)))) ; ensure all pubkeys are different
    (members (
      0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb
      0x020572cbea904d67468808c8eb5...ae28f75bb8f1c7c42c39a8c5529bf0f4e
      0x0309ece308f9d1f0131765212de...981747a0b2ca2179b96d2c0c9024e5224
      0x030c9b60d5afcbd5663a8a44b7c...97feb04decc694b13e08587f3ff9b5b60
      0x0210e7791fb972fe014159aa33a...7a91a8c46e59a00dca575af0f18fb13dc
-   ) x0 x7 x14)
+   ) x0 x6 x12)
   )
 ```
 
-Here we need up to 24 witness.
+Here we need up to 18 witness.
 
 
 ## hash reuse: what exactly is being signed?
@@ -304,7 +312,7 @@ We might consider parameters to the mix-in, indicating whether we include the ha
 
 We might also allow the `mix-in` operand to include its current location within the script, so that signatures wrapping the same conditions might need different signatures as different locations within a script.
 
-**TODO** elucidate and consider this further. Maybe hard-code `x0` to be the current input and create an operator `(current-location)` that returns the current location within the script.
+**TODO** elucidate and consider this further. Maybe hard-code `x0` to include the current input mix-in and create an operator `(current-location)` that returns the current location within the script.
 
 ## pay to hash
 
@@ -325,9 +333,9 @@ This will allow the script to be hidden as a preimage of a hash until the coins 
 This is another good candidate for a macro.
 
 ```scheme
-  (macro (pay-to-hash x10 x0 x1)
+  (macro (pay-to-hash HASH x0 x1)
     (reduce x0 x1)
-    (equal (hash x0) x10)
+    (equal (hash x0) HASH)
   )
 ```
 
@@ -341,17 +349,17 @@ In this example, 100000 coins can be withdrawn every 86400 seconds.
 ```scheme
   (
   ; taproot signature
-   (pay_to_taproot 0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb x0 x1 x2 x3 x4 x5 x6)
-  ; let x7, x8, x9 be current input components
-   (equal (current_input) (make_output x7 x8 x9))
-  ; let x10, x11, x12 be the new replacement trust fund output
-   (assert_output (make_output x10 x11 x12))
+   (pay_to_taproot 0x0317f1d3a73197d7942695638c4...86c55e83ff97a1aeffb3af00adb22c6bb x0 x1 x2 x3 x4)
+  ; let x5, x6, x7 be current input components
+   (equal (current_input) (make_output x5 x6 x7))
+  ; let x8, x9, x10 be the new replacement trust fund output
+   (assert_output (make_output x8 x9 x10))
   ; make sure the new pay-to output is the same as the old
-   (equal x8 x11)
+   (equal x5 x8)
   ; make sure we waited long enough
    (assert_confirm_timestamp_exceeds (+ confirmation_timestamp 86400))
   ; make sure we put enough coins into the new contract
-   (<= 0 (- x9 x12) 100000) ; these values must be non-decreasing
+   (<= 0 (- x7 x10) 100000) ; these values must be non-decreasing
   )
 ```
 
@@ -362,9 +370,9 @@ New operators:
 - `(assert_confirm_timestamp_exceeds)` similar to bitcoin's `CHECKLOCKTIME`
 - `(<= x0 x1 x2 x3)` True iff `x0 <= x1 <= x2 <= x3` as integer values
 
-- `x0 - x6` = taproot solution
-- `x7, x8, x9` = constituent components of current input (nonce, address, coin amount)
-- `x10, x11, x12` = constituent components of new output ensuring the contract lives on
+- `x0 - x4` = taproot solution
+- `x5, x6, x7` = constituent components of current input (nonce, address, coin amount)
+- `x8, x9, x10` = constituent components of new output ensuring the contract lives on
 
 This contract is not perfect. We need more logic to cleanly handle the case where the contract ends, ie. the input has fewer than 100000 coins remaining and we withdraw them all, and don't need the output.
 
