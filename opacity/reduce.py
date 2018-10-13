@@ -71,7 +71,7 @@ def do_reduce(form, bindings):
 
 
 def do_recursive_reduce(form, bindings):
-    return SExp(form[:1] + [reduce(_, bindings) for _ in form[1:]])
+    return SExp(form[:1].as_list() + [reduce(_, bindings) for _ in form[1:]])
 
 
 def build_reduce_lookup(keyword_to_int):
@@ -97,7 +97,7 @@ def reduce(form: SExp, bindings: SExp):
 
     if form.is_var():
         index = form.var_index()
-        if 0 <= index < len(bindings.as_list()):
+        if 0 <= index < len(bindings.as_list() or []):
             return bindings.as_list()[index]
         return form
 

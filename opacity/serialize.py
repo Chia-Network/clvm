@@ -42,12 +42,18 @@ def sexp_to_stream(v, f):
 
 def decode_size(f):
     steps = 0
-    v = f.read(1)[0]
+    b = f.read(1)
+    if len(b) == 0:
+        raise ValueError("unexpected end of stream")
+    v = b[0]
     if v == 0x60:
         steps = 1
         shift_count = 0
         while True:
-            v = f.read(1)[0]
+            b = f.read(1)
+            if len(b) == 0:
+                raise ValueError("unexpectedend of stream")
+            v = b[0]
             if v >= 0x20:
                 break
             steps += (v << shift_count)
@@ -75,4 +81,6 @@ def sexp_from_stream(f, class_):
 
     size = v - 0x60 + steps * 160
     blob = f.read(size)
+    if len(blob) < size:
+        raise ValueError("unexpectedend of stream")
     return class_(blob)

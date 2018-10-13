@@ -112,6 +112,12 @@ class SExp:
     def __iter__(self):
         return self.as_list().__iter__()
 
+    def __len__(self):
+        return self.item.__len__()
+
+    def __getitem__(self, slice):
+        return self.__class__(self.item.__getitem__(slice))
+
     def as_obj(self):
         type = self.type
         if type == ATOM_TYPES.VAR:
