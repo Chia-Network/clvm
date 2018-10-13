@@ -23,6 +23,32 @@ def do_implicit_and(form, bindings):
     return S_True if all(_ != S_False for _ in items) else S_False
 
 
+def do_add(form, bindings):
+    items = [reduce(_, bindings) for _ in form[1:]]
+    if has_unbound_values(items):
+        return SExp([form[0], *items])
+    return SExp(sum(_.as_int() for _ in items) & ((1 << 128) - 1))
+
+
+def do_sha256(form, bindings):
+    items = [reduce(_, bindings) for _ in form[1:]]
+    if has_unbound_values(items):
+        return SExp([form[0], *items])
+    h = hashlib.sha256()
+    for _ in items:
+        h.update(_.as_bytes())
+    return SExp(h.digest())
+
+
+def do_equal(form, bindings):
+    items = [reduce(_, bindings) for _ in form[1:]]
+    if has_unbound_values(items):
+        return SExp([form[0], *items])
+    if len(items) == 0:
+        return SExp(1)
+    return SExp(0 if any(_ != items[0] for _ in items[1:]) else 1)
+
+
 def do_choose1(form, bindings):
     if len(form) < 2:
         return S_False
@@ -37,32 +63,6 @@ def do_choose1(form, bindings):
     return S_False
 
 
-def do_add(form, bindings):
-    items = [reduce(_, bindings) for _ in form[1:]]
-    if has_unbound_values(items):
-        return [form[0]] + items
-    return SExp(sum(_.as_int() for _ in items) & ((1 << 128) - 1))
-
-
-def do_sha256(form, bindings):
-    items = [reduce(_, bindings) for _ in form[1:]]
-    if has_unbound_values(items):
-        return [form[0]] + items
-    h = hashlib.sha256()
-    for _ in items:
-        h.update(_.as_bytes())
-    return SExp(h.digest())
-
-
-def do_equal(form, bindings):
-    items = [reduce(_, bindings) for _ in form[1:]]
-    if has_unbound_values(items):
-        return SExp([form[0]] + items)
-    if len(items) == 0:
-        return SExp(1)
-    return SExp(0 if any(_ != items[0] for _ in items[1:]) else 1)
-
-
 def do_reduce(form, bindings):
     items = [reduce(_, bindings) for _ in form[1:]]
     new_form = SExp.from_blob(items[0].as_bytes())
@@ -71,7 +71,7 @@ def do_reduce(form, bindings):
 
 
 def do_recursive_reduce(form, bindings):
-    return SExp(form[:1].as_list() + [reduce(_, bindings) for _ in form[1:]])
+    return SExp(form.as_list()[:1] + [reduce(_, bindings) for _ in form[1:]])
 
 
 def build_reduce_lookup(keyword_to_int):
@@ -102,12 +102,11 @@ def reduce(form: SExp, bindings: SExp):
         return form
 
     if form.is_list():
-        form_list = form.as_list()
-        if len(form_list) > 0:
-            if form_list[0].is_list():
-                return do_implicit_and(form_list, bindings)
-            f = REDUCE_LOOKUP.get(form_list[0].as_int(), do_implicit_and)
-            return f(form_list, bindings)
+        if len(form) > 0:
+            if form[0].is_list():
+                return do_implicit_and(form, bindings)
+            f = REDUCE_LOOKUP.get(form[0].as_int(), do_implicit_and)
+            return f(form, bindings)
         return SExp(0)
 
     return form
