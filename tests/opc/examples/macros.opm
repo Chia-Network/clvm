@@ -5,7 +5,7 @@
              (reduce x2 x3)
             )
             ((equal x4 (point_add x1 x3)) ; taproot branch
-             (equal x3 (pubkey_for_exp (hash x1 x2)))
+             (equal x3 (pubkey_for_exp (sha256 x1 x2)))
              (reduce x2 x5)
             )
             (equal x1 P) ; x1 = P1 = P + hash(P||S)
@@ -17,7 +17,7 @@
 
     (macro (pay-to-hash x10 x0 x1)
         (reduce x0 x1)
-        (equal (hash x0) x10)
+        (equal (sha256 x0) x10)
     )
 
     (macro (timelock x_branch_chosen deadline pretimelock_condition)
@@ -34,7 +34,7 @@
         (is_equal (current_input) (make_input x0 x1 x2))
         (assert_output (make_output (
             x3
-            (hash
+            (sha256
                 (compile
                     (choose1 x0
                         (
