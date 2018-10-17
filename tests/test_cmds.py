@@ -6,11 +6,11 @@ import sys
 import unittest
 
 
-# If the REPAIR_FAILURES environment variable is set, any tests failing due to
+# If the REPAIR environment variable is set, any tests failing due to
 # wrong output will be corrected. Be sure to do a "git diff" to validate that
 # you're getting changes you expect.
 
-REPAIR_FAILURES = os.getenv("REPAIR_FAILURES", 0)
+REPAIR = os.getenv("REPAIR", 0)
 
 
 def get_test_cases(path):
@@ -70,7 +70,7 @@ def make_f(cmd, expected_output, comments, path):
             print(cmd)
             print(actual_output)
             print(expected_output)
-            if REPAIR_FAILURES:
+            if REPAIR:
                 f = open(path, "w")
                 f.write(''.join(comments))
                 f.write(cmd)
