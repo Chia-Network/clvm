@@ -1,5 +1,7 @@
 import hashlib
 
+from .casts import bls12_381_from_bytes, bls12_381_to_bytes
+from .ecdsa.bls12_381 import bls12_381_generator
 from .keywords import KEYWORD_TO_INT
 
 from .SExp import SExp
@@ -21,6 +23,30 @@ def do_implicit_and(form, bindings):
     if has_unbound_values(items):
         return SExp(items)
     return S_True if all(_ != S_False for _ in items) else S_False
+
+
+def do_pubkey_for_exp(form, bindings):
+    items = [reduce(_, bindings) for _ in form[1:]]
+    if has_unbound_values(items):
+        return SExp([form[0], *items])
+
+    def blob_for_item(_):
+        try:
+            return bls12_381_to_bytes(bls12_381_generator * _.as_int())
+        except Exception as ex:
+            return b''
+
+    return SExp([blob_for_item(_) for _ in form[1:]])
+
+
+def do_point_add(form, bindings):
+    items = [reduce(_, bindings) for _ in form[1:]]
+    if has_unbound_values(items):
+        return SExp([form[0], *items])
+    p = bls12_381_from_bytes(form[1].as_bytes())
+    for _ in form[2:]:
+        p += bls12_381_from_bytes(_.as_bytes())
+    return SExp(bls12_381_to_bytes(p))
 
 
 def do_add(form, bindings):

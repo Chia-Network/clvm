@@ -1,3 +1,5 @@
+from .ecdsa.bls12_381 import bls12_381_generator
+
 
 def int_from_bytes(blob):
     size = len(blob)
@@ -13,3 +15,30 @@ def int_to_bytes(v):
     if v == 0:
         return b''
     return v.to_bytes(byte_count, "big", signed=True)
+
+
+BLS12_381_POINT_BYTE_COUNT = (bls12_381_generator[0].bit_length() + 7) // 8
+
+
+def bls12_381_from_bytes(blob):
+    if blob == b'':
+        return bls12_381_from_bytes.infinity()
+    ba = bytearray(blob)
+    ba[0] &= 0x7f
+    hi_bit = blob[0] & 0x80
+    x = int.from_bytes(ba, byteorder="big", signed=False)
+    try:
+        points = bls12_381_generator.points_for_x(x)
+        return points[1 if hi_bit else 0]
+    except ValueError:
+        return bls12_381_to_bytes
+
+
+def bls12_381_to_bytes(point):
+    x, y = point
+    if x is None:
+        return b''
+    as_bytes = bytearray(x.to_bytes(length=BLS12_381_POINT_BYTE_COUNT, byteorder="big", signed=False))
+    if y & 1:
+        as_bytes[0] |= 0x80
+    return bytes(as_bytes)
