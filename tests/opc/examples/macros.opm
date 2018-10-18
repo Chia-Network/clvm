@@ -1,16 +1,14 @@
 (
-    (macro (pay_to_taproot P x_which_branch x1 x2 x3 x4 x5)
-        (choose1 x_which_branch
-            ((aggsig x1 x2) ; standard branch
-             (reduce x2 x3)
-            )
-            ((equal x4 (point_add x1 x3)) ; taproot branch
-             (equal x3 (pubkey_for_exp (sha256 x1 x2)))
-             (reduce x2 x5)
-            )
-            (equal x1 P) ; x1 = P1 = P + hash(P||S)
-        )
+    (macro (pay_to_taproot P x_which_branch x1 x2 x3 x4)
+      ((choose1 x_which_branch
+         (aggsig x1 x2) ; standard branch
+         (equal x1 (point_add (pubkey_for_exp (sha256 x4 x2)) x4)) ; taproot branch
+       )
+       (reduce x2 x3)
+       (equal x1 P) ; x1 = P1 = P + hash(P||S)
+      )
     )
+
     (macro (pay_to_pubkey pubkey signed_script signed_script_solution)
         (aggsig pubkey signed_script) (reduce signed_script signed_script_solution)
     )

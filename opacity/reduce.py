@@ -36,15 +36,15 @@ def do_pubkey_for_exp(form, bindings):
         except Exception as ex:
             return b''
 
-    return SExp([blob_for_item(_) for _ in form[1:]])
+    return SExp(blob_for_item(items[0]))
 
 
 def do_point_add(form, bindings):
     items = [reduce(_, bindings) for _ in form[1:]]
     if has_unbound_values(items):
         return SExp([form[0], *items])
-    p = bls12_381_from_bytes(form[1].as_bytes())
-    for _ in form[2:]:
+    p = bls12_381_from_bytes(items[0].as_bytes())
+    for _ in items[1:]:
         p += bls12_381_from_bytes(_.as_bytes())
     return SExp(bls12_381_to_bytes(p))
 

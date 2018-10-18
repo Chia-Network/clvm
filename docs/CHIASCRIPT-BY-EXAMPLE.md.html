@@ -228,10 +228,10 @@ Being LISP-ish, we can develop macros that do simple expansion in a pretty obvio
 Note that the free variables `x0`, `x1`, etc. here mean something different: they are string-substituted with the S-expressions passed in their place. Macros are evaulated at compile time, not at "run-time" (ie. when "reduce" is applied). For that reason, we can use names beyond variables (as we do with `P` in this example).
 
 ```scheme
-  (macro pay_to_taproot (P x0 x1 x2 x3 x4)
-   (choose1 x0 (
+  (macro (pay_to_taproot P x0 x1 x2 x3 x4)
+   ((choose1 x0
      (aggsig x1 x2) ; standard branch
-     (equal x1 (point_add (pubkey_for_exp (hash x1 x2)) x4)) ; taproot branch
+     (equal x1 (point_add (pubkey_for_exp (hash x4 x2)) x4)) ; taproot branch
    )
    (reduce x2 x3)
    (equal x1 P) ; x1 = P1 = P + hash(P||S)
