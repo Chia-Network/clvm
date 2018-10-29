@@ -2,12 +2,12 @@ import binascii
 import hashlib
 
 from opacity.check_solution import check_solution
-from opacity.compile import compile_text
+from opacity.compile import compile_to_blob
 from opacity.SExp import SExp
 
 
 def do_test(expected_hash, encumber_script, solution, response):
-    compiled_script = compile_text(encumber_script)
+    compiled_script = compile_to_blob(encumber_script)
     script_hash = hashlib.sha256(compiled_script).digest()
     assert binascii.hexlify(script_hash) == expected_hash.encode("utf8")
     underlying_solution = SExp(solution).as_bin()
@@ -33,14 +33,14 @@ def test_check_solution_2():
 def test_assert_output():
     encumber_script = "(reduce x0 x1)"
     expected_hash = '989d86ec65cabb0c5223b4872ca53a443785f615744fbf3a2789486d5b5b5fb2'
-    x0 = compile_text("(assert_output 500 600 700)")
+    x0 = compile_to_blob("(assert_output 500 600 700)")
     x1 = SExp([]).as_bin()
     solution = [x0, x1]
-    expected = [SExp.from_blob(compile_text("(assert_output 500 600 700)"))]
+    expected = [SExp.from_blob(compile_to_blob("(assert_output 500 600 700)"))]
     do_test(expected_hash, encumber_script, solution, expected)
 
-    x0 = compile_text("((equal 55 (+ x0 9)) (assert_output 500 600 700) (equal 10025 x1 (+ x2 25)))")
+    x0 = compile_to_blob("((equal 55 (+ x0 9)) (assert_output 500 600 700) (equal 10025 x1 (+ x2 25)))")
     x1 = SExp([46, 10025, 10000]).as_bin()
     solution = [x0, x1]
-    expected = [[SExp.from_blob(compile_text("(assert_output 500 600 700)"))]]
+    expected = [[SExp.from_blob(compile_to_blob("(assert_output 500 600 700)"))]]
     do_test(expected_hash, encumber_script, solution, expected)

@@ -3,9 +3,25 @@ import binascii
 import hashlib
 import sys
 
-from .compile import compile_text, disassemble, parse_macros
+from .compile import compile_to_sexp, disassemble, parse_macros
 from .reduce import reduce as do_reduce
 from .SExp import SExp
+
+
+def to_script(item):
+    # let's see if it's hex
+    try:
+        blob = binascii.unhexlify(item)
+        return SExp.from_blob(blob)
+    except binascii.Error:
+        pass
+
+    try:
+        return compile_to_sexp(item)
+    except Exception as ex:
+        pass
+
+    raise ValueError("bad value %s" % item)
 
 
 def opc(args=sys.argv):
@@ -29,7 +45,8 @@ def opc(args=sys.argv):
         parse_macros(text, macros)
 
     for text in (args.code or []) + args.path:
-        compiled_script = compile_text(text, macros)
+        sexp = compile_to_sexp(text, macros)
+        compiled_script = sexp.as_bin()
         script_hash = hashlib.sha256(compiled_script).hexdigest()
         if args.script_hash:
             print(script_hash)
@@ -41,10 +58,10 @@ def opd(args=sys.argv):
         description='Disassemble a compiled opacity script.'
     )
     parser.add_argument(
-        "hexstring", nargs="+", type=binascii.unhexlify, help="hex version of opacity script")
+        "script", nargs="+", type=to_script, help="hex version of opacity script")
     args = parser.parse_args(args=args[1:])
 
-    for blob in args.hexstring:
+    for blob in args.script:
         text = disassemble(blob)
         print(text)
 
@@ -54,13 +71,14 @@ def reduce(args=sys.argv):
         description='Reduce an opacity script.'
     )
     parser.add_argument(
-        "script_hex", type=binascii.unhexlify, help="hex version of script")
+        "script", type=to_script, help="script in hex or uncompiled text")
     parser.add_argument(
-        "solution_hex", type=binascii.unhexlify, help="hex version of solution")
+        "solution", type=to_script, nargs="?", help="solution in hex or uncompiled text")
     args = parser.parse_args(args=args[1:])
 
-    reductions = do_reduce(SExp.from_blob(args.script_hex), SExp.from_blob(args.solution_hex))
-    print(disassemble(reductions.as_bin()))
+    solution = args.solution or SExp([])
+    reductions = do_reduce(args.script, solution)
+    print(disassemble(reductions))
 
 
 """

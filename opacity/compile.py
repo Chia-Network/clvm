@@ -210,12 +210,16 @@ def tokenize_program(sexp: str):
     return tokenize_sexp(sexp, 0)[0]
 
 
-def compile_text(program: str, macros={}):
-    "Read an expression from a string."
+def compile_to_sexp(program: str, macros={}):
+    "Read an expression from a string, yielding an SExp."
     tokenized = tokenize_program(program)
     tokenized = macro_expansion(tokenized, macros)
-    compiled = compile_token(tokenized)
-    return compiled.as_bin()
+    return compile_token(tokenized)
+
+
+def compile_to_blob(program: str, macros={}):
+    "Read an expression from a string, compiled to a binary blob."
+    return compile_to_sexp(program, macros).as_bin()
 
 
 def parse_macros(program: str, macros: dict=None):
@@ -226,17 +230,16 @@ def parse_macros(program: str, macros: dict=None):
     return macros
 
 
-def disassemble_sexp(form, is_first_element=False):
-
+def dump(form, keywords=[], is_first_element=False):
     if form.is_list():
-        return "(%s)" % ' '.join(str(disassemble_sexp(f, _ == 0)) for _, f in enumerate(
+        return "(%s)" % ' '.join(str(dump(f, keywords, _ == 0)) for _, f in enumerate(
             form.as_list()))
 
     if form.is_var():
         return "x%d" % form.var_index()
 
-    if is_first_element and form.as_int() < len(KEYWORD_FROM_INT):
-        return KEYWORD_FROM_INT[form.as_int()]
+    if is_first_element and form.as_int() < len(keywords):
+        return keywords[form.as_int()]
 
     if len(form.as_bytes()) > 4:
         return bytes_as_hex(form.as_bytes())
@@ -244,5 +247,17 @@ def disassemble_sexp(form, is_first_element=False):
     return str(form.as_int())
 
 
-def disassemble(blob):
+def disassemble_sexp(form):
+    return dump(form, keywords=KEYWORD_FROM_INT)
+
+
+def disassemble_blob(blob):
     return disassemble_sexp(SExp.from_blob(blob))
+
+
+def disassemble(item):
+    if isinstance(item, SExp):
+        return disassemble_sexp(item)
+    if isinstance(item, bytes):
+        return disassemble_blob(item)
+    raise ValueError("expected SExp or bytes, got %s" % item)
