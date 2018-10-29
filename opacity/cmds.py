@@ -45,7 +45,11 @@ def opc(args=sys.argv):
         parse_macros(text, macros)
 
     for text in (args.code or []) + args.path:
-        sexp = compile_to_sexp(text, macros)
+        try:
+            sexp = compile_to_sexp(text, macros)
+        except SyntaxError as ex:
+            print("%s" % ex.msg)
+            continue
         compiled_script = sexp.as_bin()
         script_hash = hashlib.sha256(compiled_script).hexdigest()
         if args.script_hash:

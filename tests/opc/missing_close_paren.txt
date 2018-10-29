@@ -1,0 +1,2 @@
+opc -c "(equal x0 100"
+missing )

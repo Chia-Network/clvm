@@ -1,0 +1,2 @@
+opc -c ")"
+unexpected ) at 0

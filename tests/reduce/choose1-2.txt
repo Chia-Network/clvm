@@ -1,0 +1,2 @@
+reduce "(choose1 x0 (equal 500 x1) (equal 600 x1))" "(0 600)"
+0

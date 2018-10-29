@@ -1,0 +1,2 @@
+reduce x3 '("junk" "junk" "junk" "foobarbaz" "junk" "junk")'
+0x666f6f62617262617a

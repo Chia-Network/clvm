@@ -1,0 +1,2 @@
+opc -c "(equal x0 0x1009f)"
+invalid hex at 10: 0x1009f

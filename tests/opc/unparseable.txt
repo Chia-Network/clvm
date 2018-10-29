@@ -1,0 +1,2 @@
+opc -c "(foo bar)"
+can't parse foo at 1

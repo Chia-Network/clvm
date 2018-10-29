@@ -28,7 +28,7 @@ def get_test_cases(path):
             comments = []
             while 1:
                 cmd = f.readline()
-                if cmd[0] != '#':
+                if len(cmd) < 1 or cmd[0] != '#':
                     break
                 comments.append(cmd)
             expected_output = f.read()
@@ -80,13 +80,14 @@ def make_f(cmd, expected_output, comments, path):
     return f
 
 
-def inject(path):
-    for idx, (name, i, o, comments, path) in enumerate(get_test_cases(path)):
-        name_of_f = "test_%s" % name
-        setattr(TestCmds, name_of_f, make_f(i, o, comments, path))
+def inject(*paths):
+    for path in paths:
+        for idx, (name, i, o, comments, path) in enumerate(get_test_cases(path)):
+            name_of_f = "test_%s" % name
+            setattr(TestCmds, name_of_f, make_f(i, o, comments, path))
 
 
-inject("opc")
+inject("opc", "reduce")
 
 
 def main():
