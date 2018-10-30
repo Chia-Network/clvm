@@ -25,51 +25,37 @@ def do_implicit_and(form, bindings):
     return S_True if all(_ != S_False for _ in items) else S_False
 
 
-def do_pubkey_for_exp(form, bindings):
-    items = [reduce(_, bindings) for _ in form[1:]]
-    if has_unbound_values(items):
-        return SExp([form[0], *items])
-
+def op_pubkey_for_exp(items):
     def blob_for_item(_):
         try:
             return bls12_381_to_bytes(bls12_381_generator * _.as_int())
         except Exception as ex:
             return b''
 
+    if len(items) < 1:
+        return SExp(0)
     return SExp(blob_for_item(items[0]))
 
 
-def do_point_add(form, bindings):
-    items = [reduce(_, bindings) for _ in form[1:]]
-    if has_unbound_values(items):
-        return SExp([form[0], *items])
+def op_point_add(items):
     p = bls12_381_from_bytes(items[0].as_bytes())
     for _ in items[1:]:
         p += bls12_381_from_bytes(_.as_bytes())
     return SExp(bls12_381_to_bytes(p))
 
 
-def do_add(form, bindings):
-    items = [reduce(_, bindings) for _ in form[1:]]
-    if has_unbound_values(items):
-        return SExp([form[0], *items])
+def op_add(items):
     return SExp(sum(_.as_int() for _ in items) & ((1 << 128) - 1))
 
 
-def do_sha256(form, bindings):
-    items = [reduce(_, bindings) for _ in form[1:]]
-    if has_unbound_values(items):
-        return SExp([form[0], *items])
+def op_sha256(items):
     h = hashlib.sha256()
     for _ in items:
         h.update(_.as_bytes())
     return SExp(h.digest())
 
 
-def do_equal(form, bindings):
-    items = [reduce(_, bindings) for _ in form[1:]]
-    if has_unbound_values(items):
-        return SExp([form[0], *items])
+def op_equal(items):
     if len(items) == 0:
         return SExp(1)
     return SExp(0 if any(_ != items[0] for _ in items[1:]) else 1)
@@ -100,21 +86,37 @@ def do_recursive_reduce(form, bindings):
     return SExp(form.as_list()[:1] + [reduce(_, bindings) for _ in form[1:]])
 
 
-def build_reduce_lookup(keyword_to_int):
-    remap = {
-        "+": do_add,
-    }
+def op_to_reduce(f_op):
+    def do_f_op(form, bindings):
+        items = [reduce(_, bindings) for _ in form[1:]]
+        if has_unbound_values(items):
+            return SExp([form[0], *items])
+        return f_op(items)
+    return do_f_op
+
+
+def build_reduce_lookup(remap, keyword_to_int):
     g = globals()
     d = dict()
     for k, i in keyword_to_int.items():
+        f = None
         if k in remap:
-            d[i] = remap[k]
-        else:
-            d[i] = g.get("do_%s" % k, do_recursive_reduce)
+            k = remap[k]
+        if f is None:
+            f = g.get("do_%s" % k)
+        if f is None:
+            f_op = g.get("op_%s" % k)
+            if f_op:
+                f = op_to_reduce(f_op)
+        if f is None:
+            f = do_recursive_reduce
+        if f:
+            d[i] = f
+
     return d
 
 
-REDUCE_LOOKUP = build_reduce_lookup(KEYWORD_TO_INT)
+REDUCE_LOOKUP = build_reduce_lookup({"+": "add"}, KEYWORD_TO_INT)
 
 
 def reduce(form: SExp, bindings: SExp):
@@ -131,7 +133,11 @@ def reduce(form: SExp, bindings: SExp):
         if len(form) > 0:
             if form[0].is_list():
                 return do_implicit_and(form, bindings)
+            operator = form[0].as_int()
             f = REDUCE_LOOKUP.get(form[0].as_int(), do_implicit_and)
+            if f:
+                return f(form, bindings)
+
             return f(form, bindings)
         return SExp(0)
 
