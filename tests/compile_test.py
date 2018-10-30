@@ -1,33 +1,9 @@
-import binascii
 import hashlib
 
 from opacity.compile import compile_to_blob, compile_to_sexp, disassemble, parse_macros, tokenize_program
 
-from opacity.SExp import SExp, Var
+from opacity.SExp import SExp
 from opacity.reduce import reduce
-
-
-def test_1():
-    pubkey_text = hashlib.sha256(b'').hexdigest()
-    input = "(((equal (sha256 x0) 0x%s)) (reduce x0 x2))" % pubkey_text
-    result = compile_to_blob(input)
-    d = binascii.unhexlify("2221230822094080%s230a4042" % pubkey_text)
-    assert result == d
-    t = disassemble(result)
-    assert t == input
-
-
-def test_compile_disassemble():
-    SCRIPTS = [
-        "(((equal (sha256 x0) x1)) (reduce x1 x2))",
-        #"(sha256 'hello' 'there')",
-        #"(sha256 'the quick brown fox jumps ' 'over the lazy dogs')",
-        #'(sha256 "the quick brown fox jumps" " over the lazy dogs")',
-    ]
-    for _ in SCRIPTS:
-        script_bin = compile_to_sexp(_)
-        script_disassembled = disassemble(script_bin)
-        assert script_disassembled == _
 
 
 def test_p2sh():
