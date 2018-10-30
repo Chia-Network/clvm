@@ -19,7 +19,7 @@ def to_script(item):
     try:
         return compile_to_sexp(item)
     except Exception as ex:
-        pass
+        print("bad script: %s" % ex.msg, file=sys.stderr)
 
     raise ValueError("bad value %s" % item)
 
@@ -62,7 +62,7 @@ def opd(args=sys.argv):
         description='Disassemble a compiled opacity script.'
     )
     parser.add_argument(
-        "script", nargs="+", type=to_script, help="hex version of opacity script")
+        "script", nargs="+", type=binascii.unhexlify, help="hex version of opacity script")
     args = parser.parse_args(args=args[1:])
 
     for blob in args.script:
