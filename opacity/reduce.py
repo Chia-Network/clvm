@@ -15,8 +15,8 @@ def has_unbound_values(items):
     return any(not _.is_bytes() for _ in items)
 
 
-def do_implicit_and(form, bindings):
-    items = [reduce(_, bindings) for _ in form]
+def do_implicit_and(form, bindings, reduce_f):
+    items = [reduce_f(_, bindings, reduce_f) for _ in form]
     if S_False in items:
         return S_False
     items = [_ for _ in items if not _.is_bytes()]
@@ -61,34 +61,34 @@ def op_equal(items):
     return SExp(0 if any(_ != items[0] for _ in items[1:]) else 1)
 
 
-def do_choose1(form, bindings):
+def do_choose1(form, bindings, reduce_f):
     if len(form) < 2:
         return S_False
-    choice = reduce(form[1], bindings)
+    choice = reduce_f(form[1], bindings, reduce_f)
     if has_unbound_values([choice]):
         return form
     choice = choice.as_int()
     choices = form[2:]
     if 0 <= choice < len(choices):
         chosen_form = choices[choice]
-        return reduce(chosen_form, bindings)
+        return reduce_f(chosen_form, bindings, reduce_f)
     return S_False
 
 
-def do_reduce(form, bindings):
-    items = [reduce(_, bindings) for _ in form[1:]]
+def do_reduce(form, bindings, reduce_f):
+    items = [reduce_f(_, bindings, reduce_f) for _ in form[1:]]
     new_form = SExp.from_blob(items[0].as_bytes())
     new_bindings = SExp.from_blob(items[1].as_bytes())
-    return reduce(new_form, new_bindings)
+    return reduce_f(new_form, new_bindings, reduce_f)
 
 
-def do_recursive_reduce(form, bindings):
-    return SExp(form.as_list()[:1] + [reduce(_, bindings) for _ in form[1:]])
+def do_recursive_reduce(form, bindings, reduce_f):
+    return SExp(form.as_list()[:1] + [reduce_f(_, bindings, reduce_f) for _ in form[1:]])
 
 
 def op_to_reduce(f_op):
-    def do_f_op(form, bindings):
-        items = [reduce(_, bindings) for _ in form[1:]]
+    def do_f_op(form, bindings, reduce_f):
+        items = [reduce_f(_, bindings, reduce_f) for _ in form[1:]]
         if has_unbound_values(items):
             return SExp([form[0], *items])
         return f_op(items)
@@ -119,9 +119,11 @@ def build_reduce_lookup(remap, keyword_to_int):
 REDUCE_LOOKUP = build_reduce_lookup({"+": "add"}, KEYWORD_TO_INT)
 
 
-def reduce(form: SExp, bindings: SExp):
+def reduce(form: SExp, bindings: SExp, reduce_f=None):
     # a lazy trick to help tests
     bindings = SExp(bindings)
+
+    reduce_f = reduce_f or reduce
 
     if form.is_var():
         index = form.var_index()
@@ -132,13 +134,13 @@ def reduce(form: SExp, bindings: SExp):
     if form.is_list():
         if len(form) > 0:
             if form[0].is_list():
-                return do_implicit_and(form, bindings)
+                return do_implicit_and(form, bindings, reduce_f)
             operator = form[0].as_int()
             f = REDUCE_LOOKUP.get(form[0].as_int(), do_implicit_and)
             if f:
-                return f(form, bindings)
+                return f(form, bindings, reduce_f)
 
-            return f(form, bindings)
+            return f(form, bindings, reduce_f)
         return SExp(0)
 
     return form

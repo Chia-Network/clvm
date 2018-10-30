@@ -3,8 +3,8 @@ import binascii
 import hashlib
 import sys
 
-from .compile import compile_to_sexp, disassemble, parse_macros
-from .reduce import reduce as do_reduce
+from .compile import compile_to_sexp, disassemble, dump, parse_macros
+from .reduce import reduce as opacity_reduce
 from .SExp import SExp
 
 
@@ -70,10 +70,18 @@ def opd(args=sys.argv):
         print(text)
 
 
+def debug_frame(form, bindings, reduce_f):
+    rv = opacity_reduce(form, bindings, reduce_f)
+    print("%s [%s] => %s" % (disassemble(form), dump(bindings), disassemble(rv)))
+    return rv
+
+
 def reduce(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Reduce an opacity script.'
     )
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Display resolve of all reductions, for debugging")
     parser.add_argument(
         "script", type=to_script, help="script in hex or uncompiled text")
     parser.add_argument(
@@ -81,7 +89,10 @@ def reduce(args=sys.argv):
     args = parser.parse_args(args=args[1:])
 
     solution = args.solution or SExp([])
-    reductions = do_reduce(args.script, solution)
+    reduce_f = None
+    if args.verbose:
+        reduce_f = debug_frame
+    reductions = opacity_reduce(args.script, solution, reduce_f)
     print(disassemble(reductions))
 
 
