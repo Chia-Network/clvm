@@ -15,14 +15,8 @@ def has_unbound_values(items):
     return any(not _.is_bytes() for _ in items)
 
 
-def do_implicit_and(form, bindings, reduce_f):
-    items = [reduce_f(_, bindings, reduce_f) for _ in form]
-    if S_False in items:
-        return S_False
-    items = [_ for _ in items if not _.is_bytes()]
-    if has_unbound_values(items):
-        return SExp(items)
-    return S_True if all(_ != S_False for _ in items) else S_False
+def op_and(items):
+    return S_False if S_False in items else S_True
 
 
 def op_pubkey_for_exp(items):
@@ -134,9 +128,10 @@ def reduce(form: SExp, bindings: SExp, reduce_f=None):
     if form.is_list():
         if len(form) > 0:
             if form[0].is_list():
-                return do_implicit_and(form, bindings, reduce_f)
+                new_form = SExp([KEYWORD_TO_INT["and"]] + form.as_list())
+                return reduce_f(new_form, bindings, reduce_f)
             operator = form[0].as_int()
-            f = REDUCE_LOOKUP.get(form[0].as_int(), do_implicit_and)
+            f = REDUCE_LOOKUP.get(form[0].as_int())
             if f:
                 return f(form, bindings, reduce_f)
 

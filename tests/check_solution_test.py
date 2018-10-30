@@ -36,11 +36,11 @@ def test_assert_output():
     x0 = compile_to_blob("(assert_output 500 600 700)")
     x1 = SExp([]).as_bin()
     solution = [x0, x1]
-    expected = [SExp.from_blob(compile_to_blob("(assert_output 500 600 700)"))]
+    expected = SExp.from_blob(compile_to_blob("(and (assert_output 500 600 700) 1)"))
     do_test(expected_hash, encumber_script, solution, expected)
 
     x0 = compile_to_blob("((equal 55 (+ x0 9)) (assert_output 500 600 700) (equal 10025 x1 (+ x2 25)))")
     x1 = SExp([46, 10025, 10000]).as_bin()
     solution = [x0, x1]
-    expected = [[SExp.from_blob(compile_to_blob("(assert_output 500 600 700)"))]]
+    expected = SExp.from_blob(compile_to_blob("(and (and 1 (assert_output 500 600 700) 1) 1)"))
     do_test(expected_hash, encumber_script, solution, expected)

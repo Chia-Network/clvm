@@ -60,13 +60,13 @@ class TaprootTest(unittest.TestCase):
         solution = [1, P_bin, S_bin, SExp(0).as_bin(), P1_bin]
         reductions = reduce(main_script, SExp(solution))
         d = disassemble_sexp(reductions)
-        self.assertEqual(d, "(%s)" % S_text)
+        self.assertEqual(d, "(and 1 %s 1)" % S_text)
 
         # solve signature, no taproot
         x2 = compile_to_blob("(assert_output 600)")
         solution = [0, P_bin, x2, SExp(0).as_bin()]
         reductions = reduce(main_script, SExp(solution))
         d = disassemble_sexp(reductions)
-        d1 = "((aggsig 0x%s 0x%s) %s)" % (
+        d1 = "(and (aggsig 0x%s 0x%s) %s 1)" % (
             P_hex, binascii.hexlify(x2).decode("utf8"), disassemble(x2))
         self.assertEqual(d, d1)
