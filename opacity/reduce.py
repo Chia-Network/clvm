@@ -69,10 +69,24 @@ def do_choose1(form, bindings, reduce_f):
     return S_False
 
 
+def do_quote(form, bindings, reduce_f):
+    return form[1]
+
+
+def do_wrap(form, bindings, reduce_f):
+    item = reduce_f(form[1], bindings, reduce_f)
+    return SExp(item.as_bin())
+
+
+def op_unwrap(items):
+    try:
+        return SExp.from_blob(items[0].as_bytes())
+    except ValueError:
+        return SExp(0)
+
+
 def do_reduce(form, bindings, reduce_f):
-    items = [reduce_f(_, bindings, reduce_f) for _ in form[1:]]
-    new_form = SExp.from_blob(items[0].as_bytes())
-    new_bindings = SExp.from_blob(items[1].as_bytes())
+    new_form, new_bindings = [reduce_f(_, bindings, reduce_f) for _ in form[1:3]]
     return reduce_f(new_form, new_bindings, reduce_f)
 
 
@@ -102,8 +116,6 @@ def build_reduce_lookup(remap, keyword_to_int):
             f_op = g.get("op_%s" % k)
             if f_op:
                 f = op_to_reduce(f_op)
-        if f is None:
-            f = do_recursive_reduce
         if f:
             d[i] = f
 
@@ -131,7 +143,7 @@ def reduce(form: SExp, bindings: SExp, reduce_f=None):
                 new_form = SExp([KEYWORD_TO_INT["and"]] + form.as_list())
                 return reduce_f(new_form, bindings, reduce_f)
             operator = form[0].as_int()
-            f = REDUCE_LOOKUP.get(form[0].as_int())
+            f = REDUCE_LOOKUP.get(form[0].as_int(), do_recursive_reduce)
             if f:
                 return f(form, bindings, reduce_f)
 

@@ -18,7 +18,7 @@ MACRO_TEXT = """
        (aggsig x1 x2) ; standard branch
        (equal x1 (point_add (pubkey_for_exp (sha256 x4 x2)) x4)) ; taproot branch
      )
-     (reduce x2 x3)
+     (reduce (unwrap x2) (unwrap x3))
      (equal x1 P) ; x1 = P1 = P + hash(P||S)
     )
   )
