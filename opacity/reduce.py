@@ -27,11 +27,13 @@ def op_pubkey_for_exp(items):
             return b''
 
     if len(items) < 1:
-        return SExp(0)
+        return S_False
     return SExp(blob_for_item(items[0]))
 
 
 def op_point_add(items):
+    if len(items) < 1:
+        return S_False
     p = bls12_381_from_bytes(items[0].as_bytes())
     for _ in items[1:]:
         p += bls12_381_from_bytes(_.as_bytes())
@@ -51,7 +53,7 @@ def op_sha256(items):
 
 def op_equal(items):
     if len(items) == 0:
-        return SExp(1)
+        return S_True
     return SExp(0 if any(_ != items[0] for _ in items[1:]) else 1)
 
 
@@ -70,10 +72,14 @@ def do_choose1(form, bindings, reduce_f):
 
 
 def do_quote(form, bindings, reduce_f):
+    if len(form) < 2:
+        return S_False
     return form[1]
 
 
 def do_wrap(form, bindings, reduce_f):
+    if len(form) < 2:
+        return S_False
     item = reduce_f(form[1], bindings, reduce_f)
     return SExp(item.as_bin())
 
@@ -81,12 +87,18 @@ def do_wrap(form, bindings, reduce_f):
 def op_unwrap(items):
     try:
         return SExp.from_blob(items[0].as_bytes())
-    except ValueError:
-        return SExp(0)
+    except (IndexError, ValueError):
+        return S_False
 
 
 def do_reduce(form, bindings, reduce_f):
-    new_form, new_bindings = [reduce_f(_, bindings, reduce_f) for _ in form[1:3]]
+    if len(form) < 2:
+        return S_False
+    new_form = reduce_f(form[1], bindings, reduce_f)
+    if len(form) > 2:
+        new_bindings = reduce_f(form[2], bindings, reduce_f)
+    else:
+        new_bindings = SExp([])
     return reduce_f(new_form, new_bindings, reduce_f)
 
 
@@ -147,6 +159,6 @@ def reduce(form: SExp, bindings: SExp, reduce_f=None):
                 return f(form, bindings, reduce_f)
 
             return f(form, bindings, reduce_f)
-        return SExp(0)
+        return S_False
 
     return form
