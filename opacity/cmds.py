@@ -8,7 +8,7 @@ from .reduce import reduce as opacity_reduce
 from .SExp import SExp
 
 
-def to_script(item):
+def script(item):
     # let's see if it's hex
     try:
         blob = binascii.unhexlify(item)
@@ -83,9 +83,9 @@ def reduce(args=sys.argv):
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument(
-        "script", type=to_script, help="script in hex or uncompiled text")
+        "script", type=script, help="script in hex or uncompiled text")
     parser.add_argument(
-        "solution", type=to_script, nargs="?", help="solution in hex or uncompiled text")
+        "solution", type=script, nargs="?", help="solution in hex or uncompiled text")
     args = parser.parse_args(args=args[1:])
 
     solution = args.solution or SExp([])
