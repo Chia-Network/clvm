@@ -71,10 +71,29 @@ def do_choose1(form, bindings, reduce_f):
     return S_False
 
 
+QUOTE_KEYWORD = KEYWORD_TO_INT["quote"]
+UNQUOTE_KEYWORD = KEYWORD_TO_INT["unquote"]
+
+
+def quote(form, bindings, reduce_f, level):
+    if form.is_list() and len(form) > 0:
+        op = form[0].as_int()
+        if op == QUOTE_KEYWORD:
+            level += 1
+        if op == UNQUOTE_KEYWORD:
+            level -= 1
+            if level == 0:
+                if len(form) > 1:
+                    return reduce_f(form[1], bindings, reduce_f)
+        return SExp([quote(_, bindings, reduce_f, level) for _ in form])
+
+    return form
+
+
 def do_quote(form, bindings, reduce_f):
-    if len(form) < 2:
-        return S_False
-    return form[1]
+    if len(form) > 1:
+        return quote(form[1], bindings, reduce_f, 1)
+    return S_False
 
 
 def do_wrap(form, bindings, reduce_f):
