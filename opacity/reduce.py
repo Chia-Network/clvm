@@ -142,7 +142,6 @@ def reduce(form: SExp, bindings: SExp, reduce_f=None):
             if form[0].is_list():
                 new_form = SExp([KEYWORD_TO_INT["and"]] + form.as_list())
                 return reduce_f(new_form, bindings, reduce_f)
-            operator = form[0].as_int()
             f = REDUCE_LOOKUP.get(form[0].as_int(), do_recursive_reduce)
             if f:
                 return f(form, bindings, reduce_f)

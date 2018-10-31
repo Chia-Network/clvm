@@ -2,7 +2,6 @@ import binascii
 
 from .compile import compile_to_sexp
 from .reduce import reduce
-from .SExp import SExp
 
 
 def check_solution(script_hash, solution_sexp):
