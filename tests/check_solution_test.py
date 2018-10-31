@@ -11,8 +11,8 @@ def do_test(expected_hash, encumber_script, solution, response):
     script_hash = hashlib.sha256(compiled_script).digest()
     assert binascii.hexlify(script_hash) == expected_hash.encode("utf8")
     underlying_solution = SExp(solution).as_bin()
-    solution_blob = SExp([compiled_script, underlying_solution])
-    r = check_solution(script_hash, solution_blob)
+    solution_sexp = SExp([SExp.from_blob(compiled_script), underlying_solution])
+    r = check_solution(script_hash, solution_sexp)
     assert r == response
 
 
