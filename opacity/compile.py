@@ -238,7 +238,7 @@ def dump(form, keywords=[], is_first_element=False):
     if form.is_var():
         return "x%d" % form.var_index()
 
-    if is_first_element and form.as_int() < len(keywords):
+    if is_first_element and 0 <= form.as_int() < len(keywords):
         return keywords[form.as_int()]
 
     if len(form.as_bytes()) > 4:
