@@ -1,15 +1,11 @@
 from .keywords import KEYWORD_TO_INT
-from .operators import all_operators
+from .operators import all_operators, has_unbound_values
 
 from .SExp import SExp
 
 
 S_False = SExp(0)
 S_True = SExp(1)
-
-
-def has_unbound_values(items):
-    return any(not _.is_bytes() for _ in items)
 
 
 def do_choose1(form, bindings, reduce_f):
@@ -86,7 +82,7 @@ def build_reduce_lookup(remap, keyword_to_int):
     return d
 
 
-REDUCE_LOOKUP = build_reduce_lookup({"+": "add"}, KEYWORD_TO_INT)
+REDUCE_LOOKUP = build_reduce_lookup({"+": "add", "*": "multiply", "-": "subtract"}, KEYWORD_TO_INT)
 
 
 def reduce(form: SExp, bindings: SExp, reduce_f=None):

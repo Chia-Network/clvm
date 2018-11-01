@@ -10,6 +10,16 @@ S_False = SExp(0)
 S_True = SExp(1)
 
 
+MASK_128 = ((1 << 128) - 1)
+
+
+def truncate_int(v):
+    v1 = abs(v) & MASK_128
+    if v < 0:
+        v1 = -v1
+    return v1
+
+
 def has_unbound_values(items):
     return any(not _.is_bytes() for _ in items)
 
@@ -40,7 +50,25 @@ def op_point_add(items):
 
 
 def op_add(items):
-    return SExp(sum(_.as_int() for _ in items) & ((1 << 128) - 1))
+    return SExp(sum(_.as_int() for _ in items))
+
+
+def op_multiply(items):
+    v = 1
+    for _ in items:
+        v *= _.as_int()
+        v = truncate_int(v)
+    return SExp(v)
+
+
+def op_subtract(items):
+    if len(items) == 0:
+        return SExp(0)
+    v = items[0].as_int()
+    for _ in items[1:]:
+        v -= _.as_int()
+        v = truncate_int(v)
+    return SExp(v)
 
 
 def op_sha256(items):
