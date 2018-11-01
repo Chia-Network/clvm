@@ -72,7 +72,7 @@ def opd(args=sys.argv):
 
 def debug_frame(form, bindings, reduce_f):
     rv = opacity_reduce(form, bindings, reduce_f)
-    print("%s [%s] => %s" % (disassemble(form), dump(bindings), disassemble(rv)))
+    print("%s [%s] => %s" % (disassemble(form), ", ".join(dump(_) for _ in bindings), disassemble(rv)))
     return rv
 
 

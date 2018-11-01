@@ -60,6 +60,8 @@ def do_reduce(form, bindings, reduce_f):
     new_form = reduce_f(form[1], bindings, reduce_f)
     if len(form) > 2:
         new_bindings = reduce_f(form[2], bindings, reduce_f)
+        if not new_bindings.is_list():
+            new_bindings = SExp([])
     else:
         new_bindings = SExp([])
     return reduce_f(new_form, new_bindings, reduce_f)
