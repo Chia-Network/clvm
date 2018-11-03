@@ -1,23 +1,4 @@
-import hashlib
-
-from opacity.compile import compile_to_blob, compile_to_sexp, disassemble, parse_macros, tokenize_program
-
-from opacity.SExp import SExp
-from opacity.reduce import reduce
-
-
-def test_top_level_script():
-    script_source = "((equal (sha256 x1) x0) (reduce (unwrap x1) (unwrap x2)))"
-    script_bin = compile_to_blob(script_source)
-    underlying_script = compile_to_blob("((equal x0 500) (equal x1 600) (equal x2 (+ x0 x1)))")
-    p2sh = hashlib.sha256(underlying_script).digest()
-    bindings = [p2sh, underlying_script, SExp([500, 600, 1100]).as_bin()]
-    v = reduce(SExp.from_blob(script_bin), bindings)
-    assert v == 1
-
-    bindings = [p2sh, underlying_script, SExp([500, 600, 1101]).as_bin()]
-    v = reduce(SExp.from_blob(script_bin), bindings)
-    assert v == 0
+from opacity.compile import compile_to_blob, disassemble, parse_macros, tokenize_program
 
 
 def test_tokenize_comments():
