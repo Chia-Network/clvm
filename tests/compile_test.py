@@ -6,19 +6,6 @@ from opacity.SExp import SExp
 from opacity.reduce import reduce
 
 
-def test_p2sh():
-    underlying_script = compile_to_sexp("((equal x0 500) (equal x1 600))")
-    script_source = "((equal (sha256 (wrap x0)) 0x%s) (reduce x0 x1))" % hashlib.sha256(
-        underlying_script.as_bin()).hexdigest()
-    bindings = [underlying_script, SExp([500, 600])]
-    v = reduce(compile_to_sexp(script_source), bindings)
-    assert v == 1
-
-    bindings[-1] = SExp([500, 599])
-    v = reduce(compile_to_sexp(script_source), bindings)
-    assert v == 0
-
-
 def test_top_level_script():
     script_source = "((equal (sha256 x1) x0) (reduce (unwrap x1) (unwrap x2)))"
     script_bin = compile_to_blob(script_source)
