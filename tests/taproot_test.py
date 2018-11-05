@@ -3,7 +3,7 @@ import hashlib
 import unittest
 
 from opacity.casts import bls12_381_to_bytes
-from opacity.compile import parse_macros, compile_to_blob, compile_to_sexp, disassemble, disassemble_sexp
+from opacity.compile import parse_macros, compile_to_sexp, disassemble, disassemble_sexp
 from opacity.ecdsa.bls12_381 import bls12_381_generator
 from opacity.reduce import reduce
 from opacity.SExp import SExp
@@ -15,10 +15,10 @@ MACRO_TEXT = """
 (
   (macro (pay_to_taproot P x0 x1 x2 x3 x4)
     ((choose1 x0
-       (aggsig x1 x2) ; standard branch
-       (equal x1 (point_add (pubkey_for_exp (sha256 x4 x2)) x4)) ; taproot branch
+       (aggsig x1 (wrap x2)) ; standard branch
+       (equal x1 (point_add (pubkey_for_exp (sha256 x4 (wrap x2))) x4)) ; taproot branch
      )
-     (reduce (unwrap x2) (unwrap x3))
+     (reduce x2 x3)
      (equal x1 P) ; x1 = P1 = P + hash(P||S)
     )
   )
@@ -46,8 +46,8 @@ class TaprootTest(unittest.TestCase):
         P1 = bls12_381_generator * 1
         P1_bin = bls12_381_to_bytes(P1)
         S_text = "(assert_output 500)"
-        S_bin = compile_to_blob(S_text)
-        taproot_hash = hashlib.sha256(P1_bin + S_bin).digest()
+        S_bin = compile_to_sexp(S_text)
+        taproot_hash = hashlib.sha256(P1_bin + S_bin.as_bin()).digest()
         taproot_hash_as_exp = int.from_bytes(taproot_hash, byteorder="big")
         P = P1 + (bls12_381_generator * taproot_hash_as_exp)
         P_bin = bls12_381_to_bytes(P)
@@ -57,16 +57,16 @@ class TaprootTest(unittest.TestCase):
         main_script = compile_to_sexp(taproot_script_text, macros=MACROS)
 
         # solve using taproot
-        solution = [1, P_bin, S_bin, SExp(0).as_bin(), P1_bin]
+        solution = [1, P_bin, S_bin, SExp(0), P1_bin]
         reductions = reduce(main_script, SExp(solution))
         d = disassemble_sexp(reductions)
         self.assertEqual(d, "(and 1 %s 1)" % S_text)
 
         # solve signature, no taproot
-        x2 = compile_to_blob("(assert_output 600)")
-        solution = [0, P_bin, x2, SExp(0).as_bin()]
+        x2 = compile_to_sexp("(assert_output 600)")
+        solution = [0, P_bin, x2, SExp(0)]
         reductions = reduce(main_script, SExp(solution))
         d = disassemble_sexp(reductions)
         d1 = "(and (aggsig 0x%s 0x%s) %s 1)" % (
-            P_hex, binascii.hexlify(x2).decode("utf8"), disassemble(x2))
+            P_hex, binascii.hexlify(x2.as_bin()).decode("utf8"), disassemble(x2))
         self.assertEqual(d, d1)
