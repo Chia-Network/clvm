@@ -60,14 +60,11 @@ def do_reduce(form, context):
     if len(form) < 2:
         return S_False
     new_form = context.reduce_f(form[1], context)
+    reduce_var = context.reduce_var
     if len(form) > 2:
-        new_bindings = context.reduce_f(form[2], context)
-        if new_bindings.is_list():
-            new_context = dataclasses.replace(context, bindings=new_bindings)
-        else:
-            new_context = dataclasses.replace(context, bindings=SExp([]))
-    else:
-        new_context = dataclasses.replace(context, bindings=SExp([]))
+        bindings = context.reduce_f(form[2], context)
+        reduce_var = reduce_var_for_bindings(bindings)
+    new_context = dataclasses.replace(context, reduce_var=reduce_var)
     return context.reduce_f(new_form, new_context)
 
 
@@ -88,35 +85,40 @@ def build_reduce_lookup(remap, keyword_to_int):
     return d
 
 
-REDUCE_LOOKUP = build_reduce_lookup({"+": "add", "*": "multiply", "-": "subtract"}, KEYWORD_TO_INT)
+def apply_f_for_lookup(reduce_lookup, reduce_default):
+    def apply_f(form, context):
+        f = reduce_lookup.get(form[0].as_int())
+        if f:
+            return f(form, context)
+        return reduce_default(form, context)
 
-
-DEFAULT_OPERATOR = KEYWORD_TO_INT["and"]
-
-
-def apply_f(form, context):
-    f = context.apply_lookup.get(form[0].as_int())
-    if f:
-        return f(form, context)
-    return do_recursive_reduce(form, context)
+    return apply_f
 
 
 def reduce_bytes(form, context):
     return form
 
 
-def reduce_var(form, context):
-    index = form.var_index()
-    if context.bindings.is_list() and 0 <= index < len(context.bindings):
-        return context.bindings[index]
-    return form
+def reduce_var_for_bindings(bindings):
+    # a lazy trick to help tests
+    bindings = SExp(bindings)
+
+    if not bindings.is_list():
+        bindings = SExp([])
+
+    def reduce_var(form, context):
+        index = form.var_index()
+        if 0 <= index < len(bindings):
+            return bindings[index]
+        return form
+    return reduce_var
 
 
 def reduce_list(form, context):
     if len(form) > 0:
         if form[0].is_list():
             form = SExp([context.default_operator] + form.as_list())
-        return apply_f(form, context)
+        return context.apply_f(form, context)
     return S_False
 
 
@@ -125,12 +127,9 @@ class ReduceContext:
     reduce_f: None
     reduce_var: None
     default_operator: int
-    apply_lookup: dict
-    apply_default: None
+    apply_f: None
     reduce_bytes: None = reduce_bytes
-    bindings: SExp = SExp([])
     reduce_list: None = reduce_list
-    apply_f: None = apply_f
 
 
 def default_reduce_f(form: SExp, context: ReduceContext):
@@ -143,12 +142,15 @@ def default_reduce_f(form: SExp, context: ReduceContext):
     return context.reduce_list(form, context)
 
 
-def reduce(form: SExp, bindings: SExp, reduce_f=None):
-    # a lazy trick to help tests
-    bindings = SExp(bindings)
+REDUCE_LOOKUP = build_reduce_lookup({"+": "add", "*": "multiply", "-": "subtract"}, KEYWORD_TO_INT)
+DEFAULT_OPERATOR = KEYWORD_TO_INT["and"]
 
+
+def reduce(form: SExp, bindings: SExp, reduce_f=None):
     reduce_f = reduce_f or default_reduce_f
+    reduce_var = reduce_var_for_bindings(bindings)
+    apply_f = apply_f_for_lookup(REDUCE_LOOKUP, do_recursive_reduce)
     context = ReduceContext(
-        reduce_f=reduce_f, reduce_var=reduce_var, bindings=bindings, default_operator=DEFAULT_OPERATOR,
-        apply_lookup=REDUCE_LOOKUP, apply_default=do_recursive_reduce)
+        reduce_f=reduce_f, reduce_var=reduce_var,
+        default_operator=DEFAULT_OPERATOR, apply_f=apply_f)
     return reduce_f(form, context)
