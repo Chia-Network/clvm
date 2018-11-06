@@ -92,8 +92,8 @@ def op_unwrap(items):
 
 
 def op_to_reduce(f_op):
-    def do_f_op(form, bindings, reduce_f):
-        items = [reduce_f(_, bindings, reduce_f) for _ in form[1:]]
+    def do_f_op(form, context):
+        items = [context.reduce_f(_, context) for _ in form[1:]]
         if has_unbound_values(items):
             return SExp([form[0], *items])
         return f_op(items)
