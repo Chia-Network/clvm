@@ -4,7 +4,7 @@ import hashlib
 import sys
 
 from .compile import compile_to_sexp, disassemble, dump, parse_macros
-from .reduce import reduce as opacity_reduce
+from .reduce import default_reduce_f, reduce as opacity_reduce
 from .SExp import SExp
 
 
@@ -70,9 +70,9 @@ def opd(args=sys.argv):
         print(text)
 
 
-def debug_frame(form, bindings, reduce_f):
-    rv = opacity_reduce(form, bindings, reduce_f)
-    print("%s [%s] => %s" % (disassemble(form), ", ".join(dump(_) for _ in bindings), disassemble(rv)))
+def debug_frame(form, context):
+    rv = default_reduce_f(form, context)
+    print("%s [%s] => %s" % (disassemble(form), ", ".join(dump(_) for _ in context.bindings), disassemble(rv)))
     return rv
 
 

@@ -64,7 +64,7 @@ def do_reduce(form, context):
     if len(form) > 2:
         bindings = context.reduce_f(form[2], context)
         reduce_var = reduce_var_for_bindings(bindings)
-    new_context = dataclasses.replace(context, reduce_var=reduce_var)
+    new_context = dataclasses.replace(context, reduce_var=reduce_var, bindings=bindings)
     return context.reduce_f(new_form, new_context)
 
 
@@ -126,6 +126,7 @@ def reduce_list(form, context):
 class ReduceContext:
     reduce_f: None
     reduce_var: None
+    bindings: SExp;
     default_operator: int
     apply_f: None
     reduce_bytes: None = reduce_bytes
@@ -151,6 +152,6 @@ def reduce(form: SExp, bindings: SExp, reduce_f=None):
     reduce_var = reduce_var_for_bindings(bindings)
     apply_f = apply_f_for_lookup(REDUCE_LOOKUP, do_recursive_reduce)
     context = ReduceContext(
-        reduce_f=reduce_f, reduce_var=reduce_var,
+        reduce_f=reduce_f, reduce_var=reduce_var, bindings=bindings,
         default_operator=DEFAULT_OPERATOR, apply_f=apply_f)
     return reduce_f(form, context)
