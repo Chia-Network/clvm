@@ -13,6 +13,22 @@ S_True = SExp(1)
 MASK_128 = ((1 << 128) - 1)
 
 
+def byte_operator(f_op):
+    def f(form, context):
+        items = [context.reduce_f(_, context) for _ in form[1:]]
+        if has_unbound_values(items):
+            return SExp([form[0], *items])
+        return f_op(items)
+    return f
+
+
+def operator(op_f):
+    def do_f_op(form, context):
+        items = [context.reduce_f(_, context) for _ in form[1:]]
+        return op_f(items)
+    return do_f_op
+
+
 def truncate_int(v):
     v1 = abs(v) & MASK_128
     if v < 0:
@@ -24,10 +40,12 @@ def has_unbound_values(items):
     return any(not _.is_bytes() for _ in items)
 
 
+@byte_operator
 def op_and(items):
     return S_False if S_False in items else S_True
 
 
+@byte_operator
 def op_pubkey_for_exp(items):
     def blob_for_item(_):
         try:
@@ -40,6 +58,7 @@ def op_pubkey_for_exp(items):
     return SExp(blob_for_item(items[0]))
 
 
+@byte_operator
 def op_point_add(items):
     if len(items) < 1:
         return S_False
@@ -49,10 +68,12 @@ def op_point_add(items):
     return SExp(bls12_381_to_bytes(p))
 
 
+@byte_operator
 def op_add(items):
     return SExp(sum(_.as_int() for _ in items))
 
 
+@byte_operator
 def op_multiply(items):
     v = 1
     for _ in items:
@@ -61,6 +82,7 @@ def op_multiply(items):
     return SExp(v)
 
 
+@byte_operator
 def op_subtract(items):
     if len(items) == 0:
         return SExp(0)
@@ -71,6 +93,7 @@ def op_subtract(items):
     return SExp(v)
 
 
+@byte_operator
 def op_sha256(items):
     h = hashlib.sha256()
     for _ in items:
@@ -78,12 +101,14 @@ def op_sha256(items):
     return SExp(h.digest())
 
 
+@byte_operator
 def op_equal(items):
     if len(items) == 0:
         return S_True
     return SExp(0 if any(_ != items[0] for _ in items[1:]) else 1)
 
 
+@byte_operator
 def op_unwrap(items):
     try:
         return SExp.from_blob(items[0].as_bytes())
@@ -106,6 +131,6 @@ def all_operators(remap, keyword_to_int):
     for k, i in keyword_to_int.items():
         f_op = g.get("op_%s" % remap.get(k, k))
         if f_op:
-            d[i] = op_to_reduce(f_op)
+            d[i] = f_op
 
     return d

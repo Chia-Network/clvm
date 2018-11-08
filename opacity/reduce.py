@@ -126,7 +126,7 @@ def reduce_list(form, context):
 class ReduceContext:
     reduce_f: None
     reduce_var: None
-    bindings: SExp;
+    bindings: SExp
     default_operator: int
     apply_f: None
     reduce_bytes: None = reduce_bytes
