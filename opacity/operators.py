@@ -22,6 +22,15 @@ def byte_operator(f_op):
     return f
 
 
+def int_operator(f_op):
+    def f(form, context):
+        items = [context.reduce_f(_, context) for _ in form[1:]]
+        if has_unbound_values(items):
+            return SExp([form[0], *items])
+        return f_op([_.as_int() for _ in items])
+    return f
+
+
 def operator(op_f):
     def do_f_op(form, context):
         items = [context.reduce_f(_, context) for _ in form[1:]]
@@ -40,16 +49,36 @@ def has_unbound_values(items):
     return any(not _.is_bytes() for _ in items)
 
 
+@operator
+def op_get(items):
+    if len(items) < 1:
+        return S_False
+    item = items[0]
+    for _ in items[1:]:
+        if item.is_list() and _.is_bytes() and 0 <= _.as_int() < len(item):
+            item = item[_.as_int()]
+        else:
+            return S_False
+    return item
+
+
+@operator
+def op_wrap(items):
+    if len(items) < 1:
+        return S_False
+    return SExp(items[0].as_bin())
+
+
 @byte_operator
 def op_and(items):
     return S_False if S_False in items else S_True
 
 
-@byte_operator
+@int_operator
 def op_pubkey_for_exp(items):
     def blob_for_item(_):
         try:
-            return bls12_381_to_bytes(bls12_381_generator * _.as_int())
+            return bls12_381_to_bytes(bls12_381_generator * _)
         except Exception as ex:
             return b''
 
@@ -68,28 +97,26 @@ def op_point_add(items):
     return SExp(bls12_381_to_bytes(p))
 
 
-@byte_operator
+@int_operator
 def op_add(items):
-    return SExp(sum(_.as_int() for _ in items))
+    return SExp(sum(_ for _ in items))
 
 
-@byte_operator
+@int_operator
 def op_multiply(items):
     v = 1
     for _ in items:
-        v *= _.as_int()
-        v = truncate_int(v)
+        v = truncate_int(v * _)
     return SExp(v)
 
 
-@byte_operator
+@int_operator
 def op_subtract(items):
     if len(items) == 0:
         return SExp(0)
-    v = items[0].as_int()
+    v = items[0]
     for _ in items[1:]:
-        v -= _.as_int()
-        v = truncate_int(v)
+        v = truncate_int(v - _)
     return SExp(v)
 
 

@@ -49,13 +49,6 @@ def do_quote(form, context):
     return S_False
 
 
-def do_wrap(form, context):
-    if len(form) < 2:
-        return S_False
-    item = context.reduce_f(form[1], context)
-    return SExp(item.as_bin())
-
-
 def do_reduce(form, context):
     if len(form) < 2:
         return S_False
