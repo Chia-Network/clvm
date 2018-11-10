@@ -111,6 +111,16 @@ def op_multiply(items):
 
 
 @int_operator
+def op_divide(items):
+    if len(items) == 0:
+        return SExp(0)
+    v = items[0]
+    for _ in items[1:]:
+        v = truncate_int(v // _)
+    return SExp(v)
+
+
+@int_operator
 def op_subtract(items):
     if len(items) == 0:
         return SExp(0)

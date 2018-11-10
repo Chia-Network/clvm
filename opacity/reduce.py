@@ -54,6 +54,7 @@ def do_reduce(form, context):
         return S_False
     new_form = context.reduce_f(form[1], context)
     reduce_var = context.reduce_var
+    bindings = context.bindings
     if len(form) > 2:
         bindings = context.reduce_f(form[2], context)
         reduce_var = reduce_var_for_bindings(bindings)
@@ -136,7 +137,7 @@ def default_reduce_f(form: SExp, context: ReduceContext):
     return context.reduce_list(form, context)
 
 
-REDUCE_LOOKUP = build_reduce_lookup({"+": "add", "*": "multiply", "-": "subtract"}, KEYWORD_TO_INT)
+REDUCE_LOOKUP = build_reduce_lookup({"+": "add", "*": "multiply", "-": "subtract", "/": "divide"}, KEYWORD_TO_INT)
 DEFAULT_OPERATOR = KEYWORD_TO_INT["and"]
 
 
