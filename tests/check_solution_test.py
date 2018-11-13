@@ -32,7 +32,7 @@ def test_check_solution_2():
 
 def test_assert_output():
     encumber_script = "(reduce (unwrap x0) (unwrap x1))"
-    expected_hash = 'f070b8def24415ecdea5da7c61fb808ed8b921219e71d7ea09b147e9839ba51b'
+    expected_hash = 'c220d98abd647802c5fa36867182cff04a679d0e2d9a839fb7855e24cde2c28b'
     x0 = compile_to_blob("(assert_output 500 600 700)")
     x1 = SExp([]).as_bin()
     solution = [x0, x1]
