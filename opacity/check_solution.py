@@ -6,7 +6,7 @@ def build_check_solution_sexp():
     CHECK_SOLUTION_SCRIPT = """
     (reduce (
         (quote (reduce x0 x1))
-        (quote (equal (sha256 (wrap x0)) (unquote x0)))
+        (quasiquote (equal (sha256 (wrap x0)) (unquote x0)))
         )
         x1
     )

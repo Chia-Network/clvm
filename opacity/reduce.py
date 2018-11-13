@@ -24,28 +24,34 @@ def do_choose1(form, context):
     return S_False
 
 
-QUOTE_KEYWORD = KEYWORD_TO_INT["quote"]
+QUASIQUOTE_KEYWORD = KEYWORD_TO_INT["quasiquote"]
 UNQUOTE_KEYWORD = KEYWORD_TO_INT["unquote"]
 
 
-def quote(form, context, level):
+def quasiquote(form, context, level):
     if form.is_list() and len(form) > 0:
         op = form[0].as_int()
-        if op == QUOTE_KEYWORD:
+        if op == QUASIQUOTE_KEYWORD:
             level += 1
         if op == UNQUOTE_KEYWORD:
             level -= 1
             if level == 0:
                 if len(form) > 1:
                     return context.reduce_f(form[1], context)
-        return SExp([quote(_, context, level) for _ in form])
+        return SExp([quasiquote(_, context, level) for _ in form])
 
     return form
 
 
+def do_quasiquote(form, context):
+    if len(form) > 1:
+        return quasiquote(form[1], context, 1)
+    return S_False
+
+
 def do_quote(form, context):
     if len(form) > 1:
-        return quote(form[1], context, 1)
+        return form[1]
     return S_False
 
 
