@@ -1,0 +1,2 @@
+reduce '(quote (+ 1 2 (unquote (+ 1 2))))'
+(+ 1 2 (unquote (+ 1 2)))

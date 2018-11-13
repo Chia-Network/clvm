@@ -55,6 +55,16 @@ def do_quote(form, context):
     return S_False
 
 
+def do_bindings(form, context):
+    r = context.bindings
+    for _ in form[1:]:
+        if r.is_list() and _.is_bytes() and _.as_int() < len(r):
+            r = r[_.as_int()]
+        else:
+            return S_False
+    return r
+
+
 def do_reduce(form, context):
     if len(form) < 2:
         return S_False
