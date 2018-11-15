@@ -6,10 +6,6 @@ from .SExp import SExp
 from .keywords import KEYWORD_FROM_INT, KEYWORD_TO_INT
 
 
-def b2h(the_bytes):
-    return binascii.hexlify(the_bytes).decode("utf8")
-
-
 class Token(str):
     def __new__(self, s, offset):
         self = str.__new__(self, s)
@@ -18,11 +14,14 @@ class Token(str):
 
 
 class bytes_as_hex(bytes):
+    def as_hex(self):
+        return binascii.hexlify(self).decode("utf8")
+
     def __str__(self):
-        return "0x%s" % b2h(self)
+        return "0x%s" % self.as_hex()
 
     def __repr__(self):
-        return "0x%s" % b2h(self)
+        return "0x%s" % self.as_hex()
 
 
 def parse_as_int(token):
@@ -85,7 +84,7 @@ def compile_atom(token):
 
 def compile_list(tokens):
     if len(tokens) == 0:
-        return []
+        return SExp([])
 
     r = []
     if not isinstance(tokens[0], list):
