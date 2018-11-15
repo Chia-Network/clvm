@@ -43,8 +43,16 @@ class SExp:
         elif isinstance(v, Var):
             self.item = v.index
             self.type = ATOM_TYPES.VAR
+        elif isinstance(v, tuple):
+            assert len(v) == 2
+            assert isinstance(v[0], SExp)
+            self.item = v
+            self.type = ATOM_TYPES.LIST
         elif hasattr(v, "__iter__"):
-            self.item = [to_sexp(_) for _ in v]
+            rest = None
+            for _ in reversed(v):
+                rest = (to_sexp(_), rest)
+            self.item = rest
             self.type = ATOM_TYPES.LIST
         else:
             raise ValueError("bad type for %s" % v)
@@ -95,14 +103,31 @@ class SExp:
         sexp_to_stream(self, f)
 
     def __iter__(self):
-        for _ in self.item:
-            yield _
+        v = self.item
+        while True:
+            if v is None:
+                break
+            yield v[0]
+            v = v[1]
 
     def __len__(self):
         return sum(1 for _ in self)
 
-    def __getitem__(self, slice):
-        return self.__class__(self.item.__getitem__(slice))
+    def get_sublist_at_index(self, s):
+        v = self.item
+        while s > 0:
+            v = v[1]
+            s -= 1
+        return SExp(v)
+
+    def get_at_index(self, s):
+        return self.get_sublist_at_index(s).item[0]
+
+    def __getitem__(self, s):
+        if isinstance(s, int):
+            return self.get_at_index(s)
+        if s.stop == s.step == None:
+            return self.get_sublist_at_index(s.start)
 
     def as_obj(self):
         type = self.type
