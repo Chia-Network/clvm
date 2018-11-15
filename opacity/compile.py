@@ -232,8 +232,7 @@ def parse_macros(program: str, macros: dict=None):
 
 def dump(form, keywords=[], is_first_element=False):
     if form.is_list():
-        return "(%s)" % ' '.join(str(dump(f, keywords, _ == 0)) for _, f in enumerate(
-            form.as_list()))
+        return "(%s)" % ' '.join(str(dump(f, keywords, _ == 0)) for _, f in enumerate(form))
 
     if form.is_var():
         return "x%d" % form.var_index()

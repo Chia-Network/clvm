@@ -27,9 +27,8 @@ def sexp_to_stream(v, f):
         return
 
     if v.is_list():
-        items = v.as_list()
-        encode_size(f, len(items), 32, 0x20)
-        for _ in items:
+        encode_size(f, len(v), 32, 0x20)
+        for _ in v:
             sexp_to_stream(_, f)
         return
 

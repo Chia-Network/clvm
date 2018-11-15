@@ -79,7 +79,7 @@ def do_reduce(form, context):
 
 
 def do_recursive_reduce(form, context):
-    return SExp(form.as_list()[:1] + [context.reduce_f(_, context) for _ in form[1:]])
+    return SExp([form[0]] + [context.reduce_f(_, context) for _ in form[1:]])
 
 
 def build_reduce_lookup(remap, keyword_to_int):
@@ -127,7 +127,7 @@ def reduce_var_for_bindings(bindings):
 def reduce_list(form, context):
     if len(form) > 0:
         if form[0].is_list():
-            form = SExp([context.default_operator] + form.as_list())
+            form = SExp([context.default_operator] + list(form))
         return context.apply_f(form, context)
     return S_False
 

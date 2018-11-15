@@ -90,10 +90,6 @@ class SExp:
         if self.is_bytes():
             return self.item
 
-    def as_list(self):
-        if self.is_list():
-            return list(self)
-
     def as_bin(self):
         f = io.BytesIO()
         self.stream(f)
