@@ -15,7 +15,7 @@ class Var:
         return "x%d" % self.index
 
 
-ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB LIST KEYWORD")
+ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB LIST")
 
 
 class SExp:
@@ -84,7 +84,7 @@ class SExp:
 
     def as_list(self):
         if self.is_list():
-            return self.item
+            return list(self)
 
     def as_bin(self):
         f = io.BytesIO()
@@ -95,10 +95,11 @@ class SExp:
         sexp_to_stream(self, f)
 
     def __iter__(self):
-        return self.as_list().__iter__()
+        for _ in self.item:
+            yield _
 
     def __len__(self):
-        return self.item.__len__()
+        return sum(1 for _ in self)
 
     def __getitem__(self, slice):
         return self.__class__(self.item.__getitem__(slice))
@@ -110,7 +111,7 @@ class SExp:
         if type == ATOM_TYPES.BLOB:
             return self.item
         if type == ATOM_TYPES.LIST:
-            return [_.as_obj() for _ in self.item]
+            return [_.as_obj() for _ in self]
         assert 0
 
     def __repr__(self):
@@ -120,7 +121,7 @@ class SExp:
         if self.is_bytes():
             t = repr(self.item)
         if self.is_list():
-            t = repr([_.as_obj() for _ in self.item])
+            t = repr([_.as_obj() for _ in self])
         return "SExp(%s)" % t
 
     def __eq__(self, other):
