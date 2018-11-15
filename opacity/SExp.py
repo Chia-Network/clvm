@@ -15,7 +15,7 @@ class Var:
         return "x%d" % self.index
 
 
-ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB LIST")
+ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB PAIR")
 
 
 class SExp:
@@ -47,13 +47,13 @@ class SExp:
             assert len(v) == 2
             assert isinstance(v[0], SExp)
             self.item = v
-            self.type = ATOM_TYPES.LIST
+            self.type = ATOM_TYPES.PAIR
         elif hasattr(v, "__iter__"):
             rest = None
             for _ in reversed(v):
                 rest = (to_sexp(_), rest)
             self.item = rest
-            self.type = ATOM_TYPES.LIST
+            self.type = ATOM_TYPES.PAIR
         else:
             raise ValueError("bad type for %s" % v)
 
@@ -76,7 +76,7 @@ class SExp:
         return self.type == ATOM_TYPES.BLOB
 
     def is_list(self):
-        return self.type == ATOM_TYPES.LIST
+        return self.type == ATOM_TYPES.PAIR
 
     def var_index(self):
         if self.is_var():
@@ -128,7 +128,7 @@ class SExp:
             return Var(index=self.var_index())
         if type == ATOM_TYPES.BLOB:
             return self.item
-        if type == ATOM_TYPES.LIST:
+        if type == ATOM_TYPES.PAIR:
             return [_.as_obj() for _ in self]
         assert 0
 
