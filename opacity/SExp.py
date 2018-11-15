@@ -92,11 +92,8 @@ class SExp:
 
     def as_bin(self):
         f = io.BytesIO()
-        self.stream(f)
-        return f.getvalue()
-
-    def stream(self, f):
         sexp_to_stream(self, f)
+        return f.getvalue()
 
     def __iter__(self):
         v = self.item
