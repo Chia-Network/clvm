@@ -55,8 +55,8 @@ def do_quote(form, context):
     return S_False
 
 
-def do_bindings(form, context):
-    r = context.bindings
+def do_env(form, context):
+    r = context.env
     for _ in form[1:]:
         if r.is_list() and _.is_bytes() and _.as_int() < len(r):
             r = r[_.as_int()]
@@ -70,11 +70,11 @@ def do_reduce(form, context):
         return S_False
     new_form = context.reduce_f(form[1], context)
     reduce_var = context.reduce_var
-    bindings = context.bindings
+    env = context.env
     if len(form) > 2:
-        bindings = context.reduce_f(form[2], context)
-        reduce_var = reduce_var_for_bindings(bindings)
-    new_context = dataclasses.replace(context, reduce_var=reduce_var, bindings=bindings)
+        env = context.reduce_f(form[2], context)
+        reduce_var = reduce_var_for_env(env)
+    new_context = dataclasses.replace(context, reduce_var=reduce_var, env=env)
     return context.reduce_f(new_form, new_context)
 
 
@@ -109,17 +109,17 @@ def reduce_bytes(form, context):
     return form
 
 
-def reduce_var_for_bindings(bindings):
+def reduce_var_for_env(env):
     # a lazy trick to help tests
-    bindings = SExp(bindings)
+    env = SExp(env)
 
-    if not bindings.is_list():
-        bindings = SExp([])
+    if not env.is_list():
+        env = SExp([])
 
     def reduce_var(form, context):
         index = form.var_index()
-        if 0 <= index < len(bindings):
-            return bindings[index]
+        if 0 <= index < len(env):
+            return env[index]
         return form
     return reduce_var
 
@@ -136,7 +136,7 @@ def reduce_list(form, context):
 class ReduceContext:
     reduce_f: None
     reduce_var: None
-    bindings: SExp
+    env: SExp
     default_operator: int
     apply_f: None
     reduce_bytes: None = reduce_bytes
@@ -157,11 +157,11 @@ REDUCE_LOOKUP = build_reduce_lookup({"+": "add", "*": "multiply", "-": "subtract
 DEFAULT_OPERATOR = KEYWORD_TO_INT["and"]
 
 
-def reduce(form: SExp, bindings: SExp, reduce_f=None):
+def reduce(form: SExp, env: SExp, reduce_f=None):
     reduce_f = reduce_f or default_reduce_f
-    reduce_var = reduce_var_for_bindings(bindings)
+    reduce_var = reduce_var_for_env(env)
     apply_f = apply_f_for_lookup(REDUCE_LOOKUP, do_recursive_reduce)
     context = ReduceContext(
-        reduce_f=reduce_f, reduce_var=reduce_var, bindings=bindings,
+        reduce_f=reduce_f, reduce_var=reduce_var, env=env,
         default_operator=DEFAULT_OPERATOR, apply_f=apply_f)
     return reduce_f(form, context)

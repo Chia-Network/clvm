@@ -72,8 +72,8 @@ def opd(args=sys.argv):
 
 def debug_frame(form, context):
     rv = default_reduce_f(form, context)
-    bindings_str = ", ".join(dump(_) for _ in context.bindings)
-    print("%s [%s] => %s" % (disassemble(form), bindings_str, disassemble(rv)))
+    env_str = ", ".join(dump(_) for _ in context.env)
+    print("%s [%s] => %s" % (disassemble(form), env_str, disassemble(rv)))
     return rv
 
 
