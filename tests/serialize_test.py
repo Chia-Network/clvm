@@ -12,9 +12,8 @@ class SerializeTest(unittest.TestCase):
         if v != v1:
             print("%s: %d %s %s" % (v, len(b), b, v1))
             breakpoint()
-            f = io.BytesIO(b)
             b = v.as_bin()
-            v1 = SExp.from_blob(f)
+            v1 = SExp.from_blob(b)
         self.assertEqual(v, v1)
 
     def test_empty_string(self):
