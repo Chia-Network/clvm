@@ -15,7 +15,7 @@ class Var:
         return "x%d" % self.index
 
 
-ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB PAIR")
+ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "BLOB PAIR VAR")
 
 
 class SExp:
