@@ -86,8 +86,15 @@ def op_type(items):
 @operator
 def op_is_null(items):
     if len(items) != 1:
+        raise ValueError("is_null takes exactly one parameter")
+    return SExp(1 if len(items[0]) == 0 else 0)
+
+
+@operator
+def op_is_atom(items):
+    if len(items) != 1:
         raise ValueError("is_atom takes exactly one parameter")
-    return SExp(len(items[0]) == 0)
+    return SExp(not items[0].is_list())
 
 
 @operator

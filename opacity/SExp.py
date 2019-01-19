@@ -37,6 +37,9 @@ class SExp:
         if isinstance(v, int):
             v = int_to_bytes(v)
 
+        if v is None:
+            v = []
+
         if isinstance(v, bytes):
             self.item = v
             self.type = ATOM_TYPES.BLOB
