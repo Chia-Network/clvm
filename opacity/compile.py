@@ -136,7 +136,7 @@ def macro_expansion(token, macros):
                     r = []
                     for item in expand_macro(token, macro):
                         r.extend(item)
-                    return r
+                    return macro_expansion(r, macros)
         return [macro_expansion(_, macros) for _ in token]
     return token
 
