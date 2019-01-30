@@ -55,6 +55,10 @@ def do_quasiquote(form, context):
     return quasiquote(form[1], new_context, level=1)
 
 
+def do_apply(form, context):
+    return context.apply_f(form[1:], context)
+
+
 def do_quote(form, context):
     if len(form) > 1:
         return form[1]

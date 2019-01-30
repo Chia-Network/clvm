@@ -8,7 +8,7 @@ from .reduce import default_reduce_f, reduce as opacity_reduce
 from .SExp import SExp
 
 
-def script(item):
+def script(item, macros={}):
     # let's see if it's hex
     try:
         blob = binascii.unhexlify(item)
@@ -17,7 +17,7 @@ def script(item):
         pass
 
     try:
-        return compile_to_sexp(item)
+        return compile_to_sexp(item, macros=macros)
     except Exception as ex:
         print("bad script: %s" % ex.msg, file=sys.stderr)
 

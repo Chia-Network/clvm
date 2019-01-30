@@ -15,7 +15,7 @@ class Var:
         return "x%d" % self.index
 
 
-ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "BLOB PAIR VAR")
+ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "PAIR BLOB VAR")
 
 
 class SExp:
@@ -99,6 +99,7 @@ class SExp:
         return f.getvalue()
 
     def __iter__(self):
+        assert self.type == ATOM_TYPES.PAIR
         v = self.item
         while True:
             if v is None:
