@@ -59,6 +59,13 @@ def do_apply(form, context):
     return context.apply_f(form[1:], context)
 
 
+def do_eval(form, context):
+    env = SExp([])
+    reduce_var = reduce_var_for_env(env)
+    new_context = dataclasses.replace(context, reduce_var=reduce_var, env=env)
+    return do_reduce(form, new_context)
+
+
 def do_quote(form, context):
     if len(form) > 1:
         return form[1]
