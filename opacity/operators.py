@@ -51,8 +51,12 @@ def has_unbound_values(items):
 
 @operator
 def op_cons(items):
+    if len(items) == 0:
+        return SExp([])
+    if len(items) == 1:
+        return SExp([items[0]])
     if len(items) != 2 or not items[1].is_list():
-        raise ValueError("cons takes exactly two parameters; the second must be a list")
+        raise ValueError("cons takes at most two parameters; the second must be a list")
     new_list = [items[0]] + list(items[1])
     return SExp(new_list)
 
