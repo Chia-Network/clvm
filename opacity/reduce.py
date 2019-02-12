@@ -55,6 +55,17 @@ def do_quote(form, context):
     return S_False
 
 
+def do_case(form, context):
+    for _ in form[1:]:
+        if len(_) != 2:
+            raise ValueError("not of form condition/action")
+        condition, action = list(_)
+        v = context.reduce_f(condition, context)
+        if v.as_int():
+            return context.reduce_f(action, context)
+    return S_False
+
+
 def do_env(form, context):
     r = context.env
     for _ in form[1:]:

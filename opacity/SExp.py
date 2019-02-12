@@ -37,6 +37,9 @@ class SExp:
         if isinstance(v, int):
             v = int_to_bytes(v)
 
+        if v is None:
+            v = []
+
         if isinstance(v, bytes):
             self.item = v
             self.type = ATOM_TYPES.BLOB
@@ -96,6 +99,7 @@ class SExp:
         return f.getvalue()
 
     def __iter__(self):
+        assert self.type == ATOM_TYPES.PAIR
         v = self.item
         while True:
             if v is None:

@@ -50,6 +50,58 @@ def has_unbound_values(items):
 
 
 @operator
+def op_cons(items):
+    if len(items) == 0:
+        return SExp([])
+    if len(items) == 1:
+        return SExp([items[0]])
+    if len(items) != 2 or not items[1].is_list():
+        raise ValueError("cons takes at most two parameters; the second must be a list")
+    new_list = [items[0]] + list(items[1])
+    return SExp(new_list)
+
+
+@operator
+def op_first(items):
+    if len(items) != 1 or not items[0].is_list():
+        raise ValueError("first takes exactly one list parameter")
+    return SExp(items[0].item[0])
+
+
+@operator
+def op_rest(items):
+    if len(items) != 1 or not items[0].is_list():
+        raise ValueError("rest takes exactly one list parameter")
+    return SExp(items[0].item[1])
+
+
+@operator
+def op_list(items):
+    return SExp(items)
+
+
+@operator
+def op_type(items):
+    if len(items) != 1:
+        raise ValueError("type takes exactly one parameter")
+    return SExp(items[0].type - 1)
+
+
+@operator
+def op_is_null(items):
+    if len(items) != 1:
+        raise ValueError("is_null takes exactly one parameter")
+    return SExp(1 if len(items[0]) == 0 else 0)
+
+
+@operator
+def op_is_atom(items):
+    if len(items) != 1:
+        raise ValueError("is_atom takes exactly one parameter")
+    return SExp(not items[0].is_list())
+
+
+@operator
 def op_get(items):
     if len(items) < 1:
         return S_False
@@ -154,6 +206,17 @@ def op_equal(items):
 def op_unwrap(items):
     try:
         return SExp.from_blob(items[0].as_bytes())
+    except (IndexError, ValueError):
+        return S_False
+
+
+@operator
+def op_var(items):
+    try:
+        v = items[0].var_index()
+        if v is None:
+            return S_False
+        return SExp(v)
     except (IndexError, ValueError):
         return S_False
 
