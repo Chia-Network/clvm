@@ -75,6 +75,13 @@ def compile_atom(token):
         assert c == token[-1] and len(token) >= 2
         return SExp(token[1:-1].encode("utf8"))
 
+    if c == '#':
+        keyword = token[1:].lower()
+        keyword_id = KEYWORD_TO_INT.get(keyword)
+        if keyword_id is None:
+            raise SyntaxError("unknown keyword: %s" % keyword)
+        return SExp(keyword_id)
+
     for f in [parse_as_int, parse_as_var, parse_as_hex]:
         v = f(token)
         if v is not None:
