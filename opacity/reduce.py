@@ -187,7 +187,8 @@ def default_reduce_f(form: SExp, context: ReduceContext):
     return context.reduce_list(form, context)
 
 
-REDUCE_LOOKUP = build_reduce_lookup({"+": "add", "*": "multiply", "-": "subtract", "/": "divide"}, KEYWORD_TO_INT)
+REDUCE_LOOKUP = build_reduce_lookup(
+    {"+": "add", "*": "multiply", "-": "subtract", "/": "divide"}, KEYWORD_TO_INT)
 DEFAULT_OPERATOR = KEYWORD_TO_INT["and"]
 
 

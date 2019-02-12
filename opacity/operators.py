@@ -115,11 +115,6 @@ def op_get(items):
 
 
 @operator
-def op_list(items):
-    return SExp(items)
-
-
-@operator
 def op_wrap(items):
     if len(items) < 1:
         return S_False

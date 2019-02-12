@@ -123,7 +123,7 @@ class SExp:
     def __getitem__(self, s):
         if isinstance(s, int):
             return self.get_at_index(s)
-        if s.stop == s.step == None:
+        if s.stop is None and s.step is None:
             return self.get_sublist_at_index(s.start)
 
     def as_obj(self):

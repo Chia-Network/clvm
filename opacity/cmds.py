@@ -47,7 +47,8 @@ def path_or_code(arg):
 
 def add_macro_support_to_parser(parser):
     parser.add_argument(
-        "-m", "--macro", action="append", type=path_or_code, help="Path to preprocessing macro file, or code as a string")
+        "-m", "--macro", action="append", type=path_or_code,
+        help="Path to preprocessing macro file, or code as a string")
 
 
 def parse_macros_for_args(args):
@@ -64,7 +65,8 @@ def opc(args=sys.argv):
 
     add_macro_support_to_parser(parser)
     parser.add_argument("-s", "--script_hash", action="store_true", help="Show sha256 script hash")
-    parser.add_argument("path_or_code", nargs="*", type=path_or_code, help="path to opacity script, or literal script")
+    parser.add_argument(
+        "path_or_code", nargs="*", type=path_or_code, help="path to opacity script, or literal script")
     args = parser.parse_args(args=args[1:])
 
     macros = parse_macros_for_args(args)
