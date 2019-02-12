@@ -24,26 +24,7 @@ def script(item, macros={}):
     raise ValueError("bad value %s" % item)
 
 
-def opc(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Compile an opacity script.'
-    )
-
-    def textfile(path):
-        with open(path) as f:
-            return f.read()
-
-    parser.add_argument(
-        "-m", "--macro", action="append", type=textfile, help="Path to preprocessing macro file")
-    parser.add_argument("-c", "--code", action="append", help="Literal code to compile")
-    parser.add_argument("-s", "--script_hash", action="store_true", help="Show sha256 script hash")
-    parser.add_argument("path", nargs="*", type=textfile, help="path opacity script")
-    args = parser.parse_args(args=args[1:])
-
-    macros = {}
-    for text in args.macro or []:
-        parse_macros(text, macros)
-
+def load_code(args, macros):
     for text in (args.code or []) + args.path:
         try:
             sexp = compile_to_sexp(text, macros)
@@ -51,9 +32,52 @@ def opc(args=sys.argv):
             print("%s" % ex.msg)
             continue
         compiled_script = sexp.as_bin()
-        script_hash = hashlib.sha256(compiled_script).hexdigest()
         if args.script_hash:
-            print(script_hash)
+            print(hashlib.sha256(compiled_script).hexdigest())
+        print(binascii.hexlify(compiled_script).decode())
+
+
+def path_or_code(arg):
+    try:
+        with open(arg) as f:
+            return f.read()
+    except IOError:
+        return arg
+
+
+def add_macro_support_to_parser(parser):
+    parser.add_argument(
+        "-m", "--macro", action="append", type=path_or_code, help="Path to preprocessing macro file, or code as a string")
+
+
+def parse_macros_for_args(args):
+    macros = {}
+    for text in args.macro or []:
+        parse_macros(text, macros)
+    return macros
+
+
+def opc(args=sys.argv):
+    parser = argparse.ArgumentParser(
+        description='Compile an opacity script.'
+    )
+
+    add_macro_support_to_parser(parser)
+    parser.add_argument("-s", "--script_hash", action="store_true", help="Show sha256 script hash")
+    parser.add_argument("path_or_code", nargs="*", type=path_or_code, help="path to opacity script, or literal script")
+    args = parser.parse_args(args=args[1:])
+
+    macros = parse_macros_for_args(args)
+
+    for text in args.path_or_code:
+        try:
+            sexp = compile_to_sexp(text, macros)
+        except SyntaxError as ex:
+            print("%s" % ex.msg)
+            continue
+        compiled_script = sexp.as_bin()
+        if args.script_hash:
+            print(hashlib.sha256(compiled_script).hexdigest())
         print(binascii.hexlify(compiled_script).decode())
 
 
@@ -81,19 +105,25 @@ def reduce(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Reduce an opacity script.'
     )
+
+    add_macro_support_to_parser(parser)
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument(
-        "script", type=script, help="script in hex or uncompiled text")
+        "script", help="script in hex or uncompiled text")
     parser.add_argument(
-        "solution", type=script, nargs="?", help="solution in hex or uncompiled text")
+        "solution", type=script, nargs="?", help="solution in hex or uncompiled text", default=SExp([]))
     args = parser.parse_args(args=args[1:])
 
-    solution = args.solution or SExp([])
+    macros = parse_macros_for_args(args)
+
     reduce_f = None
     if args.verbose:
         reduce_f = debug_frame
-    reductions = opacity_reduce(args.script, solution, reduce_f)
+
+    sexp = script(args.script, macros)
+
+    reductions = opacity_reduce(sexp, args.solution, reduce_f)
     print(disassemble(reductions))
 
 

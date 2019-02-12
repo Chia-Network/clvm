@@ -1,2 +1,2 @@
-opc -c "(equal x0 100"
+opc "(equal x0 100"
 missing )

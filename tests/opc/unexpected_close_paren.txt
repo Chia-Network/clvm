@@ -1,2 +1,2 @@
-opc -c ")"
+opc ")"
 unexpected ) at 0
