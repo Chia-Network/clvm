@@ -1,2 +1,2 @@
-opc -c "(equal x0 xa)"
+opc "(equal x0 xa)"
 invalid variable at 10: xa

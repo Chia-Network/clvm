@@ -1,2 +1,2 @@
-opc -c "(foo bar)"
+opc "(foo bar)"
 can't parse foo at 1

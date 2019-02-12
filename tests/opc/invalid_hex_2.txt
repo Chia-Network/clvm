@@ -1,2 +1,2 @@
-opc -c "(equal x0 0x1abefg)"
+opc "(equal x0 0x1abefg)"
 invalid hex at 10: 0x1abefg
