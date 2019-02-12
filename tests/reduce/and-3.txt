@@ -1,0 +1,2 @@
+reduce "(and (equal 1 2) (equal 2 2) (equal 3 3))"
+0
