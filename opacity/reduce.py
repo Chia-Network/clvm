@@ -44,9 +44,27 @@ def quasiquote(form, context, level):
 
 
 def do_quasiquote(form, context):
-    if len(form) > 1:
-        return quasiquote(form[1], context, 1)
-    return S_False
+    if len(form) < 2:
+        return S_False
+    reduce_var = context.reduce_var
+    env = context.env
+    if len(form) > 2:
+        env = context.reduce_f(form[2], context)
+        assert env.is_list()
+        reduce_var = reduce_var_for_env(env)
+    new_context = dataclasses.replace(context, reduce_var=reduce_var, env=env)
+    return quasiquote(form[1], new_context, level=1)
+
+
+def do_apply(form, context):
+    return context.apply_f(form[1:], context)
+
+
+def do_eval(form, context):
+    env = SExp([])
+    reduce_var = reduce_var_for_env(env)
+    new_context = dataclasses.replace(context, reduce_var=reduce_var, env=env)
+    return do_reduce(form, new_context)
 
 
 def do_quote(form, context):
