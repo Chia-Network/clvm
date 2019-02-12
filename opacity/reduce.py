@@ -156,9 +156,14 @@ def reduce_var_for_env(env):
 def reduce_list(form, context):
     if len(form) > 0:
         if form[0].is_list():
-            form = SExp([context.default_operator] + list(form))
+            return context.reduce_inner_list(form, context)
         return context.apply_f(form, context)
     return S_False
+
+
+def make_and(form, context):
+    form = SExp([DEFAULT_OPERATOR] + list(form))
+    return context.apply_f(form, context)
 
 
 @dataclasses.dataclass
@@ -166,10 +171,10 @@ class ReduceContext:
     reduce_f: None
     reduce_var: None
     env: SExp
-    default_operator: int
     apply_f: None
     reduce_bytes: None = reduce_bytes
     reduce_list: None = reduce_list
+    reduce_inner_list: None = make_and
 
 
 def default_reduce_f(form: SExp, context: ReduceContext):
@@ -191,6 +196,6 @@ def reduce(form: SExp, env: SExp, reduce_f=None):
     reduce_var = reduce_var_for_env(env)
     apply_f = apply_f_for_lookup(REDUCE_LOOKUP, do_recursive_reduce)
     context = ReduceContext(
-        reduce_f=reduce_f, reduce_var=reduce_var, env=env,
-        default_operator=DEFAULT_OPERATOR, apply_f=apply_f)
+        reduce_f=reduce_f, reduce_var=reduce_var, reduce_inner_list=make_and,
+        env=env, apply_f=apply_f)
     return reduce_f(form, context)
