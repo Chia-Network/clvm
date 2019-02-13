@@ -18,15 +18,15 @@ Check out the command-line tools help info:
 
 Try the command-line tools to create and reduce scripts.
 
-    $ opc -c '(equal 10 10)'
+    $ opc '(equal 10 10)'
     9308a10aa10a
     $ opd 9308a10aa10a
     (equal 10 10)
-    $ opc -c '(equal x0 (+ x1 x2))'
+    $ opc '(equal x0 (+ x1 x2))'
     9308ff930bfefd
     $ opd 9308ff930bfefd
     (equal x0 (+ x1 x2))
-    $ opc -c '(18 10 8)'
+    $ opc '(18 10 8)'
     93a112a10aa108
     $ reduce 9308ff930bfefd 93a112a10aa108
     1
