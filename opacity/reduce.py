@@ -46,13 +46,11 @@ def quasiquote(form, context, level):
 def do_quasiquote(form, context):
     if len(form) < 2:
         return S_False
-    reduce_var = context.reduce_var
     env = context.env
     if len(form) > 2:
         env = context.reduce_f(form[2], context)
         assert env.is_list()
-        reduce_var = reduce_var_for_env(env)
-    new_context = dataclasses.replace(context, reduce_var=reduce_var, env=env)
+    new_context = dataclasses.replace(context, env=env)
     return quasiquote(form[1], new_context, level=1)
 
 
@@ -62,8 +60,7 @@ def do_apply(form, context):
 
 def do_eval(form, context):
     env = SExp([])
-    reduce_var = reduce_var_for_env(env)
-    new_context = dataclasses.replace(context, reduce_var=reduce_var, env=env)
+    new_context = dataclasses.replace(context, env=env)
     return do_reduce(form, new_context)
 
 
@@ -98,12 +95,10 @@ def do_reduce(form, context):
     if len(form) < 2:
         return S_False
     new_form = context.reduce_f(form[1], context)
-    reduce_var = context.reduce_var
     env = context.env
     if len(form) > 2:
         env = context.reduce_f(form[2], context)
-        reduce_var = reduce_var_for_env(env)
-    new_context = dataclasses.replace(context, reduce_var=reduce_var, env=env)
+    new_context = dataclasses.replace(context, env=env)
     return context.reduce_f(new_form, new_context)
 
 
@@ -138,22 +133,17 @@ def reduce_bytes(form, context):
     return form
 
 
-def reduce_var_for_env(env):
-    # a lazy trick to help tests
-    env = SExp(env)
-
-    if not env.is_list():
-        env = SExp([])
-
-    def reduce_var(form, context):
-        index = form.var_index()
-        if 0 <= index < len(env):
-            return env[index]
-        return form
-    return reduce_var
 
 
-def reduce_list(form, context):
+def do_reduce_var(form, context):
+    index = form.var_index()
+    env = context.env
+    if 0 <= index < len(env):
+        return env[index]
+    return form
+
+
+def do_reduce_list(form, context):
     if len(form) > 0:
         if form[0].is_list():
             return context.reduce_inner_list(form, context)
@@ -166,6 +156,35 @@ def make_and(form, context):
     return context.apply_f(form, context)
 
 
+def apply_macro(form, context):
+    new_form = do_macro_expand(form, context)
+    return context.reduce_f(new_form, context)
+
+
+def do_macro_expand(form, context):
+    env = do_recursive_reduce(form[1:], context)
+    from .compile import dump
+    print("expanding macro %s [%s]" % (dump(form[1]), dump(env)))
+    breakpoint()
+    new_context = dataclasses.replace(context, env=env)
+    return macro_expand(form[1], new_context)
+
+
+def macro_expand(form, context):
+    if form.is_var():
+        env = context.env
+        index = form.var_index()
+        if 0 <= index < len(env):
+            return env[index]
+        raise ValueError("undefined variable x%d" % index)
+
+    if form.is_bytes():
+        return form
+
+    assert form.is_list()
+    return SExp([macro_expand(_, context) for _ in form])
+
+
 @dataclasses.dataclass
 class ReduceContext:
     reduce_f: None
@@ -173,7 +192,7 @@ class ReduceContext:
     env: SExp
     apply_f: None
     reduce_bytes: None = reduce_bytes
-    reduce_list: None = reduce_list
+    reduce_list: None = do_reduce_list
     reduce_inner_list: None = make_and
 
 
@@ -194,8 +213,8 @@ DEFAULT_OPERATOR = KEYWORD_TO_INT["and"]
 
 def reduce(form: SExp, env: SExp, reduce_f=None):
     reduce_f = reduce_f or default_reduce_f
-    reduce_var = reduce_var_for_env(env)
     apply_f = apply_f_for_lookup(REDUCE_LOOKUP, do_recursive_reduce)
+    reduce_var = REDUCE_LOOKUP.get(KEYWORD_TO_INT["reduce_var"])
     context = ReduceContext(
         reduce_f=reduce_f, reduce_var=reduce_var, reduce_inner_list=make_and,
         env=env, apply_f=apply_f)
