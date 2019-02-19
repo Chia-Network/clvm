@@ -4,7 +4,7 @@ from .reduce import reduce
 
 def build_check_solution_sexp():
     CHECK_SOLUTION_SCRIPT = """
-    (reduce (
+    (reduce (and
         (quote (reduce x0 x1))
         (quasiquote (equal (sha256 (wrap x0)) (unquote x0)))
         )

@@ -14,7 +14,7 @@ from opacity.SExp import SExp
 MACRO_TEXT = """
 (
   (macro (pay_to_taproot P x0 x1 x2 x3 x4)
-    ((choose1 x0
+    (and (choose1 x0
        (aggsig x1 (wrap x2)) ; standard branch
        (equal x1 (point_add (pubkey_for_exp (sha256 x4 (wrap x2))) x4)) ; taproot branch
      )
@@ -26,7 +26,7 @@ MACRO_TEXT = """
     (choose1
       x0  ; 1 for timelock condition (x2), 0 for non-timelock (x1)
       x1  ; non-timelock condition
-      (
+      (and
         x2  ; timelock condition
         (assert_confirm_timestamp_exceeds x3)
       )
