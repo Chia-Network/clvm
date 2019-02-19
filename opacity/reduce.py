@@ -133,9 +133,8 @@ def reduce_bytes(form, context):
     return form
 
 
-
-
 def do_reduce_var(form, context):
+    form = form[1]
     index = form.var_index()
     env = context.env
     if 0 <= index < len(env):
@@ -188,7 +187,6 @@ def macro_expand(form, context):
 @dataclasses.dataclass
 class ReduceContext:
     reduce_f: None
-    reduce_var: None
     env: SExp
     apply_f: None
     reduce_bytes: None = reduce_bytes
@@ -201,7 +199,7 @@ def default_reduce_f(form: SExp, context: ReduceContext):
         return context.reduce_bytes(form, context)
 
     if form.is_var():
-        return context.reduce_var(form, context)
+        form = SExp([REDUCE_VAR, form])
 
     return context.reduce_list(form, context)
 
@@ -211,11 +209,12 @@ REDUCE_LOOKUP = build_reduce_lookup(
 DEFAULT_OPERATOR = KEYWORD_TO_INT["and"]
 
 
+REDUCE_VAR = SExp(KEYWORD_TO_INT["reduce_var"])
+
+
 def reduce(form: SExp, env: SExp, reduce_f=None):
     reduce_f = reduce_f or default_reduce_f
     apply_f = apply_f_for_lookup(REDUCE_LOOKUP, do_recursive_reduce)
-    reduce_var = REDUCE_LOOKUP.get(KEYWORD_TO_INT["reduce_var"])
     context = ReduceContext(
-        reduce_f=reduce_f, reduce_var=reduce_var, reduce_inner_list=make_and,
-        env=env, apply_f=apply_f)
+        reduce_f=reduce_f, reduce_inner_list=make_and, env=env, apply_f=apply_f)
     return reduce_f(form, context)
