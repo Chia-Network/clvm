@@ -10,19 +10,28 @@ S_False = SExp(0)
 S_True = SExp(1)
 
 
-def do_choose1(form, context):
-    if len(form) < 2:
-        return S_False
-    choice = context.reduce_f(form[1], context)
-    if has_unbound_values([choice]):
-        return form
-    choice = choice.as_int()
-    choices = form[2:]
-    if 0 <= choice < len(choices):
-        chosen_form = choices[choice]
-        return context.reduce_f(chosen_form, context)
-    return S_False
 
+def create_rewrite_op(program, debug=False):
+    from .compile import compile_to_sexp
+    program_form = compile_to_sexp(program)
+
+    def op_f(form, context):
+        from .compile import dump, disassemble_sexp as ds
+        inner_context = dataclasses.replace(context, env=form[1:])
+        new_form = inner_context.reduce_f(program_form, inner_context)
+        if debug:
+            from .compile import disassemble_sexp
+            print("%s [%s]" % (ds(new_form), dump(form[1:])))
+            print(disassemble_sexp(new_form))
+        return context.reduce_f(new_form, context)
+
+    return op_f
+
+
+do_not = create_rewrite_op("(quasiquote (get (quote (1)) (unquote x0)))")
+do_if = create_rewrite_op("(quasiquote (reduce (get (quote (unquote (list x1 x2))) (not (unquote x0)))))")
+do_bool = create_rewrite_op("(quasiquote (not (not (unquote x0))))")
+do_choose1 = create_rewrite_op("(cons #reduce (cons (list #get (cons #quote (cons (rest (env)))) x0)))")
 
 QUASIQUOTE_KEYWORD = KEYWORD_TO_INT["quasiquote"]
 UNQUOTE_KEYWORD = KEYWORD_TO_INT["unquote"]
@@ -129,8 +138,8 @@ def apply_f_for_lookup(reduce_lookup, reduce_default):
     return apply_f
 
 
-def reduce_bytes(form, context):
-    return form
+def do_reduce_bytes(form, context):
+    return form[1]
 
 
 def do_reduce_var(form, context):
@@ -140,14 +149,6 @@ def do_reduce_var(form, context):
     if 0 <= index < len(env):
         return env[index]
     return form
-
-
-def do_reduce_list(form, context):
-    if len(form) > 0:
-        if form[0].is_list():
-            return context.reduce_inner_list(form, context)
-        return context.apply_f(form, context)
-    return S_False
 
 
 def make_and(form, context):
@@ -162,16 +163,11 @@ def apply_macro(form, context):
 
 def do_macro_expand(form, context):
     env = do_recursive_reduce(form[1:], context)
-    from .compile import dump
-    print("expanding macro %s [%s]" % (dump(form[1]), dump(env)))
-    breakpoint()
-    new_context = dataclasses.replace(context, env=env)
-    return macro_expand(form[1], new_context)
+    return macro_expand(env[0], env[1])
 
 
-def macro_expand(form, context):
+def macro_expand(form, env):
     if form.is_var():
-        env = context.env
         index = form.var_index()
         if 0 <= index < len(env):
             return env[index]
@@ -181,7 +177,9 @@ def macro_expand(form, context):
         return form
 
     assert form.is_list()
-    return SExp([macro_expand(_, context) for _ in form])
+    if len(form) > 0 and form[0].as_int() == KEYWORD_TO_INT["menv"]:
+        return env
+    return SExp([macro_expand(_, env) for _ in form])
 
 
 @dataclasses.dataclass
@@ -189,19 +187,16 @@ class ReduceContext:
     reduce_f: None
     env: SExp
     apply_f: None
-    reduce_bytes: None = reduce_bytes
-    reduce_list: None = do_reduce_list
-    reduce_inner_list: None = make_and
 
 
 def default_reduce_f(form: SExp, context: ReduceContext):
     if form.is_bytes():
-        return context.reduce_bytes(form, context)
+        form = SExp([REDUCE_BYTES, form])
 
     if form.is_var():
         form = SExp([REDUCE_VAR, form])
 
-    return context.reduce_list(form, context)
+    return context.apply_f(form, context)
 
 
 REDUCE_LOOKUP = build_reduce_lookup(
@@ -210,11 +205,12 @@ DEFAULT_OPERATOR = KEYWORD_TO_INT["and"]
 
 
 REDUCE_VAR = SExp(KEYWORD_TO_INT["reduce_var"])
+REDUCE_BYTES = SExp(KEYWORD_TO_INT["reduce_bytes"])
 
 
 def reduce(form: SExp, env: SExp, reduce_f=None):
     reduce_f = reduce_f or default_reduce_f
     apply_f = apply_f_for_lookup(REDUCE_LOOKUP, do_recursive_reduce)
     context = ReduceContext(
-        reduce_f=reduce_f, reduce_inner_list=make_and, env=env, apply_f=apply_f)
+        reduce_f=reduce_f, env=env, apply_f=apply_f)
     return reduce_f(form, context)
