@@ -20,9 +20,9 @@ def create_rewrite_op(program, debug=False):
         inner_context = dataclasses.replace(context, env=form[1:])
         new_form = inner_context.reduce_f(program_form, inner_context)
         if debug:
-            from .compile import disassemble_sexp
+            from .compile import disassemble_sexp as ds
             print("%s [%s]" % (ds(new_form), dump(form[1:])))
-            print(disassemble_sexp(new_form))
+            print(ds(new_form))
         return context.reduce_f(new_form, context)
 
     return op_f
@@ -115,6 +115,13 @@ def do_recursive_reduce(form, context):
     return SExp([form[0]] + [context.reduce_f(_, context) for _ in form[1:]])
 
 
+def do_map(form, context):
+    args = SExp([context.reduce_f(_, context) for _ in form[1:]])
+    the_f = args[0]
+    args = args[1]
+    return SExp([context.apply_f(SExp([the_f, _]), context) for _ in args])
+
+
 def build_reduce_lookup(remap, keyword_to_int):
     g = globals()
     d = all_operators(remap, keyword_to_int)
@@ -130,6 +137,11 @@ def build_reduce_lookup(remap, keyword_to_int):
 
 def apply_f_for_lookup(reduce_lookup, reduce_default):
     def apply_f(form, context):
+        if form[0].is_list():
+            inner_context = dataclasses.replace(context, env=form[1:])
+            new_form = inner_context.reduce_f(form[0], inner_context)
+            return context.reduce_f(new_form, context)
+
         f = reduce_lookup.get(form[0].as_int())
         if f:
             return f(form, context)
