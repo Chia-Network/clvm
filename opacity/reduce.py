@@ -1,7 +1,7 @@
 import dataclasses
 
 from .keywords import KEYWORD_TO_INT
-from .operators import all_operators, has_unbound_values
+from .operators import all_operators
 
 from .SExp import SExp
 
@@ -10,13 +10,11 @@ S_False = SExp(0)
 S_True = SExp(1)
 
 
-
 def create_rewrite_op(program, debug=False):
     from .compile import compile_to_sexp
     program_form = compile_to_sexp(program)
 
     def op_f(form, context):
-        from .compile import dump, disassemble_sexp as ds
         inner_context = dataclasses.replace(context, env=form[1:])
         new_form = inner_context.reduce_f(program_form, inner_context)
         if debug:
@@ -63,16 +61,6 @@ def do_quasiquote(form, context):
     return quasiquote(form[1], new_context, level=1)
 
 
-def do_apply(form, context):
-    return context.apply_f(form[1:], context)
-
-
-def do_eval(form, context):
-    env = SExp([])
-    new_context = dataclasses.replace(context, env=env)
-    return do_reduce(form, new_context)
-
-
 def do_quote(form, context):
     if len(form) > 1:
         return form[1]
@@ -115,11 +103,9 @@ def do_recursive_reduce(form, context):
     return SExp([form[0]] + [context.reduce_f(_, context) for _ in form[1:]])
 
 
-def do_map(form, context):
-    args = SExp([context.reduce_f(_, context) for _ in form[1:]])
-    the_f = args[0]
-    args = args[1]
-    return SExp([context.apply_f(SExp([the_f, _]), context) for _ in args])
+do_map = create_rewrite_op(
+    "(quasiquote (reduce (quote (if (is_null x1) (cons)"
+    " (cons (reduce x0 (list (first x1))) (map x0 (rest x1))))) (list (unquote x0) (unquote x1))))")
 
 
 def build_reduce_lookup(remap, keyword_to_int):
