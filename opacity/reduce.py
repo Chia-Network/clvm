@@ -78,14 +78,11 @@ def do_case(form, context):
     return S_False
 
 
-def do_env(form, context):
-    r = context.env
-    for _ in form[1:]:
-        if r.is_list() and _.is_bytes() and _.as_int() < len(r):
-            r = r[_.as_int()]
-        else:
-            return S_False
-    return r
+do_env = create_rewrite_op("(cons #get (cons (cons #env_raw) (env_raw)))")
+
+
+def do_env_raw(form, context):
+    return context.env
 
 
 def do_reduce(form, context):
@@ -152,32 +149,6 @@ def do_reduce_var(form, context):
 def make_and(form, context):
     form = SExp([DEFAULT_OPERATOR] + list(form))
     return context.apply_f(form, context)
-
-
-def apply_macro(form, context):
-    new_form = do_macro_expand(form, context)
-    return context.reduce_f(new_form, context)
-
-
-def do_macro_expand(form, context):
-    env = do_recursive_reduce(form[1:], context)
-    return macro_expand(env[0], env[1])
-
-
-def macro_expand(form, env):
-    if form.is_var():
-        index = form.var_index()
-        if 0 <= index < len(env):
-            return env[index]
-        raise ValueError("undefined variable x%d" % index)
-
-    if form.is_bytes():
-        return form
-
-    assert form.is_list()
-    if len(form) > 0 and form[0].as_int() == KEYWORD_TO_INT["menv"]:
-        return env
-    return SExp([macro_expand(_, env) for _ in form])
 
 
 @dataclasses.dataclass
