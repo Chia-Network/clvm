@@ -244,7 +244,9 @@ def dump(form, keywords=[], is_first_element=False):
         return "x%d" % form.var_index()
 
     if is_first_element and 0 <= form.as_int() < len(keywords):
-        return keywords[form.as_int()]
+        v = keywords[form.as_int()]
+        if v != '.':
+            return v
 
     if len(form.as_bytes()) > 4:
         return bytes_as_hex(form.as_bytes())

@@ -1,0 +1,2 @@
+rewrite '(if 0 x0 200)'
+(quote 200)

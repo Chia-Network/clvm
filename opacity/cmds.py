@@ -5,6 +5,8 @@ import sys
 
 from .compile import compile_to_sexp, disassemble, dump, parse_macros
 from .reduce import default_reduce_f, reduce as opacity_reduce
+from .rewrite import do_rewrite
+from .rewrite_ops import derived_operators
 from .SExp import SExp
 
 
@@ -126,6 +128,27 @@ def reduce(args=sys.argv):
     sexp = script(args.script, macros)
 
     reductions = opacity_reduce(sexp, args.solution, reduce_f)
+    print(disassemble(reductions))
+
+
+def rewrite(args=sys.argv):
+    parser = argparse.ArgumentParser(
+        description='Rewrite an opacity program in terms of the core language.'
+    )
+
+    add_macro_support_to_parser(parser)
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Display resolve of all reductions, for debugging")
+    parser.add_argument(
+        "script", help="script in hex or uncompiled text")
+
+    args = parser.parse_args(args=args[1:])
+
+    macros = parse_macros_for_args(args)
+
+    sexp = script(args.script, macros)
+
+    reductions = do_rewrite(do_rewrite, opacity_reduce, sexp, derived_operators())
     print(disassemble(reductions))
 
 

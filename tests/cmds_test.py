@@ -87,7 +87,7 @@ def inject(*paths):
             setattr(TestCmds, name_of_f, make_f(i, o, comments, path))
 
 
-inject("opc", "reduce")
+inject("opc", "reduce", "rewrite")
 
 
 def main():

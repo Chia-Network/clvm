@@ -1,0 +1,2 @@
+rewrite '(quasiquote 1)'
+(quote 1)

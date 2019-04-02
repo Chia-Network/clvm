@@ -3,6 +3,7 @@ import hashlib
 from .casts import bls12_381_from_bytes, bls12_381_to_bytes
 from .ecdsa.bls12_381 import bls12_381_generator
 
+from .ReduceError import ReduceError
 from .SExp import SExp
 
 
@@ -102,6 +103,30 @@ def op_is_atom(items):
 
 
 @operator
+def op_get_default(args):
+    if len(args) == 3:
+        item, default, index = args
+        if item.is_list() and index.is_bytes() and 0 <= index.as_int() < len(item):
+            return SExp(item[index.as_int()])
+        else:
+            return default
+    raise ReduceError("get_default takes exactly 3 parameters, got %d" % len(args))
+
+
+@operator
+def op_get_raw(args):
+    if len(args) in (2, 3):
+        item, index = args[0], args[1]
+        if item.is_list() and index.is_bytes() and 0 <= index.as_int() < len(item):
+            return SExp(item[index.as_int()])
+        else:
+            if len(args) == 3:
+                return args[2]
+            raise ReduceError("get_raw bad index or not list and no default set")
+    raise ReduceError("get_raw takes exactly 2 or 3 parameters, got %d" % len(args))
+
+
+@operator
 def op_get(items):
     if len(items) < 1:
         return S_False
@@ -119,11 +144,6 @@ def op_wrap(items):
     if len(items) < 1:
         return S_False
     return SExp(items[0].as_bin())
-
-
-@byte_operator
-def op_and(items):
-    return S_False if S_False in items else S_True
 
 
 @int_operator

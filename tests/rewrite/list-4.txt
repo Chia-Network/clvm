@@ -1,0 +1,2 @@
+rewrite '(list x0 100 200 (list 300 400 500))'
+(cons (get_raw (env_raw) (quote 0)) (quote (100 200 (300 400 500))))

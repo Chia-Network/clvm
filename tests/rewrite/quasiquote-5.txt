@@ -1,0 +1,2 @@
+rewrite '(quasiquote (unquote (+ 7 8 20)))'
+(quote 35)

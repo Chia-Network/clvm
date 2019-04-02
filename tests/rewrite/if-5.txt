@@ -1,0 +1,2 @@
+rewrite '(if x0 100 200)'
+(reduce (get_default (quote ((quote 200))) (quote 100) (get_raw (env_raw) (quote 0))))

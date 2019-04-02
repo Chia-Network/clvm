@@ -30,6 +30,14 @@ do_not = create_rewrite_op("(quasiquote (get (quote (1)) (unquote x0)))")
 do_if = create_rewrite_op("(quasiquote (reduce (get (quote (unquote (list x1 x2))) (not (unquote x0)))))")
 do_bool = create_rewrite_op("(quasiquote (not (not (unquote x0))))")
 do_choose1 = create_rewrite_op("(cons #reduce (cons (list #get (cons #quote (cons (rest (env)))) x0)))")
+do_env = create_rewrite_op("(cons #get (cons (cons #env_raw) (env_raw)))")
+do_map = create_rewrite_op(
+    "(quasiquote (reduce (quote (if (is_null x1) (cons)"
+    " (cons (reduce x0 (list (first x1))) (map x0 (rest x1))))) (list (unquote x0) (unquote x1))))")
+do_has_unquote = create_rewrite_op("(reduce (quote (if (equal (type x0) 2) (if (equal (first x0) #unquote) 1 (reduce (cons #or (map (quote (has_unquote x0)) (rest x0))))) 0)) (list x0))")
+do_or = create_rewrite_op("(quasiquote (if (is_null (quote (unquote (env_raw)))) 0 (if (unquote x0) 1 (reduce (cons #or (rest (quote (unquote (env_raw)))))))))")
+do_and = create_rewrite_op("(quasiquote (if (is_null (quote (unquote (env_raw)))) 1 (if (unquote x0) (reduce (cons #and (rest (quote (unquote (env_raw)))))) 0)))")
+
 
 QUASIQUOTE_KEYWORD = KEYWORD_TO_INT["quasiquote"]
 UNQUOTE_KEYWORD = KEYWORD_TO_INT["unquote"]
@@ -78,9 +86,6 @@ def do_case(form, context):
     return S_False
 
 
-do_env = create_rewrite_op("(cons #get (cons (cons #env_raw) (env_raw)))")
-
-
 def do_env_raw(form, context):
     return context.env
 
@@ -98,11 +103,6 @@ def do_reduce(form, context):
 
 def do_recursive_reduce(form, context):
     return SExp([form[0]] + [context.reduce_f(_, context) for _ in form[1:]])
-
-
-do_map = create_rewrite_op(
-    "(quasiquote (reduce (quote (if (is_null x1) (cons)"
-    " (cons (reduce x0 (list (first x1))) (map x0 (rest x1))))) (list (unquote x0) (unquote x1))))")
 
 
 def build_reduce_lookup(remap, keyword_to_int):

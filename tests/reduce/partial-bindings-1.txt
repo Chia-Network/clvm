@@ -1,2 +1,2 @@
 reduce "(and (equal 400 x0) (equal 500 x1) (equal 600 x2))" "(400)"
-(and 1 (equal 500 x1) (equal 600 x2))
+1
