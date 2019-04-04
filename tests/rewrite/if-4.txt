@@ -1,2 +1,2 @@
 rewrite '(if 0 100 x50)'
-(get (env_raw) 50)
+(reduce (quote x50) (env_raw))

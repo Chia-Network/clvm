@@ -1,0 +1,2 @@
+reduce_core '(equal (quote ()) (quote x0))'
+0

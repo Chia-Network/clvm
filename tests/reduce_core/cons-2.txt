@@ -1,0 +1,2 @@
+reduce_core '(cons (quote 100) (quote ()))'
+(100)

@@ -1,0 +1,2 @@
+reduce_core '(rest (quote ()))'
+FAIL: rest takes 1 argument, which must be a pair

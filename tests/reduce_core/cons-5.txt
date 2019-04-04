@@ -1,0 +1,2 @@
+reduce_core '(cons (quote 100))'
+FAIL: cons must take 2 args, got 1

@@ -1,0 +1,2 @@
+reduce_core '(raise (quote 2000))'
+FAIL: SExp([b'\x07\xd0'])

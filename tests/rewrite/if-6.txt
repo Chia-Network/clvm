@@ -1,2 +1,2 @@
 rewrite '(if x38 100 200)'
-(reduce (get_default (quote ((quote 200))) (quote 100) (get_raw (env_raw) (quote 38))))
+(reduce (get_raw (quote (100 200)) (equal (get_raw (env_raw) (quote 38)) (quote 0))) (env_raw))

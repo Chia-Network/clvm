@@ -1,0 +1,2 @@
+reduce_core '(reduce (quote (cons (get_raw (env_raw) (quote 0)) (quote (105 200)))) (quote (100 200)))'
+(100 105 200)

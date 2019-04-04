@@ -1,0 +1,2 @@
+reduce_core '(type (quote x5))'
+0

@@ -4,6 +4,7 @@ KEYWORD_FROM_INT = (
     "case is_atom list1 "
     "cons first rest list type is_null var apply eval "
     "macro_expand reduce_var reduce_bytes reduce_list if not bool or map "
-    "env_raw get_raw has_unquote get_default ").split()
+    "get_raw env_raw has_unquote get_default "
+    "first_true raise reduce_raw rewrite concat ").split()
 
 KEYWORD_TO_INT = {v: k for k, v in enumerate(KEYWORD_FROM_INT)}

@@ -1,0 +1,2 @@
+reduce_core '(first (first (quote ((100 200 300) 400 500))))'
+100

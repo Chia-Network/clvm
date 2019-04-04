@@ -1,0 +1,2 @@
+reduce_core -r opacity.standard_rewrite '(if 100 200 300)'
+200

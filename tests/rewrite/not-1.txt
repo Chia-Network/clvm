@@ -1,0 +1,2 @@
+rewrite '(not 0)'
+(reduce (quote (quote 1)) (env_raw))

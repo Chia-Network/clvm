@@ -1,0 +1,2 @@
+reduce_core '(cons)'
+FAIL: cons must take 2 args, got 0

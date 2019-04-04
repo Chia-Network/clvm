@@ -1,0 +1,2 @@
+rewrite '(map (quote (+ x0 1)) (list 100 200 300))'
+(quote (101 201 301))

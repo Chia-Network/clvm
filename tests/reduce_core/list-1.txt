@@ -1,0 +1,2 @@
+reduce_core -r opacity.standard_rewrite '(list x0 100 200 300 400 500)' '(2000)'
+(2000 100 200 300 400 500)

@@ -1,0 +1,2 @@
+rewrite '(bool 1000)'
+(reduce (quote (quote 1)) (env_raw))

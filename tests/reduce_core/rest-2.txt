@@ -1,0 +1,2 @@
+reduce_core '(rest (quote (100 200 300)))'
+(200 300)

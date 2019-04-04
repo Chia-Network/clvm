@@ -1,2 +1,2 @@
 rewrite '(if 0 100 200)'
-(quote 200)
+(reduce (quote 200) (env_raw))

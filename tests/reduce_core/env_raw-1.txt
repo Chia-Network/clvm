@@ -1,0 +1,2 @@
+reduce_core '(env_raw)' '(x0)'
+(x0)

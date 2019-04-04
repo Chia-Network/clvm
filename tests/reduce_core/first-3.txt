@@ -1,0 +1,2 @@
+reduce_core '(first (quote ()))'
+FAIL: first takes 1 argument, which must be a pair

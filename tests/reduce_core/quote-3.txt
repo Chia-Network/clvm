@@ -1,0 +1,2 @@
+reduce_core '(quote x0)'
+x0

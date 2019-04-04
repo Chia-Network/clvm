@@ -1,0 +1,2 @@
+rewrite '(map (* x0 x0) (list 100 200 300))'
+(reduce (quote (if (is_null x1) (quote ()) (cons (reduce x0 (list (first x1))) (map x0 (rest x1))))) (cons (* (get_raw (env_raw) (quote 0)) (get_raw (env_raw) (quote 0))) (quote ((100 200 300)))))

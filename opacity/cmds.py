@@ -1,12 +1,15 @@
 import argparse
 import binascii
 import hashlib
+import importlib
 import sys
 
 from .compile import compile_to_sexp, disassemble, dump, parse_macros
-from .reduce import default_reduce_f, reduce as opacity_reduce
+from .core import make_reduce_f, ReduceError
+from .core_operators import minimal_ops
+from .debug import trace_to_html
+from .keywords import KEYWORD_TO_INT
 from .rewrite import do_rewrite
-from .rewrite_ops import derived_operators
 from .SExp import SExp
 
 
@@ -98,11 +101,14 @@ def opd(args=sys.argv):
         print(text)
 
 
-def debug_frame(form, context):
-    rv = default_reduce_f(form, context)
-    env_str = ", ".join(dump(_) for _ in context.env)
-    print("%s [%s] => %s" % (disassemble(form), env_str, disassemble(rv)))
-    return rv
+def trace_to_text(trace):
+    for form, rewrit_form, env, rv in trace:
+        env_str = ", ".join(dump(_) for _ in env)
+        if form != rewrit_form:
+            print("%s -> %s [%s] => %s" % (
+                disassemble(form), disassemble(rewrit_form), env_str, disassemble(rv)))
+        else:
+            print("%s [%s] => %s" % (disassemble(form), env_str, disassemble(rv)))
 
 
 def reduce(args=sys.argv):
@@ -113,22 +119,88 @@ def reduce(args=sys.argv):
     add_macro_support_to_parser(parser)
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Display resolve of all reductions, for debugging")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Dump debug information to html")
+    parser.add_argument("-r", "--rewrite-actions", default="opacity.standard_rewrite",
+                        help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
     parser.add_argument(
         "solution", type=script, nargs="?", help="solution in hex or uncompiled text", default=SExp([]))
+
+    do_reduce_tool(parser, args)
+
+
+def reduce_core(args=sys.argv):
+    parser = argparse.ArgumentParser(
+        description='Reduce a core opacity script.'
+    )
+
+    add_macro_support_to_parser(parser)
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Display resolve of all reductions, for debugging")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Dump debug information to html")
+    parser.add_argument("-r", "--rewrite-actions",
+                        help="Python module imported with rewrite")
+    parser.add_argument(
+        "script", help="script in hex or uncompiled text")
+    parser.add_argument(
+        "solution", type=script, nargs="?", help="solution in hex or uncompiled text", default=SExp([]))
+
+    do_reduce_tool(parser, args)
+
+
+def default_rewrite(self, form):
+    return form
+
+
+def make_rewriting_reduce(rewrite_f, reduce_f, log_reduce_f):
+    def my_reduce_f(self, form, env):
+        rewritten_form = rewrite_f(rewrite_f, form)
+        rv = reduce_f(self, rewritten_form, env)
+        log_reduce_f(SExp([form, rewritten_form, env, rv]))
+        return rv
+    return my_reduce_f
+
+
+def do_reduce_tool(parser, args):
     args = parser.parse_args(args=args[1:])
 
+    operator_lookup = minimal_ops(KEYWORD_TO_INT)
+
+    core_reduce_f = make_reduce_f(operator_lookup, KEYWORD_TO_INT)
+
+    rewrite_f = default_rewrite
+    if args.rewrite_actions:
+        mod = importlib.import_module(args.rewrite_actions)
+        rewrite_f = mod.make_rewrite_f(KEYWORD_TO_INT, core_reduce_f, reduce_constants=False)
+        d = {}
+        for keyword, op_f in mod.DOMAIN_OPERATORS:
+            d[KEYWORD_TO_INT[keyword]] = op_f
+        operator_lookup.update(d)
+
     macros = parse_macros_for_args(args)
-
-    reduce_f = None
-    if args.verbose:
-        reduce_f = debug_frame
-
     sexp = script(args.script, macros)
 
-    reductions = opacity_reduce(sexp, args.solution, reduce_f)
-    print(disassemble(reductions))
+    the_log = []
+    rewriting_reduce_f = make_rewriting_reduce(rewrite_f, core_reduce_f, the_log.append)
+
+    try:
+        reductions = rewriting_reduce_f(rewriting_reduce_f, sexp, args.solution)
+        final_output = disassemble(reductions)
+        if not args.debug:
+            print(final_output)
+    except ReduceError as e:
+        final_output = "FAIL: %s" % e
+        if not args.debug:
+            print(final_output)
+        return -1
+    finally:
+        if args.debug:
+            trace_to_html(the_log)
+        elif args.verbose:
+            trace_to_text(the_log)
 
 
 def rewrite(args=sys.argv):
@@ -139,6 +211,10 @@ def rewrite(args=sys.argv):
     add_macro_support_to_parser(parser)
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Display resolve of all reductions, for debugging")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Dump debug information to html")
+    parser.add_argument("-r", "--rewrite-actions", default="opacity.standard_rewrite",
+                        help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
 
@@ -146,9 +222,21 @@ def rewrite(args=sys.argv):
 
     macros = parse_macros_for_args(args)
 
+    operator_lookup = minimal_ops(KEYWORD_TO_INT)
+
+    reduce_f = make_reduce_f(operator_lookup, KEYWORD_TO_INT)
+
+    if args.rewrite_actions:
+        mod = importlib.import_module(args.rewrite_actions)
+        rewrite_f = mod.make_rewrite_f(KEYWORD_TO_INT, reduce_f)
+        d = {}
+        for keyword, op_f in mod.DOMAIN_OPERATORS:
+            d[KEYWORD_TO_INT[keyword]] = op_f
+        operator_lookup.update(d)
+
     sexp = script(args.script, macros)
 
-    reductions = do_rewrite(do_rewrite, opacity_reduce, sexp, derived_operators())
+    reductions = rewrite_f(rewrite_f, sexp)
     print(disassemble(reductions))
 
 

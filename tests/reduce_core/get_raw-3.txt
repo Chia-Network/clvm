@@ -1,0 +1,2 @@
+reduce_core '(get_raw (quote ((100 200) 300)) 0)'
+FAIL: SExp(b'') is not a list

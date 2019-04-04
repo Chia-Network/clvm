@@ -1,0 +1,2 @@
+reduce_core '(quote)'
+FAIL: quote requires exactly 1 parameter, got 0

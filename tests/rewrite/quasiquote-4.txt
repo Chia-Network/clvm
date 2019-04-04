@@ -1,2 +1,2 @@
 rewrite '(quasiquote (+ x0 (unquote x0)))'
-(cons (quote 11) (cons (quote (get_raw (env_raw) (quote 0))) (cons (get_raw (env_raw) (quote 0)) (quote ()))))
+(cons (quote 11) (cons (quote x0) (cons (get_raw (env_raw) (quote 0)) (quote ()))))

@@ -1,2 +1,2 @@
 rewrite '(quasiquote x0)'
-(quote (get (env_raw) 0))
+(quote x0)

@@ -1,0 +1,2 @@
+reduce_core '(type (quote x0) (quote x5))'
+FAIL: type takes exactly one parameter

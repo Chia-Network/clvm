@@ -1,0 +1,2 @@
+reduce_core '(type)'
+FAIL: type takes exactly one parameter

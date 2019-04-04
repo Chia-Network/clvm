@@ -1,0 +1,2 @@
+reduce_core '(is_null)'
+FAIL: is_null takes exactly one parameter, got 0

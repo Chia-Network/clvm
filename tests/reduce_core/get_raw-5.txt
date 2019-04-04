@@ -1,0 +1,2 @@
+reduce_core '(get_raw)'
+FAIL: get_raw takes exactly 2 parameters, got 0

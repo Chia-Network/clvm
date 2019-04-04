@@ -1,0 +1,2 @@
+reduce_core '(reduce (quote (env_raw)))'
+FAIL: reduce_list requires 2 parameters, got 1
