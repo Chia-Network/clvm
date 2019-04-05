@@ -34,6 +34,7 @@ DERIVED_OPERATORS = [
         "(quasiquote (reduce (quote (if (is_null x1) (quote ())"
         " (cons (reduce x0 (list (first x1))) (map x0 (rest x1))))) (list (unquote x0) (unquote x1))))"),
     ("assert_output", "(quasiquote (quote (unquote (cons #assert_output (env_raw)))))"),
+    ("rewrite", "(quasiquote (rewrite_op (quote (unquote x0))))"),
 ]
 
 

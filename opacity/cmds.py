@@ -9,7 +9,6 @@ from .core import make_reduce_f, ReduceError
 from .core_operators import minimal_ops
 from .debug import trace_to_html
 from .keywords import KEYWORD_TO_INT
-from .rewrite import do_rewrite
 from .SExp import SExp
 
 
@@ -179,6 +178,11 @@ def do_reduce_tool(parser, args):
         for keyword, op_f in mod.DOMAIN_OPERATORS:
             d[KEYWORD_TO_INT[keyword]] = op_f
         operator_lookup.update(d)
+
+        def op_rewrite(items):
+            return rewrite_f(rewrite_f, items[0])
+
+        operator_lookup[KEYWORD_TO_INT["rewrite_op"]] = op_rewrite
 
     macros = parse_macros_for_args(args)
     sexp = script(args.script, macros)
