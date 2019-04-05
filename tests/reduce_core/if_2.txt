@@ -1,2 +1,2 @@
-reduce_core -r opacity.standard_rewrite '(if 0 200 300)'
+reduce_core -r schemas.v0_0_1 '(if 0 200 300)'
 300

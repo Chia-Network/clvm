@@ -103,7 +103,7 @@ def reduce(args=sys.argv):
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
-    parser.add_argument("-r", "--rewrite-actions", default="opacity.standard_rewrite",
+    parser.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_1",
                         help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
@@ -197,7 +197,7 @@ def rewrite(args=sys.argv):
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
-    parser.add_argument("-r", "--rewrite-actions", default="opacity.standard_rewrite",
+    parser.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_1",
                         help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")

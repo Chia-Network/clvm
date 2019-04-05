@@ -1,10 +1,10 @@
 import hashlib
 
-from .ReduceError import ReduceError
-from .SExp import SExp
+from opacity.ReduceError import ReduceError
+from opacity.SExp import SExp
 
-from .compile import compile_to_sexp
-from .compile import disassemble_sexp as ds
+from opacity.compile import compile_to_sexp
+from opacity.compile import disassemble_sexp as ds
 
 
 DERIVED_OPERATORS = [
