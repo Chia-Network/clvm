@@ -1,9 +1,0 @@
-((macro
-    (sum_equals a b c)
-    (equal a (+ b c))
-    )
- (macro
-    (increasing x y z)
-    (> x y z)
- )
-)

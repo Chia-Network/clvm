@@ -112,51 +112,6 @@ def compile_token(token):
     return compile_list(token)
 
 
-def expand_macro(tokens, macro_info):
-
-    def expand(template, lookup):
-        if isinstance(template, list):
-            return [expand(_, lookup) for _ in template]
-        return lookup.get(template, template)
-
-    lookup = dict(zip(macro_info["declaration"][1:], tokens[1:]))
-
-    return expand(macro_info["template"], lookup)
-
-
-def compile_macro(tokens):
-    # (macro (macroname var0 var1 ...) (expansion_term_0) (expansion_term_1)... )
-    if len(tokens) < 3:
-        raise SyntaxError("macro requires at least three list parameters")
-
-    macro_declaration = tokens[1]
-    macro_name = tokens[1][0]
-    return macro_name, {"template": tokens[2:], "declaration": macro_declaration}
-
-
-def macro_expansion(token, macros):
-    if isinstance(token, list):
-        if len(token) > 0:
-            if not isinstance(token[0], list):
-                macro = macros.get(token[0])
-                if macro:
-                    r = []
-                    for item in expand_macro(token, macro):
-                        r.extend(item)
-                    return macro_expansion(r, macros)
-        return [macro_expansion(_, macros) for _ in token]
-    return token
-
-
-def parse_macro_def(token, macros):
-    if not isinstance(token, list):
-        raise SyntaxError("macro expected, got %s" % token)
-    name, macro = compile_macro(token)
-    if name in macros:
-        raise SyntaxError("macro %s redefined" % name)
-    macros[name] = macro
-
-
 def tokenize_str(sexp: str, offset):
     start = offset
     initial_c = sexp[start]
@@ -216,24 +171,15 @@ def tokenize_program(sexp: str):
     return tokenize_sexp(sexp, 0)[0]
 
 
-def compile_to_sexp(program: str, macros={}):
+def compile_to_sexp(program: str):
     "Read an expression from a string, yielding an SExp."
     tokenized = tokenize_program(program)
-    tokenized = macro_expansion(tokenized, macros)
     return compile_token(tokenized)
 
 
-def compile_to_blob(program: str, macros={}):
+def compile_to_blob(program: str):
     "Read an expression from a string, compiled to a binary blob."
-    return compile_to_sexp(program, macros).as_bin()
-
-
-def parse_macros(program: str, macros: dict=None):
-    if macros is None:
-        macros = {}
-    for macro_def in tokenize_program(program):
-        parse_macro_def(macro_def, macros)
-    return macros
+    return compile_to_sexp(program).as_bin()
 
 
 def dump(form, keywords=[], is_first_element=False):

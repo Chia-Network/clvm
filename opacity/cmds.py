@@ -4,7 +4,7 @@ import hashlib
 import importlib
 import sys
 
-from .compile import compile_to_sexp, disassemble, dump, parse_macros
+from .compile import compile_to_sexp, disassemble, dump
 from .core import make_reduce_f, ReduceError
 from .core_operators import minimal_ops
 from .debug import trace_to_html
@@ -12,7 +12,7 @@ from .keywords import KEYWORD_TO_INT
 from .SExp import SExp
 
 
-def script(item, macros={}):
+def script(item):
     # let's see if it's hex
     try:
         blob = binascii.unhexlify(item)
@@ -21,17 +21,17 @@ def script(item, macros={}):
         pass
 
     try:
-        return compile_to_sexp(item, macros=macros)
+        return compile_to_sexp(item)
     except Exception as ex:
         print("bad script: %s" % ex.msg, file=sys.stderr)
 
     raise ValueError("bad value %s" % item)
 
 
-def load_code(args, macros):
+def load_code(args):
     for text in (args.code or []) + args.path:
         try:
-            sexp = compile_to_sexp(text, macros)
+            sexp = compile_to_sexp(text)
         except SyntaxError as ex:
             print("%s" % ex.msg)
             continue
@@ -49,35 +49,19 @@ def path_or_code(arg):
         return arg
 
 
-def add_macro_support_to_parser(parser):
-    parser.add_argument(
-        "-m", "--macro", action="append", type=path_or_code,
-        help="Path to preprocessing macro file, or code as a string")
-
-
-def parse_macros_for_args(args):
-    macros = {}
-    for text in args.macro or []:
-        parse_macros(text, macros)
-    return macros
-
-
 def opc(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Compile an opacity script.'
     )
 
-    add_macro_support_to_parser(parser)
     parser.add_argument("-s", "--script_hash", action="store_true", help="Show sha256 script hash")
     parser.add_argument(
         "path_or_code", nargs="*", type=path_or_code, help="path to opacity script, or literal script")
     args = parser.parse_args(args=args[1:])
 
-    macros = parse_macros_for_args(args)
-
     for text in args.path_or_code:
         try:
-            sexp = compile_to_sexp(text, macros)
+            sexp = compile_to_sexp(text)
         except SyntaxError as ex:
             print("%s" % ex.msg)
             continue
@@ -115,7 +99,6 @@ def reduce(args=sys.argv):
         description='Reduce an opacity script.'
     )
 
-    add_macro_support_to_parser(parser)
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
@@ -135,7 +118,6 @@ def reduce_core(args=sys.argv):
         description='Reduce a core opacity script.'
     )
 
-    add_macro_support_to_parser(parser)
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
@@ -184,8 +166,7 @@ def do_reduce_tool(parser, args):
 
         operator_lookup[KEYWORD_TO_INT["rewrite_op"]] = op_rewrite
 
-    macros = parse_macros_for_args(args)
-    sexp = script(args.script, macros)
+    sexp = script(args.script)
 
     the_log = []
     rewriting_reduce_f = make_rewriting_reduce(rewrite_f, core_reduce_f, the_log.append)
@@ -212,7 +193,6 @@ def rewrite(args=sys.argv):
         description='Rewrite an opacity program in terms of the core language.'
     )
 
-    add_macro_support_to_parser(parser)
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
@@ -223,8 +203,6 @@ def rewrite(args=sys.argv):
         "script", help="script in hex or uncompiled text")
 
     args = parser.parse_args(args=args[1:])
-
-    macros = parse_macros_for_args(args)
 
     operator_lookup = minimal_ops(KEYWORD_TO_INT)
 
@@ -238,7 +216,7 @@ def rewrite(args=sys.argv):
             d[KEYWORD_TO_INT[keyword]] = op_f
         operator_lookup.update(d)
 
-    sexp = script(args.script, macros)
+    sexp = script(args.script)
 
     reductions = rewrite_f(rewrite_f, sexp)
     print(disassemble(reductions))

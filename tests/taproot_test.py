@@ -3,7 +3,7 @@ import hashlib
 import unittest
 
 from opacity.casts import bls12_381_to_bytes
-from opacity.compile import parse_macros, compile_to_sexp, disassemble, disassemble_sexp
+from opacity.compile import compile_to_sexp, disassemble, disassemble_sexp
 from opacity.ecdsa.bls12_381 import bls12_381_generator
 from opacity.reduce import reduce
 from opacity.SExp import SExp
@@ -36,11 +36,11 @@ MACRO_TEXT = """
 """
 
 
-MACROS = parse_macros(MACRO_TEXT)
+# MACROS = parse_macros(MACRO_TEXT)
 
 
 class TaprootTest(unittest.TestCase):
-    @unittest.skip("taproot test fails due to change in and opcode")
+    @unittest.skip('taproot test fails due to change in "and" opcode and deprecation of macros')
     def test_taproot_simple(self):
         # in this case, P = bls12_381_generator * 1
         # magic underlying script S = "(assert_output 500)"
@@ -55,7 +55,7 @@ class TaprootTest(unittest.TestCase):
         P_hex = binascii.hexlify(P_bin).decode("utf8")
 
         taproot_script_text = "(pay_to_taproot 0x%s x0 x1 x2 x3 x4)" % P_hex
-        main_script = compile_to_sexp(taproot_script_text, macros=MACROS)
+        main_script = compile_to_sexp(taproot_script_text)
 
         # solve using taproot
         solution = [1, P_bin, S_bin, SExp(0), P1_bin]
