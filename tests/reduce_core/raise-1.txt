@@ -1,2 +1,2 @@
-reduce_core '(raise 2000)'
+reduce -c '(raise 2000)'
 FAIL: SExp(b'\x07\xd0') is not a list

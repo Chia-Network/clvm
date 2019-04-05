@@ -1,2 +1,2 @@
-reduce_core '(var (quote x78))' '(100 200)'
+reduce -c '(var (quote x78))' '(100 200)'
 78

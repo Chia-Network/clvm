@@ -1,2 +1,0 @@
-reduce_core -r schemas.v0_0_1 '(if x2 x0 x1)' '(200 300 0)'
-300

@@ -1,2 +1,2 @@
-reduce_core '(reduce (quote (get_raw (env_raw) (quote 0))) (cons (get_raw (env_raw) (quote 1)) (quote (100 200))))' '(700 800)'
+reduce -c '(reduce (quote (get_raw (env_raw) (quote 0))) (cons (get_raw (env_raw) (quote 1)) (quote (100 200))))' '(700 800)'
 800

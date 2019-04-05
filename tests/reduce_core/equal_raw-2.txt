@@ -1,2 +1,2 @@
-reduce_core '(equal (quote 10) (quote 10))'
+reduce -c '(equal (quote 10) (quote 10))'
 1

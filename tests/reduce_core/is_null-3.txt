@@ -1,2 +1,2 @@
-reduce_core '(is_null (quote (100 200)))'
+reduce -c '(is_null (quote (100 200)))'
 0

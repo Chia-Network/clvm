@@ -1,2 +1,2 @@
-reduce_core '(is_null (quote (100 200)) (quote 300))'
+reduce -c '(is_null (quote (100 200)) (quote 300))'
 FAIL: is_null takes exactly one parameter, got 2

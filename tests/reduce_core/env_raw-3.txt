@@ -1,2 +1,2 @@
-reduce_core '(env_raw)'
+reduce -c '(env_raw)'
 ()

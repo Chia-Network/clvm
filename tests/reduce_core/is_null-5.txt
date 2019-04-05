@@ -1,2 +1,2 @@
-reduce_core '(is_null 0)'
+reduce -c '(is_null 0)'
 FAIL: SExp(b'') is not a list

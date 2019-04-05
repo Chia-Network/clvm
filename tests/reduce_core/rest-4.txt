@@ -1,2 +1,2 @@
-reduce_core '(rest (rest (quote ((100 200 300) 400 500))))'
+reduce -c '(rest (rest (quote ((100 200 300) 400 500))))'
 (500)

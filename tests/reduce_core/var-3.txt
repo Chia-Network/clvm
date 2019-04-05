@@ -1,2 +1,2 @@
-reduce_core '(var)' '(100 200)'
+reduce -c '(var)' '(100 200)'
 FAIL: type takes exactly one parameter, which must be a var

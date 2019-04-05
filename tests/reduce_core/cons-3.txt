@@ -1,2 +1,2 @@
-reduce_core '(cons (quote 100) (quote (200 300 400)))'
+reduce -c '(cons (quote 100) (quote (200 300 400)))'
 (100 200 300 400)

@@ -1,2 +1,2 @@
-reduce_core '(type)'
+reduce -c '(type)'
 FAIL: type takes exactly one parameter

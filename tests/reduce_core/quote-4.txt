@@ -1,2 +1,2 @@
-reduce_core '(quote (0 1 x0 (quote 15 20)))'
+reduce -c '(quote (0 1 x0 (quote 15 20)))'
 (0 1 x0 (quote 15 20))

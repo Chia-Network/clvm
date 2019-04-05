@@ -1,2 +1,2 @@
-reduce_core '(quote)'
+reduce -c '(quote)'
 FAIL: quote requires exactly 1 parameter, got 0

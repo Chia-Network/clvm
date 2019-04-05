@@ -1,2 +1,2 @@
-reduce_core '(type (quote ()))'
+reduce -c '(type (quote ()))'
 2

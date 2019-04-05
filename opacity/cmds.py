@@ -94,44 +94,6 @@ def trace_to_text(trace):
             print("%s [%s] => %s" % (disassemble(form), env_str, disassemble(rv)))
 
 
-def reduce(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Reduce an opacity script.'
-    )
-
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Display resolve of all reductions, for debugging")
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Dump debug information to html")
-    parser.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_1",
-                        help="Python module imported with rewrite")
-    parser.add_argument(
-        "script", help="script in hex or uncompiled text")
-    parser.add_argument(
-        "solution", type=script, nargs="?", help="solution in hex or uncompiled text", default=SExp([]))
-
-    do_reduce_tool(parser, args)
-
-
-def reduce_core(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Reduce a core opacity script.'
-    )
-
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Display resolve of all reductions, for debugging")
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Dump debug information to html")
-    parser.add_argument("-r", "--rewrite-actions",
-                        help="Python module imported with rewrite")
-    parser.add_argument(
-        "script", help="script in hex or uncompiled text")
-    parser.add_argument(
-        "solution", type=script, nargs="?", help="solution in hex or uncompiled text", default=SExp([]))
-
-    do_reduce_tool(parser, args)
-
-
 def default_rewrite(self, form):
     return form
 
@@ -145,7 +107,25 @@ def make_rewriting_reduce(rewrite_f, reduce_f, log_reduce_f):
     return my_reduce_f
 
 
-def do_reduce_tool(parser, args):
+def reduce(args=sys.argv):
+    parser = argparse.ArgumentParser(
+        description='Reduce an opacity script.'
+    )
+
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Display resolve of all reductions, for debugging")
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Dump debug information to html")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_1",
+                       help="Python module imported with rewrite")
+    group.add_argument("-c", "--core", action="store_true",
+                       help="Don't use a derived language, just the core implementation")
+    parser.add_argument(
+        "script", help="script in hex or uncompiled text")
+    parser.add_argument(
+        "solution", type=script, nargs="?", help="solution in hex or uncompiled text", default=SExp([]))
+
     args = parser.parse_args(args=args[1:])
 
     operator_lookup = minimal_ops(KEYWORD_TO_INT)
@@ -153,7 +133,7 @@ def do_reduce_tool(parser, args):
     core_reduce_f = make_reduce_f(operator_lookup, KEYWORD_TO_INT)
 
     rewrite_f = default_rewrite
-    if args.rewrite_actions:
+    if (not args.core) and args.rewrite_actions:
         mod = importlib.import_module(args.rewrite_actions)
         rewrite_f = mod.make_rewrite_f(KEYWORD_TO_INT, core_reduce_f, reduce_constants=False)
         d = {}

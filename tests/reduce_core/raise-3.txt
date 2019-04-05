@@ -1,2 +1,2 @@
-reduce_core '(raise (quote (100)) (quote (200)) (quote (300)))'
+reduce -c '(raise (quote (100)) (quote (200)) (quote (300)))'
 FAIL: SExp([[b'd'], [b'\x00\xc8'], [b'\x01,']])

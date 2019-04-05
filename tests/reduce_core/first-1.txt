@@ -1,2 +1,2 @@
-reduce_core '(first (quote (100)))'
+reduce -c '(first (quote (100)))'
 100
