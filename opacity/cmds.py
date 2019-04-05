@@ -210,7 +210,7 @@ def rewrite(args=sys.argv):
 
     if args.rewrite_actions:
         mod = importlib.import_module(args.rewrite_actions)
-        rewrite_f = mod.make_rewrite_f(KEYWORD_TO_INT, reduce_f)
+        rewrite_f = mod.make_rewrite_f(KEYWORD_TO_INT, reduce_f, reduce_constants=False)
         d = {}
         for keyword, op_f in mod.DOMAIN_OPERATORS:
             d[KEYWORD_TO_INT[keyword]] = op_f

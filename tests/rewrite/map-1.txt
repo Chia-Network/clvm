@@ -1,2 +1,2 @@
 rewrite '(map (quote (+ x0 1)) (list 100 200 300))'
-(quote (101 201 301))
+(reduce (quote (if (is_null x1) (quote ()) (cons (reduce x0 (list (first x1))) (map x0 (rest x1))))) (cons (quote (+ x0 1)) (cons (cons (quote 100) (cons (quote 200) (cons (quote 300) (quote ())))) (quote ()))))
