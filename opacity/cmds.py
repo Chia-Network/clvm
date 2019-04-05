@@ -8,7 +8,7 @@ from .compile import compile_to_sexp, disassemble, dump
 from .core import make_reduce_f, ReduceError
 from .core_operators import minimal_ops
 from .debug import trace_to_html
-from .keywords import KEYWORD_TO_INT
+from .keywords import KEYWORD_FROM_INT, KEYWORD_TO_INT
 from .SExp import SExp
 
 
@@ -21,7 +21,7 @@ def script(item):
         pass
 
     try:
-        return compile_to_sexp(item)
+        return compile_to_sexp(item, KEYWORD_TO_INT)
     except Exception as ex:
         print("bad script: %s" % ex.msg, file=sys.stderr)
 
@@ -61,7 +61,7 @@ def opc(args=sys.argv):
 
     for text in args.path_or_code:
         try:
-            sexp = compile_to_sexp(text)
+            sexp = compile_to_sexp(text, KEYWORD_TO_INT)
         except SyntaxError as ex:
             print("%s" % ex.msg)
             continue
@@ -80,7 +80,7 @@ def opd(args=sys.argv):
     args = parser.parse_args(args=args[1:])
 
     for blob in args.script:
-        text = disassemble(blob)
+        text = disassemble(blob, KEYWORD_FROM_INT)
         print(text)
 
 
@@ -89,9 +89,9 @@ def trace_to_text(trace):
         env_str = ", ".join(dump(_) for _ in env)
         if form != rewrit_form:
             print("%s -> %s [%s] => %s" % (
-                disassemble(form), disassemble(rewrit_form), env_str, disassemble(rv)))
+                disassemble(form, KEYWORD_FROM_INT), disassemble(rewrit_form, KEYWORD_FROM_INT), env_str, disassemble(rv, KEYWORD_FROM_INT)))
         else:
-            print("%s [%s] => %s" % (disassemble(form), env_str, disassemble(rv)))
+            print("%s [%s] => %s" % (disassemble(form, KEYWORD_FROM_INT), env_str, disassemble(rv, KEYWORD_FROM_INT)))
 
 
 def default_rewrite(self, form):
@@ -153,7 +153,7 @@ def reduce(args=sys.argv):
 
     try:
         reductions = rewriting_reduce_f(rewriting_reduce_f, sexp, args.solution)
-        final_output = disassemble(reductions)
+        final_output = disassemble(reductions, KEYWORD_FROM_INT)
         if not args.debug:
             print(final_output)
     except ReduceError as e:
@@ -199,7 +199,7 @@ def rewrite(args=sys.argv):
     sexp = script(args.script)
 
     reductions = rewrite_f(rewrite_f, sexp)
-    print(disassemble(reductions))
+    print(disassemble(reductions, KEYWORD_FROM_INT))
 
 
 """

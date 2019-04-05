@@ -3,7 +3,6 @@
 import binascii
 
 from .SExp import SExp
-from .keywords import KEYWORD_FROM_INT, KEYWORD_TO_INT
 
 
 class Token(str):
@@ -69,7 +68,7 @@ def consume_until_whitespace(sexp: str, offset):
     return sexp[start:offset], offset
 
 
-def compile_atom(token):
+def compile_atom(token, keyword_to_int):
     c = token[0]
     if c in "\'\"":
         assert c == token[-1] and len(token) >= 2
@@ -77,7 +76,7 @@ def compile_atom(token):
 
     if c == '#':
         keyword = token[1:].lower()
-        keyword_id = KEYWORD_TO_INT.get(keyword)
+        keyword_id = keyword_to_int.get(keyword)
         if keyword_id is None:
             raise SyntaxError("unknown keyword: %s" % keyword)
         return SExp(keyword_id)
@@ -89,27 +88,27 @@ def compile_atom(token):
     raise SyntaxError("can't parse %s at %d" % (token, token._offset))
 
 
-def compile_list(tokens):
+def compile_list(tokens, keyword_to_int):
     if len(tokens) == 0:
         return SExp([])
 
     r = []
     if not isinstance(tokens[0], list):
-        keyword = KEYWORD_TO_INT.get(tokens[0].lower())
+        keyword = keyword_to_int.get(tokens[0].lower())
         if keyword:
             r.append(SExp(keyword))
             tokens = tokens[1:]
 
     for token in tokens:
-        r.append(compile_token(token))
+        r.append(compile_token(token, keyword_to_int))
 
     return SExp(r)
 
 
-def compile_token(token):
+def compile_token(token, keyword_to_int):
     if isinstance(token, str):
-        return compile_atom(token)
-    return compile_list(token)
+        return compile_atom(token, keyword_to_int)
+    return compile_list(token, keyword_to_int)
 
 
 def tokenize_str(sexp: str, offset):
@@ -171,10 +170,10 @@ def tokenize_program(sexp: str):
     return tokenize_sexp(sexp, 0)[0]
 
 
-def compile_to_sexp(program: str):
+def compile_to_sexp(program: str, keyword_to_int):
     "Read an expression from a string, yielding an SExp."
     tokenized = tokenize_program(program)
-    return compile_token(tokenized)
+    return compile_token(tokenized, keyword_to_int)
 
 
 def compile_to_blob(program: str):
@@ -200,17 +199,17 @@ def dump(form, keywords=[], is_first_element=False):
     return str(form.as_int())
 
 
-def disassemble_sexp(form):
-    return dump(form, keywords=KEYWORD_FROM_INT)
+def disassemble_sexp(form, keyword_from_int):
+    return dump(form, keywords=keyword_from_int)
 
 
-def disassemble_blob(blob):
-    return disassemble_sexp(SExp.from_blob(blob))
+def disassemble_blob(blob, keyword_from_int):
+    return disassemble_sexp(SExp.from_blob(blob), keyword_from_int)
 
 
-def disassemble(item):
+def disassemble(item, keyword_from_int):
     if isinstance(item, SExp):
-        return disassemble_sexp(item)
+        return disassemble_sexp(item, keyword_from_int)
     if isinstance(item, bytes):
-        return disassemble_blob(item)
+        return disassemble_blob(item, keyword_from_int)
     raise ValueError("expected SExp or bytes, got %s" % item)

@@ -52,7 +52,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
     derived_operators = {}
     for kw, program in DERIVED_OPERATORS:
-        derived_operators[keyword_to_int[kw]] = compile_to_sexp(program)
+        derived_operators[keyword_to_int[kw]] = compile_to_sexp(program, keyword_to_int)
 
     def has_unquote(form):
         if form.is_list() and len(form) > 0:
