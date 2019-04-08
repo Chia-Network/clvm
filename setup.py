@@ -20,8 +20,8 @@ setup(
                 'opc = opacity.cmds:opc',
                 'opd = opacity.cmds:opd',
                 'reduce = opacity.cmds:reduce',
-                'reduce_core = opacity.cmds:reduce_core',
                 'rewrite = opacity.cmds:rewrite',
+                'run = compiler.cmds:run',
             ]
         },
     author_email="kiss@chia.net",
