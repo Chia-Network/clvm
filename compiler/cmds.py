@@ -2,7 +2,7 @@ import argparse
 import collections
 import sys
 
-from opacity.compile import tokenize_program, disassemble
+from opacity.compile import tokenize_program, disassemble, compile_atom
 from opacity.keywords import KEYWORD_TO_INT, KEYWORD_FROM_INT
 from opacity.SExp import SExp
 
@@ -67,7 +67,7 @@ def compile_exp(self, sexp, built_in_functions, function_name_lookup):
     # x1, x2...: env
     # (function_x a b c ...) => (reduce (get_raw x0 #function_x) (list x0 a b c))
     if isinstance(sexp, str):
-        return sexp.encode("utf8")
+        return compile_atom(sexp, KEYWORD_TO_INT)
     if isinstance(sexp, int):
         return SExp(sexp)
     opcode = sexp[0]
@@ -84,6 +84,8 @@ def compile_exp(self, sexp, built_in_functions, function_name_lookup):
 
 def macro_expand(definition, arg_lookup):
     if isinstance(definition, str):
+        if definition not in arg_lookup:
+            return SExp(definition.encode("utf8"))
         return ["get_raw", ["env_raw"], arg_lookup[definition]]
     return [definition[0]] + [macro_expand(_, arg_lookup) for _ in definition[1:]]
 
@@ -123,17 +125,25 @@ def do_compile(prog):
     return r1
 
 
+def path_or_code(arg):
+    try:
+        with open(arg) as f:
+            return f.read()
+    except IOError:
+        return arg
+
+
 def run(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Reduce an opacity script.'
     )
-
     parser.add_argument(
-        "script", help="script in hex or uncompiled text")
+        "path_or_code", type=path_or_code, help="path to opacity script, or literal script")
+    parser.add_argument("-r", "--reduce", help="Run compiled code")
 
     args = parser.parse_args(args=args[1:])
 
-    prog = open(args.script).read()
+    prog = args.path_or_code
     result = do_compile(prog)
     print(disassemble(result, KEYWORD_FROM_INT))
 
