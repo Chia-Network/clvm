@@ -1,125 +1,222 @@
 import argparse
+import binascii
 import collections
 import sys
 
-from opacity.compile import tokenize_program, disassemble, compile_atom
 from opacity.keywords import KEYWORD_TO_INT, KEYWORD_FROM_INT
-from opacity.SExp import SExp
+from opacity.SExp import SExp, ATOM_TYPES
+
+from .reader import tokenize_program
+from .writer import disassemble
+
+
+class CompileError(ValueError):
+    pass
 
 
 QUOTE_KEYWORD = KEYWORD_TO_INT["quote"]
+REDUCE_KEYWORD = KEYWORD_TO_INT["reduce"]
+GET_RAW_KEYWORD = KEYWORD_TO_INT["get_raw"]
+ENV_RAW_KEYWORD = KEYWORD_TO_INT["env_raw"]
+ENV_KEYWORD = KEYWORD_TO_INT["env"]
+LIST_KEYWORD = KEYWORD_TO_INT["list"]
+CONS_KEYWORD = KEYWORD_TO_INT["cons"]
 
 
 Context = collections.namedtuple("Context", "defuns defmacros op_lookup".split())
 
 
-def parse_defun(dec, context):
+def do_local_subsitution(sexp, arg_lookup):
+    if sexp.type == ATOM_TYPES.BLOB:
+        b = sexp.as_bytes()
+        return arg_lookup.get(b, b)
+    if sexp.type == ATOM_TYPES.PAIR:
+        if len(sexp) > 1 and sexp[0].as_bytes() == b"quote":
+            return sexp
+        return SExp([do_local_subsitution(_, arg_lookup) for _ in sexp])
+    assert 0
+
+
+def parse_defun(dec):
     name, args, definition = dec[1:]
     # do arg substitution in definition so it's in terms of x1, x2, etc.
-    arg_lookup = {var: index+1 for index, var in enumerate(args)}
-    context.defuns.append((name, arg_lookup, definition))
+    arg_lookup = {var.as_bytes(): b"x%d" % (index+1) for index, var in enumerate(args)}
+
+    def builder(compile_sexp, sexp, function_rewriters, function_index_lookup):
+        args = [compile_sexp(
+            compile_sexp, _, function_rewriters, function_index_lookup) for _ in sexp]
+        function_index = function_index_lookup[name.as_bytes()]
+        return SExp([REDUCE_KEYWORD, [ENV_KEYWORD, 0, function_index], [
+            CONS_KEYWORD, [ENV_KEYWORD, 0], [LIST_KEYWORD] + list(args)]])
+
+    imp = do_local_subsitution(definition, arg_lookup)
+
+    return name.as_bytes(), builder, imp
 
 
 def parse_defmacro(dec, context):
     raise ValueError("not implemented")
 
 
-def parse_declaration(declaration, context):
-    if declaration[0] == "defun":
-        return parse_defun(declaration, context)
-    if declaration[0] == "demacro":
-        return parse_defmacro(declaration, context)
+def parse_declaration(declaration):
+    if declaration[0] == b"defun":
+        return parse_defun(declaration)
+    if declaration[0] == b"demacro":
+        return parse_defmacro(declaration)
     raise ValueError("foo")
 
 
 def to_sexp(sexp):
     if isinstance(sexp, SExp):
         return sexp
-    if isinstance(sexp, str):
-        return sexp.encode("utf8")
     return SExp([to_sexp(_) for _ in sexp])
 
 
 def make_remap(keyword, keyword_to_int):
     keyword_v = keyword_to_int[keyword]
 
-    def remap(compile_exp, sexp, built_in_functions, function_name_lookup):
-        args = SExp([compile_exp(compile_exp, _, built_in_functions, function_name_lookup) for _ in sexp])
+    def remap(compile_sexp, sexp, function_rewriters, function_index_lookup):
+        args = SExp([compile_sexp(compile_sexp, _, function_rewriters, function_index_lookup) for _ in sexp])
         return SExp([keyword_v] + list(args))
     return remap
 
 
 def get_built_in_functions():
     REMAP_LIST = "quote get + * get_raw env_raw".split()
-    remapped = {k: make_remap(k, KEYWORD_TO_INT) for k in REMAP_LIST}
+    remapped = {k.encode("utf8"): make_remap(k, KEYWORD_TO_INT) for k in REMAP_LIST}
     return remapped
 
 
-REDUCE_KEYWORD = KEYWORD_TO_INT["reduce"]
-GET_RAW_KEYWORD = KEYWORD_TO_INT["get_raw"]
-ENV_RAW_KEYWORD = KEYWORD_TO_INT["env_raw"]
-LIST_KEYWORD = KEYWORD_TO_INT["list"]
-CONS_KEYWORD = KEYWORD_TO_INT["cons"]
+class bytes_as_hex(bytes):
+    def as_hex(self):
+        return binascii.hexlify(self).decode("utf8")
+
+    def __str__(self):
+        return "0x%s" % self.as_hex()
+
+    def __repr__(self):
+        return "0x%s" % self.as_hex()
 
 
-def compile_exp(self, sexp, built_in_functions, function_name_lookup):
+def parse_as_int(token):
+    try:
+        v = int(token)
+        return SExp(v)
+    except (ValueError, TypeError):
+        pass
+
+
+def parse_as_hex(token):
+    if token[:2].upper() == "0X":
+        try:
+            return SExp(bytes_as_hex(binascii.unhexlify(token[2:])))
+        except Exception:
+            raise SyntaxError("invalid hex at %d: %s" % (token._offset, token))
+
+
+def parse_as_var(token):
+    if token[:1].upper() == "X":
+        try:
+            return SExp.from_var_index(int(token[1:]))
+        except Exception:
+            raise SyntaxError("invalid variable at %d: %s" % (token._offset, token))
+
+
+def compile_atom(token, keyword_to_int):
+    c = token[0]
+    if c in "\'\"":
+        assert c == token[-1] and len(token) >= 2
+        return SExp(token[1:-1].encode("utf8"))
+
+    if c == '#':
+        keyword = token[1:].lower()
+        keyword_id = keyword_to_int.get(keyword)
+        if keyword_id is None:
+            raise SyntaxError("unknown keyword: %s" % keyword)
+        return SExp(keyword_id)
+
+    for f in [parse_as_int, parse_as_var, parse_as_hex]:
+        v = f(token)
+        if v is not None:
+            return v
+    raise SyntaxError("can't parse %s at %d" % (token, token._offset))
+
+
+def compile_sexp(self, sexp, function_rewriters, function_index_lookup):
     # x0: function table
     # x1, x2...: env
     # (function_x a b c ...) => (reduce (get_raw x0 #function_x) (list x0 a b c))
-    if isinstance(sexp, str):
-        return compile_atom(sexp, KEYWORD_TO_INT)
-    if isinstance(sexp, int):
-        return SExp(sexp)
-    opcode = sexp[0]
-    if opcode in built_in_functions:
-        return built_in_functions[opcode](self, sexp[1:], built_in_functions, function_name_lookup)
-    args = SExp([compile_exp(self, _, built_in_functions, function_name_lookup) for _ in sexp[1:]])
-    if opcode in function_name_lookup:
-        opcode_index = function_name_lookup[opcode]
-        return SExp([REDUCE_KEYWORD, [GET_RAW_KEYWORD, [
-            GET_RAW_KEYWORD, [ENV_RAW_KEYWORD], 0], opcode_index], [
-            CONS_KEYWORD, [GET_RAW_KEYWORD, [ENV_RAW_KEYWORD], 0], [LIST_KEYWORD] + list(args)]])
+    if sexp.type == ATOM_TYPES.BLOB:
+        return compile_atom(sexp.as_bytes().decode("utf8"), KEYWORD_TO_INT)
+    opcode = sexp[0].as_bytes()
+    if opcode in function_rewriters:
+        return function_rewriters[opcode](self, sexp[1:], function_rewriters, function_index_lookup)
     raise ValueError("unknown keyword %s" % opcode)
+
+    args = SExp([compile_sexp(self, _, function_rewriters, function_index_lookup) for _ in sexp[1:]])
+    if opcode in function_index_lookup:
+        opcode_index = function_index_lookup[opcode]
+        return SExp([REDUCE_KEYWORD, [ENV_KEYWORD, 0, opcode_index], [
+            CONS_KEYWORD, [ENV_KEYWORD, 0], [LIST_KEYWORD] + list(args)]])
 
 
 def macro_expand(definition, arg_lookup):
-    if isinstance(definition, str):
-        if definition not in arg_lookup:
-            return SExp(definition.encode("utf8"))
-        return ["get_raw", ["env_raw"], arg_lookup[definition]]
-    return [definition[0]] + [macro_expand(_, arg_lookup) for _ in definition[1:]]
+    if definition.type == ATOM_TYPES.BLOB:
+        if definition.as_bytes() in arg_lookup:
+            return SExp([b"get_raw", [b"env_raw"], arg_lookup[definition.as_bytes()]])
+        assert 0
+    if definition.type == ATOM_TYPES.PAIR:
+        t1 = [macro_expand(_, arg_lookup) for _ in definition[1:]]
+        t2 = [definition[0]]
+        t3 = t2 + t1
+        return SExp(t3)
 
 
 def rename_vars(defun):
     (name, arg_lookup, definition) = defun
-    return macro_expand(definition, arg_lookup)
+    t = SExp(definition)
+    return macro_expand(t, arg_lookup)
 
 
-def rewrite_defun(compile_exp, defun, built_in_functions, function_name_lookup):
-    (name, arg_lookup, definition) = defun
-    renamed_vars = rename_vars(defun)
-    sexp = renamed_vars
-    return compile_exp(compile_exp, sexp, built_in_functions, function_name_lookup)
+def rewrite_defun(compile_sexp, defun, function_rewriters, function_index_lookup):
+    #(name, arg_lookup, definition) = defun
+    sexp = rename_vars(defun)
+    return compile_sexp(compile_sexp, sexp, function_rewriters, function_index_lookup)
 
 
-def build_function_table(compile_exp, defuns, built_in_functions, function_name_lookup):
+def build_function_table(compile_sexp, defuns, function_rewriters, function_index_lookup):
     table = []
     for defun in defuns:
-        table.append(rewrite_defun(compile_exp, defun, built_in_functions, function_name_lookup))
+        table.append(rewrite_defun(compile_sexp, defun, function_rewriters, function_index_lookup))
     return table
+
+
+def convert_list_of_lists_to_sexp(tokens):
+    if isinstance(tokens, str):
+        return SExp(tokens.encode("utf8"))
+    return [convert_list_of_lists_to_sexp(_) for _ in tokens]
 
 
 def do_compile(prog):
     context = Context(defuns=[], defmacros=[], op_lookup={})
     tokens = tokenize_program(prog)
-    for declaration in tokens[:-1]:
-        parse_declaration(declaration, context)
+    function_rewriters = get_built_in_functions()
+    local_function_rewriters = {}
+    function_imps = {}
+    function_name_lookup = []
+    for declaration in tokens[0]:
+        name, builder, imp = parse_declaration(declaration)
+        local_function_rewriters[name] = builder
+        function_imps[name] = imp
+        function_name_lookup.append(name)
     # build the function table and put that in x0
-    built_in_functions = get_built_in_functions()
-    function_name_lookup = {defun[0]: index for index, defun in enumerate(context.defuns)}
-    function_table = build_function_table(
-        compile_exp, context.defuns, built_in_functions, function_name_lookup)
-    r = compile_exp(compile_exp, tokens[-1], built_in_functions, function_name_lookup)
+    function_index_lookup = {v: k for k, v in enumerate(function_name_lookup)}
+    function_table = []
+    function_rewriters.update(local_function_rewriters)
+    function_table = [
+        compile_sexp(compile_sexp, function_imps[name], function_rewriters, function_index_lookup)
+        for name in function_name_lookup]
+    r = compile_sexp(compile_sexp, tokens[1], function_rewriters, function_index_lookup)
     r1 = SExp([REDUCE_KEYWORD, [QUOTE_KEYWORD, r], [
         CONS_KEYWORD, [QUOTE_KEYWORD, function_table], [ENV_RAW_KEYWORD]]])
     return r1
