@@ -4,7 +4,21 @@ from opacity.ReduceError import ReduceError
 from opacity.SExp import SExp
 
 from opacity.compile import compile_to_sexp
-from opacity.compile import disassemble_sexp as ds
+from opacity.core import do_reduce_f as core_reduce_f
+
+
+KEYWORDS = (
+    ". choose1 aggsig point_add assert_output pubkey_for_exp and type equal "
+    "sha256 reduce + * - / wrap unwrap list quote quasiquote unquote get env "
+    "case is_atom list1 "
+    "cons first rest list type is_null var apply eval "
+    "macro_expand reduce_var reduce_bytes reduce_list if not bool or map "
+    "get_raw env_raw has_unquote get_default "
+    "first_true raise reduce_raw rewrite rewrite_op concat ").split()
+
+
+KEYWORD_FROM_INT = KEYWORDS
+KEYWORD_TO_INT = {v: k for k, v in enumerate(KEYWORD_FROM_INT)}
 
 
 DERIVED_OPERATORS = [
@@ -191,6 +205,10 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
     return optimize_form
 
 
+def op_rewrite(items):
+    return rewrite_f(rewrite_f, items[0])
+
+
 def op_sha256(args):
     h = hashlib.sha256()
     for _ in args:
@@ -264,12 +282,32 @@ def op_and(items):
     return SExp(1)
 
 
+def make_rewriting_reduce(rewrite_f, core_reduce_f, log_reduce_f):
+    def my_reduce_f(self, form, env):
+        rewritten_form = rewrite_f(rewrite_f, form)
+        rv = core_reduce_f(self, rewritten_form, env)
+        log_reduce_f(SExp([form, rewritten_form, env, rv]))
+        return rv
+    return my_reduce_f
+
+
+the_log = []
+rewrite_f = make_rewrite_f(KEYWORD_TO_INT, core_reduce_f, reduce_constants=False)
+do_reduce_f = make_rewriting_reduce(rewrite_f, core_reduce_f, the_log.append)
+do_reduce_f.trace_log = the_log
+
 DOMAIN_OPERATORS = (
-        ("+", op_add),
-        ("-", op_subtract),
-        ("*", op_multiply),
-        ("sha256", op_sha256),
-        ("unwrap", op_unwrap),
-        ("wrap", op_wrap),
-        ("and", op_and),
-    )
+    ("+", op_add),
+    ("-", op_subtract),
+    ("*", op_multiply),
+    ("sha256", op_sha256),
+    ("unwrap", op_unwrap),
+    ("wrap", op_wrap),
+    ("and", op_and),
+    ("rewrite_op", op_rewrite),
+)
+
+
+operator_lookup = OPERATOR_LOOKUP = {KEYWORD_TO_INT[op]: f for op, f in DOMAIN_OPERATORS}
+
+core_reduce_f.operator_lookup.update(operator_lookup)

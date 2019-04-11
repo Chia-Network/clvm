@@ -1,18 +1,16 @@
 import argparse
 import binascii
 import hashlib
-import importlib
 import sys
 
 from .compile import compile_to_sexp, disassemble, dump
-from .core import make_reduce_f, ReduceError
-from .core_operators import minimal_ops
-from .debug import trace_to_html
-from .keywords import KEYWORD_FROM_INT, KEYWORD_TO_INT
+from .core import ReduceError
+from .debug import make_tracing_f, trace_to_html
 from .SExp import SExp
+from .schema import schema_for_name
 
 
-def script(item):
+def script(item, keyword_to_int):
     # let's see if it's hex
     try:
         blob = binascii.unhexlify(item)
@@ -21,7 +19,7 @@ def script(item):
         pass
 
     try:
-        return compile_to_sexp(item, KEYWORD_TO_INT)
+        return compile_to_sexp(item, keyword_to_int)
     except Exception as ex:
         print("bad script: %s" % ex.msg, file=sys.stderr)
 
@@ -54,14 +52,21 @@ def opc(args=sys.argv):
         description='Compile an opacity script.'
     )
 
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_2",
+                       help="Python module imported with rewrite")
+    group.add_argument("-c", "--core", action="store_true",
+                       help="Don't use a derived language, just the core implementation")
     parser.add_argument("-s", "--script_hash", action="store_true", help="Show sha256 script hash")
     parser.add_argument(
         "path_or_code", nargs="*", type=path_or_code, help="path to opacity script, or literal script")
     args = parser.parse_args(args=args[1:])
 
+    schema = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
+
     for text in args.path_or_code:
         try:
-            sexp = compile_to_sexp(text, KEYWORD_TO_INT)
+            sexp = compile_to_sexp(text, schema.keyword_to_int)
         except SyntaxError as ex:
             print("%s" % ex.msg)
             continue
@@ -75,36 +80,34 @@ def opd(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Disassemble a compiled opacity script.'
     )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_2",
+                       help="Python module imported with rewrite")
+    group.add_argument("-c", "--core", action="store_true",
+                       help="Don't use a derived language, just the core implementation")
     parser.add_argument(
         "script", nargs="+", type=binascii.unhexlify, help="hex version of opacity script")
     args = parser.parse_args(args=args[1:])
 
+    schema = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
+
     for blob in args.script:
-        text = disassemble(blob, KEYWORD_FROM_INT)
+        text = disassemble(blob, schema.keyword_from_int)
         print(text)
 
 
-def trace_to_text(trace):
-    for form, rewrit_form, env, rv in trace:
+def trace_to_text(trace, keyword_from_int):
+    for (form, env), rv in trace:
         env_str = ", ".join(dump(_) for _ in env)
+        rewrit_form = form
         if form != rewrit_form:
             print("%s -> %s [%s] => %s" % (
-                disassemble(form, KEYWORD_FROM_INT), disassemble(rewrit_form, KEYWORD_FROM_INT), env_str, disassemble(rv, KEYWORD_FROM_INT)))
+                disassemble(form, keyword_from_int),
+                disassemble(rewrit_form, keyword_from_int),
+                env_str, disassemble(rv, keyword_from_int)))
         else:
-            print("%s [%s] => %s" % (disassemble(form, KEYWORD_FROM_INT), env_str, disassemble(rv, KEYWORD_FROM_INT)))
-
-
-def default_rewrite(self, form):
-    return form
-
-
-def make_rewriting_reduce(rewrite_f, reduce_f, log_reduce_f):
-    def my_reduce_f(self, form, env):
-        rewritten_form = rewrite_f(rewrite_f, form)
-        rv = reduce_f(self, rewritten_form, env)
-        log_reduce_f(SExp([form, rewritten_form, env, rv]))
-        return rv
-    return my_reduce_f
+            print("%s [%s] => %s" % (
+                disassemble(form, keyword_from_int), env_str, disassemble(rv, keyword_from_int)))
 
 
 def reduce(args=sys.argv):
@@ -117,43 +120,35 @@ def reduce(args=sys.argv):
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_1",
+    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_2",
                        help="Python module imported with rewrite")
     group.add_argument("-c", "--core", action="store_true",
                        help="Don't use a derived language, just the core implementation")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
     parser.add_argument(
-        "solution", type=script, nargs="?", help="solution in hex or uncompiled text", default=SExp([]))
+        "solution", nargs="?", help="solution in hex or uncompiled text", default=SExp([]))
 
     args = parser.parse_args(args=args[1:])
 
-    operator_lookup = minimal_ops(KEYWORD_TO_INT)
+    schema = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
 
-    core_reduce_f = make_reduce_f(operator_lookup, KEYWORD_TO_INT)
-
-    rewrite_f = default_rewrite
-    if (not args.core) and args.rewrite_actions:
-        mod = importlib.import_module(args.rewrite_actions)
-        rewrite_f = mod.make_rewrite_f(KEYWORD_TO_INT, core_reduce_f, reduce_constants=False)
-        d = {}
-        for keyword, op_f in mod.DOMAIN_OPERATORS:
-            d[KEYWORD_TO_INT[keyword]] = op_f
-        operator_lookup.update(d)
-
-        def op_rewrite(items):
-            return rewrite_f(rewrite_f, items[0])
-
-        operator_lookup[KEYWORD_TO_INT["rewrite_op"]] = op_rewrite
-
-    sexp = script(args.script)
+    sexp = script(args.script, schema.keyword_to_int)
 
     the_log = []
-    rewriting_reduce_f = make_rewriting_reduce(rewrite_f, core_reduce_f, the_log.append)
+    reduce_f = schema.reduce_f
+
+    solution = SExp([])
+    if args.solution:
+        solution = script(args.solution, schema.keyword_to_int)
+
+    outer_reduce_f = reduce_f
+    if args.debug or args.verbose:
+        outer_reduce_f, the_log = make_tracing_f(reduce_f)
 
     try:
-        reductions = rewriting_reduce_f(rewriting_reduce_f, sexp, args.solution)
-        final_output = disassemble(reductions, KEYWORD_FROM_INT)
+        reductions = outer_reduce_f(outer_reduce_f, sexp, solution)
+        final_output = disassemble(reductions, schema.keyword_from_int)
         if not args.debug:
             print(final_output)
     except ReduceError as e:
@@ -163,9 +158,9 @@ def reduce(args=sys.argv):
         return -1
     finally:
         if args.debug:
-            trace_to_html(the_log)
+            trace_to_html(the_log, schema.keyword_from_int)
         elif args.verbose:
-            trace_to_text(the_log)
+            trace_to_text(the_log, schema.keyword_from_int)
 
 
 def rewrite(args=sys.argv):
@@ -177,29 +172,25 @@ def rewrite(args=sys.argv):
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
-    parser.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_1",
-                        help="Python module imported with rewrite")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_2",
+                       help="Python module imported with rewrite")
+    group.add_argument("-c", "--core", action="store_true",
+                       help="Don't use a derived language, just the core implementation")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
 
     args = parser.parse_args(args=args[1:])
 
-    operator_lookup = minimal_ops(KEYWORD_TO_INT)
+    schema = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
 
-    reduce_f = make_reduce_f(operator_lookup, KEYWORD_TO_INT)
+    sexp = script("(rewrite %s)" % args.script, schema.keyword_to_int)
 
-    if args.rewrite_actions:
-        mod = importlib.import_module(args.rewrite_actions)
-        rewrite_f = mod.make_rewrite_f(KEYWORD_TO_INT, reduce_f, reduce_constants=False)
-        d = {}
-        for keyword, op_f in mod.DOMAIN_OPERATORS:
-            d[KEYWORD_TO_INT[keyword]] = op_f
-        operator_lookup.update(d)
+    reduce_f = schema.reduce_f
 
-    sexp = script(args.script)
-
-    reductions = rewrite_f(rewrite_f, sexp)
-    print(disassemble(reductions, KEYWORD_FROM_INT))
+    env = SExp([])
+    reductions = reduce_f(reduce_f, sexp, env)
+    print(disassemble(reductions, schema.keyword_from_int))
 
 
 """

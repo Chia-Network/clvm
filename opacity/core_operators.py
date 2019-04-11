@@ -6,6 +6,8 @@ S_False = SExp(0)
 S_True = SExp(1)
 
 
+CORE_KEYWORDS = "quote cons first rest type var env_raw is_null raise equal get_raw".split()
+
 # s-expression operators
 
 
@@ -79,11 +81,3 @@ def op_equal(args):
     if a0.type == ATOM_TYPES.VAR:
         return SExp(a0.var_index() == a1.var_index())
     return SExp(a0.as_bytes() == a1.as_bytes())
-
-
-# public functions
-
-
-def minimal_ops(keyword_to_int, transform=None, context=None):
-    context = context or globals()
-    return {keyword_to_int[op]: context.get("op_%s" % op) for op in keyword_to_int.keys()}
