@@ -16,8 +16,6 @@ class CompileError(ValueError):
 
 QUOTE_KEYWORD = KEYWORD_TO_INT["quote"]
 REDUCE_KEYWORD = KEYWORD_TO_INT["reduce"]
-GET_RAW_KEYWORD = KEYWORD_TO_INT["get_raw"]
-ENV_RAW_KEYWORD = KEYWORD_TO_INT["env_raw"]
 ENV_KEYWORD = KEYWORD_TO_INT["env"]
 LIST_KEYWORD = KEYWORD_TO_INT["list"]
 CONS_KEYWORD = KEYWORD_TO_INT["cons"]
@@ -81,9 +79,23 @@ def make_remap(keyword, keyword_to_int):
     return remap
 
 
+def remap_eval(compile_sexp, sexp, function_rewriters, function_index_lookup):
+    args = SExp([compile_sexp(compile_sexp, _, function_rewriters, function_index_lookup) for _ in sexp])
+    r1 = SExp([REDUCE_KEYWORD, args[0], [ENV_KEYWORD]])
+    return r1
+
+
+def remap_function(compile_sexp, sexp, function_rewriters, function_index_lookup):
+    args = SExp([compile_sexp(compile_sexp, _, function_rewriters, function_index_lookup) for _ in sexp])
+    r1 = SExp([QUOTE_KEYWORD, args[0]])
+    return r1
+
+
 def get_built_in_functions():
-    REMAP_LIST = "quote get + * get_raw env_raw".split()
+    REMAP_LIST = "quote get + - * equal list get_raw env_raw".split()
     remapped = {k.encode("utf8"): make_remap(k, KEYWORD_TO_INT) for k in REMAP_LIST}
+    remapped[b"eval"] = remap_eval
+    remapped[b"function"] = remap_function
     return remapped
 
 
@@ -147,7 +159,10 @@ def compile_sexp(self, sexp, function_rewriters, function_index_lookup):
     # x1, x2...: env
     # (function_x a b c ...) => (reduce (get_raw x0 #function_x) (list x0 a b c))
     if sexp.type == ATOM_TYPES.BLOB:
-        return compile_atom(sexp.as_bytes().decode("utf8"), KEYWORD_TO_INT)
+        r = compile_atom(sexp.as_bytes().decode("utf8"), KEYWORD_TO_INT)
+        if r.is_var():
+            r = SExp([ENV_KEYWORD, r.var_index()])
+        return r
     opcode = sexp[0].as_bytes()
     if opcode in function_rewriters:
         return function_rewriters[opcode](self, sexp[1:], function_rewriters, function_index_lookup)
@@ -218,7 +233,7 @@ def do_compile(prog):
         for name in function_name_lookup]
     r = compile_sexp(compile_sexp, tokens[1], function_rewriters, function_index_lookup)
     r1 = SExp([REDUCE_KEYWORD, [QUOTE_KEYWORD, r], [
-        CONS_KEYWORD, [QUOTE_KEYWORD, function_table], [ENV_RAW_KEYWORD]]])
+        CONS_KEYWORD, [QUOTE_KEYWORD, function_table], [ENV_KEYWORD]]])
     return r1
 
 
