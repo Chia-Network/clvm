@@ -120,10 +120,8 @@ def reduce(args=sys.argv):
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_2",
+    group.add_argument("-s", "--schema", default="schemas.v0_0_2", type=schema_for_name,
                        help="Python module imported with rewrite")
-    group.add_argument("-c", "--core", action="store_true",
-                       help="Don't use a derived language, just the core implementation")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
     parser.add_argument(
@@ -131,24 +129,23 @@ def reduce(args=sys.argv):
 
     args = parser.parse_args(args=args[1:])
 
-    schema = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
-
-    sexp = script(args.script, schema.keyword_to_int)
+    sexp = script(args.script, args.schema.keyword_to_int)
 
     the_log = []
-    reduce_f = schema.reduce_f
+    reduce_f = args.schema.transform
 
     solution = SExp([])
     if args.solution:
-        solution = script(args.solution, schema.keyword_to_int)
+        solution = script(args.solution, args.schema.keyword_to_int)
 
     outer_reduce_f = reduce_f
     if args.debug or args.verbose:
         outer_reduce_f, the_log = make_tracing_f(reduce_f)
 
     try:
-        reductions = outer_reduce_f(outer_reduce_f, sexp, solution)
-        final_output = disassemble(reductions, schema.keyword_from_int)
+        sexp = SExp([sexp] + list(solution))
+        reductions = outer_reduce_f(sexp)
+        final_output = disassemble(reductions, args.schema.keyword_from_int)
         if not args.debug:
             print(final_output)
     except ReduceError as e:
@@ -158,9 +155,9 @@ def reduce(args=sys.argv):
         return -1
     finally:
         if args.debug:
-            trace_to_html(the_log, schema.keyword_from_int)
+            trace_to_html(the_log, args.schema.keyword_from_int)
         elif args.verbose:
-            trace_to_text(the_log, schema.keyword_from_int)
+            trace_to_text(the_log, args.schema.keyword_from_int)
 
 
 def rewrite(args=sys.argv):

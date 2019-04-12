@@ -1,2 +1,2 @@
-reduce -c '(is_null (quote (100 200)) (quote 300))'
+reduce -s schemas.corevm_0_0_1 '(is_null (quote (100 200)) (quote 300))'
 FAIL: is_null takes exactly one parameter, got 2

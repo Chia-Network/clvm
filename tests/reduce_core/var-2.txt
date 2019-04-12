@@ -1,2 +1,2 @@
-reduce -c '(var (quote x78))' '(100 200)'
+reduce -s schemas.corevm_0_0_1 '(var (quote x78))' '(100 200)'
 78

@@ -1,2 +1,2 @@
-reduce -c '(cons (quote 100) (quote (200 300 400)))'
+reduce -s schemas.corevm_0_0_1 '(cons (quote 100) (quote (200 300 400)))'
 (100 200 300 400)

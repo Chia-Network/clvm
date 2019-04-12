@@ -1,2 +1,2 @@
-reduce -c '(first (quote (100)))'
+reduce -s schemas.corevm_0_0_1 '(first (quote (100)))'
 100

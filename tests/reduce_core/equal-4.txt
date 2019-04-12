@@ -1,0 +1,2 @@
+reduce -s schemas.corevm_0_0_1 '(equal (quote x0) (quote x0))'
+1

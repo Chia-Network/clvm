@@ -1,2 +1,2 @@
-reduce -c '(cons)'
+reduce -s schemas.corevm_0_0_1 '(cons)'
 FAIL: cons must take 2 args, got 0

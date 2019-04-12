@@ -1,2 +1,0 @@
-reduce -c '(equal (quote 10) (quote x0))'
-0

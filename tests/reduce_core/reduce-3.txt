@@ -1,2 +1,2 @@
-reduce -c '(reduce (quote (cons (get_raw (env_raw) (quote 0)) (quote (105 200)))) (quote (100 200)))'
+reduce -s schemas.corevm_0_0_1 '(reduce (quote (cons (get (env) (quote 0)) (quote (105 200)))) (quote (100 200)))'
 (100 105 200)

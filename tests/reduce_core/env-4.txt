@@ -1,0 +1,2 @@
+reduce -s schemas.corevm_0_0_1 '(env)' '(100 200)'
+(100 200)

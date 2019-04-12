@@ -1,2 +1,2 @@
-reduce -c '(type (quote 0))'
+reduce -s schemas.corevm_0_0_1 '(type (quote 0))'
 1

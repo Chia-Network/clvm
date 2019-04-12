@@ -1,2 +1,0 @@
-reduce -c '(env_raw 0)' '(x0)'
-FAIL: SExp(b'') is not a list

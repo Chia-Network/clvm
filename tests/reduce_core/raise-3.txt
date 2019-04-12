@@ -1,2 +1,2 @@
-reduce -c '(raise (quote (100)) (quote (200)) (quote (300)))'
+reduce -s schemas.corevm_0_0_1 '(raise (quote (100)) (quote (200)) (quote (300)))'
 FAIL: SExp([[b'd'], [b'\x00\xc8'], [b'\x01,']])

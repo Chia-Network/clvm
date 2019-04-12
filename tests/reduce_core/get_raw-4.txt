@@ -1,2 +1,0 @@
-reduce -c '(get_raw (quote (100 200 300)) 1 2)'
-FAIL: SExp(b'\x01') is not a list

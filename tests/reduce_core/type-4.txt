@@ -1,2 +1,2 @@
-reduce -c '(type)'
+reduce -s schemas.corevm_0_0_1 '(type)'
 FAIL: type takes exactly one parameter

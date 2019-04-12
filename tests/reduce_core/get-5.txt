@@ -1,0 +1,2 @@
+reduce -s schemas.corevm_0_0_1 '(get)'
+FAIL: get takes exactly 2 parameters, got 0

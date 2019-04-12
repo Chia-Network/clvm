@@ -1,2 +1,2 @@
-reduce -c '(quote)'
+reduce -s schemas.corevm_0_0_1 '(quote)'
 FAIL: quote requires exactly 1 parameter, got 0

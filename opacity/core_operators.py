@@ -3,10 +3,7 @@ from .SExp import SExp, ATOM_TYPES
 
 
 S_False = SExp(0)
-S_True = SExp(1)
 
-
-CORE_KEYWORDS = "quote cons first rest type var env_raw is_null raise equal get_raw".split()
 
 # s-expression operators
 
@@ -47,17 +44,17 @@ def op_is_null(args):
     raise ReduceError("is_null takes exactly one parameter, got %d" % len(args))
 
 
-def op_get_raw(args):
+def op_get(args):
     if len(args) != 2:
-        raise ReduceError("get_raw takes exactly 2 parameters, got %d" % len(args))
+        raise ReduceError("get takes exactly 2 parameters, got %d" % len(args))
     item, index = args[0], args[1]
     if not item.is_list():
-        raise ReduceError("get_raw got non-list: %s" % item)
+        raise ReduceError("get got non-list: %s" % item)
     if not index.is_bytes():
-        raise ReduceError("get_raw bad index type: %s" % index)
+        raise ReduceError("get bad index type: %s" % index)
     if 0 <= index.as_int() < len(item):
         return SExp(item[index.as_int()])
-    raise ReduceError("get_raw bad index %d" % index.as_int())
+    raise ReduceError("get bad index %d" % index.as_int())
 
 
 # fail

@@ -1,2 +1,2 @@
-reduce -c '(var)' '(100 200)'
+reduce -s schemas.corevm_0_0_1 '(var)' '(100 200)'
 FAIL: type takes exactly one parameter, which must be a var
