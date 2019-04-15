@@ -1,6 +1,6 @@
 from opacity import core_operators
 
-from opacity.compile import compile_token
+from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.core import make_reduce_f
 from opacity.SExp import SExp
 
@@ -27,28 +27,9 @@ def transform(sexp):
     return REDUCE_F(REDUCE_F, sexp, args)
 
 
-
-def dump(form, keywords=[], is_first_element=False):
-    if form.is_list():
-        return SExp([dump(f, keywords, _ == 0) for _, f in enumerate(form)])
-
-    if form.is_var():
-        return SExp(("x%d" % form.var_index()).encode("utf8"))
-
-    if is_first_element and 0 <= form.as_int() < len(keywords):
-        v = keywords[form.as_int()]
-        if v != '.':
-            return v.encode("utf8")
-
-    if len(form.as_bytes()) > 4:
-        return SExp("0x%s" % binascii.hexlify(form.as_bytes()).encode("utf8"))
-
-    return SExp(("%d" % form.as_int()).encode("utf8"))
-
-
 def to_tokens(sexp):
-    return dump(sexp, KEYWORD_FROM_INT)
+    return to_int_keyword_tokens(sexp, KEYWORD_FROM_INT)
 
 
 def from_tokens(sexp):
-    return compile_token(sexp, KEYWORD_TO_INT)
+    return from_int_keyword_tokens(sexp, KEYWORD_TO_INT)

@@ -1,5 +1,3 @@
-from . import core_operators
-
 from .ReduceError import ReduceError
 from .SExp import SExp
 

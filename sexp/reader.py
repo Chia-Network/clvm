@@ -88,5 +88,5 @@ def tokenize_sexp(s: str, offset: int):
     return tokenize_atom(s, offset)
 
 
-def read_to_tokens(s: str):
+def read_tokens(s: str):
     return tokenize_sexp(s, 0)[0]

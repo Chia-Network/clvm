@@ -4,7 +4,6 @@ import hashlib
 import importlib
 import sys
 
-from .compile import compile_to_sexp, disassemble, dump
 from .core import ReduceError
 from .debug import make_tracing_f, trace_to_html
 from .SExp import SExp
@@ -133,15 +132,11 @@ def reduce(args=sys.argv):
 
     mod = importlib.import_module(args.schema)
 
-    tokens = reader.read_to_tokens(args.script)
-    sexp = mod.from_tokens(tokens)
-
-    the_log = []
-    reduce_f = mod.transform
+    sexp = mod.from_tokens(reader.read_tokens(args.script))
 
     solution = SExp([])
     if args.solution:
-        solution = mod.from_tokens(reader.read_to_tokens(args.solution))
+        solution = mod.from_tokens(reader.read_tokens(args.solution))
 
     try:
         sexp = SExp([sexp] + list(solution))
@@ -155,6 +150,8 @@ def reduce(args=sys.argv):
             print(final_output)
         return -1
     finally:
+        # TODO solve the debugging problem
+        the_log = []
         if args.debug:
             trace_to_html(the_log, mod.keyword_from_int)
         elif args.verbose:

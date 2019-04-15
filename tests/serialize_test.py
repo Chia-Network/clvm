@@ -1,4 +1,3 @@
-import io
 import unittest
 
 from opacity.SExp import Var, SExp
