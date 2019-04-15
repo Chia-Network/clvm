@@ -72,7 +72,7 @@ def compile_atom(token, keyword_to_int):
     c = token[0]
     if c in "\'\"":
         assert c == token[-1] and len(token) >= 2
-        return SExp(token[1:-1].encode("utf8"))
+        return SExp(token[1:-1])
 
     if c == '#':
         keyword = token[1:].lower()
@@ -93,8 +93,8 @@ def compile_list(tokens, keyword_to_int):
         return SExp([])
 
     r = []
-    if not isinstance(tokens[0], list):
-        keyword = keyword_to_int.get(tokens[0].lower())
+    if not tokens[0].is_list():
+        keyword = keyword_to_int.get(tokens[0].as_bytes().decode("utf8").lower())
         if keyword:
             r.append(SExp(keyword))
             tokens = tokens[1:]
@@ -106,9 +106,9 @@ def compile_list(tokens, keyword_to_int):
 
 
 def compile_token(token, keyword_to_int):
-    if isinstance(token, str):
-        return compile_atom(token, keyword_to_int)
-    return compile_list(token, keyword_to_int)
+    if token.is_list():
+        return compile_list(token, keyword_to_int)
+    return compile_atom(token.as_bytes().decode("utf8"), keyword_to_int)
 
 
 def tokenize_str(sexp: str, offset):

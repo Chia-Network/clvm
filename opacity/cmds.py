@@ -1,13 +1,15 @@
 import argparse
 import binascii
 import hashlib
+import importlib
 import sys
 
 from .compile import compile_to_sexp, disassemble, dump
 from .core import ReduceError
 from .debug import make_tracing_f, trace_to_html
 from .SExp import SExp
-from .schema import schema_for_name
+
+from sexp import reader, writer
 
 
 def script(item, keyword_to_int):
@@ -62,7 +64,7 @@ def opc(args=sys.argv):
         "path_or_code", nargs="*", type=path_or_code, help="path to opacity script, or literal script")
     args = parser.parse_args(args=args[1:])
 
-    schema = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
+    mod = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
 
     for text in args.path_or_code:
         try:
@@ -120,7 +122,7 @@ def reduce(args=sys.argv):
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("-s", "--schema", default="schemas.v0_0_2", type=schema_for_name,
+    group.add_argument("-s", "--schema", default="schemas.v0_0_2",
                        help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
@@ -129,25 +131,24 @@ def reduce(args=sys.argv):
 
     args = parser.parse_args(args=args[1:])
 
-    sexp = script(args.script, args.schema.keyword_to_int)
+    mod = importlib.import_module(args.schema)
+
+    tokens = reader.read_to_tokens(args.script)
+    sexp = mod.from_tokens(tokens)
 
     the_log = []
-    reduce_f = args.schema.transform
+    reduce_f = mod.transform
 
     solution = SExp([])
     if args.solution:
-        solution = script(args.solution, args.schema.keyword_to_int)
-
-    outer_reduce_f = reduce_f
-    if args.debug or args.verbose:
-        outer_reduce_f, the_log = make_tracing_f(reduce_f)
+        solution = mod.from_tokens(reader.read_to_tokens(args.solution))
 
     try:
         sexp = SExp([sexp] + list(solution))
-        reductions = outer_reduce_f(sexp)
-        final_output = disassemble(reductions, args.schema.keyword_from_int)
+        reductions = mod.transform(sexp)
+        output = mod.to_tokens(reductions)
         if not args.debug:
-            print(final_output)
+            print(writer.write_tokens(output))
     except ReduceError as e:
         final_output = "FAIL: %s" % e
         if not args.debug:
@@ -155,9 +156,9 @@ def reduce(args=sys.argv):
         return -1
     finally:
         if args.debug:
-            trace_to_html(the_log, args.schema.keyword_from_int)
+            trace_to_html(the_log, mod.keyword_from_int)
         elif args.verbose:
-            trace_to_text(the_log, args.schema.keyword_from_int)
+            trace_to_text(the_log, mod.keyword_from_int)
 
 
 def rewrite(args=sys.argv):
