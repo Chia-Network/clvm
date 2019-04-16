@@ -52,7 +52,7 @@ def compile_atom(token, keyword_to_int):
     c = s[0]
     if c in "\'\"":
         assert c == s[-1] and len(s) >= 2
-        return SExp(token[1:-1])
+        return SExp(token.as_bytes()[1:-1])
 
     if c == '#':
         keyword = s[1:].lower()

@@ -1,11 +1,12 @@
+from opacity import core_operators
+from opacity.core import make_reduce_f
+from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
+
 from opacity.SExp import SExp
 
-from opacity.compile import compile_to_sexp
-from opacity.core import do_reduce_f as core_reduce_f
+from sexp.reader import read_tokens
 
-from .more_operators import (
-    op_add, op_multiply, op_unwrap, op_wrap, op_sha256, op_subtract
-)
+from . import more_operators
 
 
 KEYWORDS = (
@@ -13,50 +14,61 @@ KEYWORDS = (
     "sha256 reduce + * - / wrap unwrap list quote quasiquote unquote get env "
     "case is_atom list1 "
     "cons first rest list type is_null var apply eval "
+    "envr getr "
     "macro_expand reduce_var reduce_bytes reduce_list if not bool or map "
-    "get_raw env_raw has_unquote get_default "
-    "first_true raise reduce_raw rewrite rewrite_op concat ").split()
+    "has_unquote get_default "
+    "first_true raise rewrite rewrite_op concat ").split()
 
 
 KEYWORD_FROM_INT = KEYWORDS
 KEYWORD_TO_INT = {v: k for k, v in enumerate(KEYWORD_FROM_INT)}
 
 
+def operators_for_module(keyword_to_int, mod, op_name_lookup={}):
+    d = {}
+    for op in keyword_to_int.keys():
+        op_name = "op_%s" % op_name_lookup.get(op, op)
+        op_f = getattr(mod, op_name, None)
+        if op_f:
+            d[keyword_to_int[op]] = op_f
+    return d
+
+
 DERIVED_OPERATORS = [
     ("if",
-        "(cons (quote #reduce) (cons (cons (quote #get_raw) (cons (cons (quote #quote) "
-        "(cons (rest (env_raw)) (quote ()))) (cons (cons (quote #equal) (cons (get_raw "
-        "(env_raw) (quote 0)) (quote ((quote 0))))) (quote ())))) (quote ((env_raw)))))"),
+        "(cons (quote #reduce) (cons (cons (quote #get) (cons (cons (quote #quote) "
+        "(cons (rest (env)) (quote ()))) (cons (cons (quote #equal) (cons (get "
+        "(env) (quote 0)) (quote ((quote 0))))) (quote ())))) (quote ((env)))))"),
     ("list",
-        "(if (is_null (env_raw)) "
+        "(if (is_null (env)) "
         "(quote (quote ())) "
-        "(cons (quote #cons) (cons (first (env_raw)) "
-        "(cons (cons (quote #list) (rest (env_raw))) (quote ())))))"),
+        "(cons (quote #cons) (cons (first (env)) "
+        "(cons (cons (quote #list) (rest (env))) (quote ())))))"),
     ("bool", "(quasiquote (if (unquote x0) (quote 1) (quote 0)))"),
     ("not", "(quasiquote (if (unquote x0) (quote 0) (quote 1)))"),
     ("choose1",
-        "(list #reduce (list #get_raw (cons #quote (list (rest (env_raw)))) x0) (quote (env_raw)))"),
-    ("env",
-        "(cons #get (cons (cons #env_raw (quote ())) (env_raw)))"),
-    ("get",
-        "(reduce (get_raw "
-        "(quote ((cons (quote #get) "
-        "(cons (cons (quote #get_raw) (cons (get_raw (env_raw) (quote 0)) "
-        "(cons (get_raw (env_raw) (quote 1)) (quote ())))) "
-        "(rest (rest (env_raw))))) (get_raw (env_raw) (quote 0)))) "
-        "(is_null (rest (env_raw)))) (env_raw))"),
+        "(list #reduce (list #get (cons #quote (list (rest (env)))) x0) (quote (env)))"),
+    ("envr",
+        "(cons #getr (cons (cons #env (quote ())) (env)))"),
+    ("getr",
+        "(reduce (get "
+        "(quote ((cons (quote #getr) "
+        "(cons (cons (quote #get) (cons (get (env) (quote 0)) "
+        "(cons (get (env) (quote 1)) (quote ())))) "
+        "(rest (rest (env))))) (get (env) (quote 0)))) "
+        "(is_null (rest (env)))) (env))"),
     ("map",
         "(quasiquote (reduce (quote (if (is_null x1) (quote ())"
         " (cons (reduce x0 (list (first x1))) (map x0 (rest x1))))) (list (unquote x0) (unquote x1))))"),
-    ("assert_output", "(quasiquote (quote (unquote (cons #assert_output (env_raw)))))"),
+    ("assert_output", "(quasiquote (quote (unquote (cons #assert_output (env)))))"),
     ("rewrite", "(quasiquote (rewrite_op (quote (unquote x0))))"),
 ]
 
 
 def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
-    ENV_RAW_KEYWORD = keyword_to_int["env_raw"]
-    GET_RAW_KEYWORD = keyword_to_int["get_raw"]
+    ENV_KEYWORD = keyword_to_int["env"]
+    GET_KEYWORD = keyword_to_int["get"]
     LIST_KEYWORD = keyword_to_int["list"]
     QUASIQUOTE_KEYWORD = keyword_to_int["quasiquote"]
     QUOTE_KEYWORD = keyword_to_int["quote"]
@@ -67,7 +79,8 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
     derived_operators = {}
     for kw, program in DERIVED_OPERATORS:
-        derived_operators[keyword_to_int[kw]] = compile_to_sexp(program, keyword_to_int)
+        derived_operators[keyword_to_int[kw]] = from_int_keyword_tokens(
+            read_tokens(program), keyword_to_int)
 
     def has_unquote(form):
         if form.is_list() and len(form) > 0:
@@ -100,7 +113,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
             return SExp([QUOTE_KEYWORD, form])
 
         if form.is_var():
-            return SExp([GET_RAW_KEYWORD, [ENV_RAW_KEYWORD], [QUOTE_KEYWORD, form.var_index()]])
+            return SExp([GET_KEYWORD, [ENV_KEYWORD], [QUOTE_KEYWORD, form.var_index()]])
 
         if len(form) == 0:
             return SExp([QUOTE_KEYWORD, form])
@@ -116,7 +129,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
         if first_item.is_bytes():
             f_index = first_item.as_int()
 
-            if f_index in (QUOTE_KEYWORD, ENV_RAW_KEYWORD):
+            if f_index in (QUOTE_KEYWORD, ENV_KEYWORD):
                 return form
 
             f = native_rewrite_operators.get(f_index)
@@ -152,7 +165,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 def make_optimize_form_f(keyword_to_int, reduce_f):
 
     QUOTE_KEYWORD = keyword_to_int["quote"]
-    ENV_RAW_KEYWORD = keyword_to_int["env_raw"]
+    ENV_KEYWORD = keyword_to_int["env"]
     REDUCE_KEYWORD = keyword_to_int["reduce"]
 
     def contains_no_free_variables(form):
@@ -160,7 +173,7 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
             first_item = form[0]
             if first_item.is_list():
                 return False
-            if first_item == ENV_RAW_KEYWORD:
+            if first_item == ENV_KEYWORD:
                 return False
             if first_item == QUOTE_KEYWORD:
                 return True
@@ -226,27 +239,41 @@ def make_rewriting_reduce(rewrite_f, core_reduce_f, log_reduce_f):
     return my_reduce_f
 
 
-the_log = []
-rewrite_f = make_rewrite_f(KEYWORD_TO_INT, core_reduce_f, reduce_constants=False)
-do_reduce_f = make_rewriting_reduce(rewrite_f, core_reduce_f, the_log.append)
-do_reduce_f.trace_log = the_log
+MORE_OP_REWRITE = {
+    "+": "add",
+    "-": "subtract",
+    "*": "multiply",
+}
 
-DOMAIN_OPERATORS = (
-    ("+", op_add),
-    ("-", op_subtract),
-    ("*", op_multiply),
-    ("sha256", op_sha256),
-    ("unwrap", op_unwrap),
-    ("wrap", op_wrap),
-    ("and", op_and),
-    ("rewrite_op", op_rewrite),
-)
+OPERATOR_LOOKUP = operators_for_module(KEYWORD_TO_INT, core_operators)
+OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_INT, more_operators, MORE_OP_REWRITE))
 
 
-operator_lookup = OPERATOR_LOOKUP = {KEYWORD_TO_INT[op]: f for op, f in DOMAIN_OPERATORS}
+BASE_REDUCE_F = make_reduce_f(OPERATOR_LOOKUP, KEYWORD_TO_INT)
 
-core_reduce_f.operator_lookup.update(operator_lookup)
+
+def reduce_f(self, sexp, args):
+    new_sexp = rewrite_f(rewrite_f, sexp)
+    return BASE_REDUCE_F(self, new_sexp, args)
+
+
+rewrite_f = make_rewrite_f(KEYWORD_TO_INT, reduce_f, reduce_constants=False)
 
 
 def transform(sexp):
-    pass
+    if sexp.is_list():
+        if len(sexp) == 0:
+            return sexp
+        sexp, args = sexp[0], sexp[1:]
+    else:
+        args = SExp([])
+
+    return reduce_f(reduce_f, sexp, args)
+
+
+def to_tokens(sexp):
+    return to_int_keyword_tokens(sexp, KEYWORD_FROM_INT)
+
+
+def from_tokens(sexp):
+    return from_int_keyword_tokens(sexp, KEYWORD_TO_INT)
