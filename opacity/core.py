@@ -1,5 +1,4 @@
 from .ReduceError import ReduceError
-from .SExp import SExp
 
 
 def make_reduce_f(operator_lookup, keyword_to_int):
@@ -32,7 +31,7 @@ def make_reduce_f(operator_lookup, keyword_to_int):
             return form[1]
 
         # TODO: rewrite with cons, rest, etc.
-        args = SExp([reduce_f(reduce_f, _, env) for _ in form[1:]])
+        args = form.__class__([reduce_f(reduce_f, _, env) for _ in form[1:]])
 
         # keyword REDUCE
 

@@ -22,6 +22,8 @@ class SExp:
     item: object
     type: ATOM_TYPES
 
+    ATOM_TYPES = ATOM_TYPES
+
     def __init__(self, v):
 
         if isinstance(v, SExp):
@@ -98,6 +100,12 @@ class SExp:
         sexp_to_stream(self, f)
         return f.getvalue()
 
+    def first(self):
+        return self.__class__(self.item[0])
+
+    def rest(self):
+        return self.__class__(self.item[1])
+
     def __iter__(self):
         assert self.type == ATOM_TYPES.PAIR
         v = self.item
@@ -152,3 +160,6 @@ class SExp:
         except ValueError:
             return False
         return other.type == self.type and other.item == self.item
+
+
+SExp.false = SExp(0)
