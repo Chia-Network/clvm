@@ -247,7 +247,8 @@ MORE_OP_REWRITE = {
 
 OPERATOR_LOOKUP = operators_for_module(KEYWORD_TO_INT, core_operators)
 OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_INT, more_operators, MORE_OP_REWRITE))
-
+OPERATOR_LOOKUP[KEYWORD_TO_INT["and"]] = op_and
+OPERATOR_LOOKUP[KEYWORD_TO_INT["rewrite"]] = op_rewrite
 
 BASE_REDUCE_F = make_reduce_f(OPERATOR_LOOKUP, KEYWORD_TO_INT)
 

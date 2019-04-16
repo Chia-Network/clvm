@@ -90,10 +90,3 @@ def op_point_add(items):
         except Exception as ex:
             raise ReduceError("point_add expects blob, got %s" % _)
     return SExp(bls12_381_to_bytes(p))
-
-
-# TODO: rewrite as a derived operator
-def op_and(items):
-    if any(_ == SExp(0) for _ in items):
-        return SExp(0)
-    return SExp(1)
