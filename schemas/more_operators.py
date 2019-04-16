@@ -88,5 +88,5 @@ def op_point_add(items):
         try:
             p += bls12_381_from_bytes(_.as_bytes())
         except Exception as ex:
-            raise ReduceError("point_add expects blob, got %s" % _)
+            raise ReduceError("point_add expects blob, got %s: %s" % (_, ex))
     return SExp(bls12_381_to_bytes(p))

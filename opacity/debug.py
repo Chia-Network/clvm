@@ -1,6 +1,6 @@
 from .SExp import SExp
 
-from .compile import disassemble_sexp
+from .writer import write_tokens as disassemble
 
 
 PRELUDE = '''<html>
@@ -26,32 +26,32 @@ PRELUDE = '''<html>
 TRAILER = "</div></body></html>"
 
 
-def dump_sexp(s, keyword_from_int):
-    return '<span id="%s">%s</span>' % (id(s), disassemble_sexp(s, keyword_from_int))
+def dump_sexp(s):
+    return '<span id="%s">%s</span>' % (id(s), disassemble(s))
 
 
-def dump_invocation(form, rewrit_form, env, result, keyword_from_int):
+def dump_invocation(form, rewrit_form, env, result):
     print('<hr><div class="invocation" id="%s">' % id(form))
     print('<span class="form"><a name="id_%s">%s</a></span>' % (
-        id(form), dump_sexp(form, keyword_from_int)))
+        id(form), dump_sexp(form)))
     print('<ul>')
     if form != rewrit_form:
         print('<li>Rewritten as:<span class="form"><a name="id_%s">%s</a></span></li>' % (
-            id(rewrit_form), dump_sexp(rewrit_form, keyword_from_int)))
+            id(rewrit_form), dump_sexp(rewrit_form)))
     for _, e in enumerate(env):
-        print('<li>x%d: <a href="#id_%s">%s</a></li>' % (_, id(e), dump_sexp(e, keyword_from_int)))
+        print('<li>x%d: <a href="#id_%s">%s</a></li>' % (_, id(e), dump_sexp(e)))
     print('</ul>')
-    print('<span class="form">%s</span>' % dump_sexp(result, keyword_from_int))
+    print('<span class="form">%s</span>' % dump_sexp(result))
     if form.is_list() and len(form) > 1:
         print('<ul>')
         for _, arg in enumerate(form[1:]):
             print('<li>arg %d: <a href="#id_%s">%s</a></li>' % (
-                _, id(arg), dump_sexp(arg, keyword_from_int)))
+                _, id(arg), dump_sexp(arg)))
         print('</ul>')
     print("</div>")
 
 
-def trace_to_html(invocations, keyword_from_int):
+def trace_to_html(invocations):
     invocations = reversed(invocations)
 
     print(PRELUDE)
@@ -60,7 +60,7 @@ def trace_to_html(invocations, keyword_from_int):
     id_list = []
 
     for form, rewrit_form, env, rv in invocations:
-        dump_invocation(form, rewrit_form, env, rv, keyword_from_int)
+        dump_invocation(form, rewrit_form, env, rv)
         the_id = id(form)
         if the_id not in id_set:
             id_set.add(the_id)
@@ -68,10 +68,24 @@ def trace_to_html(invocations, keyword_from_int):
 
     print('<hr>')
     for _ in id_list:
-        print('<div><a href="#id_%s">%s</a></div>' % (id(_), disassemble_sexp(_, keyword_from_int)))
+        print('<div><a href="#id_%s">%s</a></div>' % (id(_), disassemble(_)))
     print('<hr>')
 
     print(TRAILER)
+
+
+def trace_to_text(trace):
+    for (form, env), rv in trace:
+        env_str = ", ".join(disassemble(_) for _ in env)
+        rewrit_form = form
+        if form != rewrit_form:
+            print("%s -> %s [%s] => %s" % (
+                disassemble(form),
+                disassemble(rewrit_form),
+                env_str, disassemble(rv)))
+        else:
+            print("%s [%s] => %s" % (
+                disassemble(form), env_str, disassemble(rv)))
 
 
 def make_tracing_f(inner_f):

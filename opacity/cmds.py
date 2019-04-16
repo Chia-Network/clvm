@@ -8,38 +8,8 @@ import sys
 from . import reader, writer
 
 from .core import ReduceError
-from .debug import make_tracing_f, trace_to_html
+from .debug import trace_to_html, trace_to_text
 from .SExp import SExp
-
-
-
-def script(item, keyword_to_int):
-    # let's see if it's hex
-    try:
-        blob = binascii.unhexlify(item)
-        return SExp.from_blob(blob)
-    except binascii.Error:
-        pass
-
-    try:
-        return compile_to_sexp(item, keyword_to_int)
-    except Exception as ex:
-        print("bad script: %s" % ex.msg, file=sys.stderr)
-
-    raise ValueError("bad value %s" % item)
-
-
-def load_code(args):
-    for text in (args.code or []) + args.path:
-        try:
-            sexp = compile_to_sexp(text)
-        except SyntaxError as ex:
-            print("%s" % ex.msg)
-            continue
-        compiled_script = sexp.as_bin()
-        if args.script_hash:
-            print(hashlib.sha256(compiled_script).hexdigest())
-        print(binascii.hexlify(compiled_script).decode())
 
 
 def path_or_code(arg):
@@ -92,20 +62,6 @@ def opd(args=sys.argv):
         sexp = SExp.from_stream(io.BytesIO(blob))
         output = mod.to_tokens(sexp)
         print(writer.write_tokens(output))
-
-
-def trace_to_text(trace, keyword_from_int):
-    for (form, env), rv in trace:
-        env_str = ", ".join(dump(_) for _ in env)
-        rewrit_form = form
-        if form != rewrit_form:
-            print("%s -> %s [%s] => %s" % (
-                disassemble(form, keyword_from_int),
-                disassemble(rewrit_form, keyword_from_int),
-                env_str, disassemble(rv, keyword_from_int)))
-        else:
-            print("%s [%s] => %s" % (
-                disassemble(form, keyword_from_int), env_str, disassemble(rv, keyword_from_int)))
 
 
 def reduce(args=sys.argv):
