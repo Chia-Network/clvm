@@ -1,2 +1,2 @@
 rewrite '(bool (not x2))'
-(reduce (get_raw (quote ((quote 1) (quote 0))) (equal (reduce (get_raw (quote ((quote 0) (quote 1))) (equal (get_raw (env_raw) (quote 2)) (quote 0))) (env_raw)) (quote 0))) (env_raw))
+(reduce (get (quote ((quote 1) (quote 0))) (equal (reduce (get (quote ((quote 0) (quote 1))) (equal (get (env) (quote 2)) (quote 0))) (env)) (quote 0))) (env))

@@ -1,2 +1,2 @@
 rewrite '(bool 0)'
-(reduce (get_raw (quote ((quote 1) (quote 0))) (equal (quote 0) (quote 0))) (env_raw))
+(reduce (get (quote ((quote 1) (quote 0))) (equal (quote 0) (quote 0))) (env))

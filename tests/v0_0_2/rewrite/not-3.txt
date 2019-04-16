@@ -1,2 +1,2 @@
 rewrite '(not x0)'
-(reduce (get_raw (quote ((quote 0) (quote 1))) (equal (get_raw (env_raw) (quote 0)) (quote 0))) (env_raw))
+(reduce (get (quote ((quote 0) (quote 1))) (equal (get (env) (quote 0)) (quote 0))) (env))

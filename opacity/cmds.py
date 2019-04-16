@@ -132,10 +132,12 @@ def reduce(args=sys.argv):
     solution = SExp([])
     if args.solution:
         solution = mod.from_tokens(reader.read_tokens(args.solution))
+    do_reduction(args, mod, sexp, solution)
 
+
+def do_reduction(args, mod, sexp, solution):
     try:
-        sexp = SExp([sexp] + list(solution))
-        reductions = mod.transform(sexp)
+        reductions = mod.transform(SExp([sexp] + list(solution)))
         output = mod.to_tokens(reductions)
         if not args.debug:
             print(writer.write_tokens(output))
@@ -162,25 +164,18 @@ def rewrite(args=sys.argv):
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_2",
-                       help="Python module imported with rewrite")
-    group.add_argument("-c", "--core", action="store_true",
-                       help="Don't use a derived language, just the core implementation")
+    parser.add_argument("-s", "--schema", default="schemas.v0_0_2",
+                        help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
 
     args = parser.parse_args(args=args[1:])
 
-    schema = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
+    mod = importlib.import_module(args.schema)
 
-    sexp = script("(rewrite %s)" % args.script, schema.keyword_to_int)
-
-    reduce_f = schema.reduce_f
-
-    env = SExp([])
-    reductions = reduce_f(reduce_f, sexp, env)
-    print(disassemble(reductions, schema.keyword_from_int))
+    solution = SExp([])
+    sexp = mod.from_tokens(reader.read_tokens("(rewrite %s)" % args.script))
+    do_reduction(args, mod, sexp, solution)
 
 
 """

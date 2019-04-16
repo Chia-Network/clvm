@@ -1,2 +1,2 @@
 rewrite '(map x0 (list 100 200 300))'
-(reduce (quote (if (is_null x1) (quote ()) (cons (reduce x0 (list (first x1))) (map x0 (rest x1))))) (cons (get_raw (env_raw) (quote 0)) (cons (cons (quote 100) (cons (quote 200) (cons (quote 300) (quote ())))) (quote ()))))
+(reduce (quote (if (is_null x1) (quote ()) (cons (reduce x0 (list (first x1))) (map x0 (rest x1))))) (cons (get (env) (quote 0)) (cons (cons (quote 100) (cons (quote 200) (cons (quote 300) (quote ())))) (quote ()))))
