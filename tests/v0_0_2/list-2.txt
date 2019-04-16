@@ -1,3 +1,2 @@
-# we can't quote a "+" at the moment
-reduce '(list (quote 11) (quote 1) (quote 2) (+ 1 2))'
+reduce '(list #+ (quote 1) (quote 2) (+ 1 2))'
 (+ 1 2 3)

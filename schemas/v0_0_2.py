@@ -10,14 +10,11 @@ from . import more_operators
 
 
 KEYWORDS = (
-    ". choose1 aggsig point_add assert_output pubkey_for_exp and type equal "
-    "sha256 reduce + * - / wrap unwrap list quote quasiquote unquote get env "
+    ". quote aggsig point_add assert_output pubkey_for_exp and type equal "
+    "sha256 reduce + * - / wrap unwrap list choose1 quasiquote unquote get env "
     "case is_atom list1 "
-    "cons first rest list type is_null var apply eval "
-    "envr getr "
-    "macro_expand reduce_var reduce_bytes reduce_list if not bool or map "
-    "has_unquote get_default "
-    "first_true raise rewrite rewrite_op concat ").split()
+    "cons first rest list type is_null var apply eval envr getr "
+    "if not bool or map raise rewrite rewrite_op ").split()
 
 
 KEYWORD_FROM_INT = KEYWORDS
