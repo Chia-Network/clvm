@@ -3,8 +3,6 @@ from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.reader import read_tokens
 
-from opacity.SExp import SExp
-
 
 from . import more_operators
 
@@ -93,8 +91,8 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
             return form[1][1]
 
         if has_unquote(form[1]):
-            return SExp([LIST_KEYWORD] + [[QUASIQUOTE_KEYWORD, _] for _ in form[1:][0]])
-        return SExp([QUOTE_KEYWORD] + list(form[1:]))
+            return form.__class__([LIST_KEYWORD] + [[QUASIQUOTE_KEYWORD, _] for _ in form[1:][0]])
+        return form.__class__([QUOTE_KEYWORD] + list(form[1:]))
 
     NATIVE_REWRITE_OPERATORS = [
         ("quasiquote", rewrite_quasiquote),
@@ -107,13 +105,13 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
     def rewrite(self, form):
 
         if form.is_bytes():
-            return SExp([QUOTE_KEYWORD, form])
+            return form.__class__([QUOTE_KEYWORD, form])
 
         if form.is_var():
-            return SExp([GET_KEYWORD, [ENV_KEYWORD], [QUOTE_KEYWORD, form.var_index()]])
+            return form.__class__([GET_KEYWORD, [ENV_KEYWORD], [QUOTE_KEYWORD, form.var_index()]])
 
         if len(form) == 0:
-            return SExp([QUOTE_KEYWORD, form])
+            return form.__class__([QUOTE_KEYWORD, form])
 
         first_item = form[0]
 
@@ -136,10 +134,10 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
             f = derived_operators.get(f_index)
             if f:
-                new_form = SExp([f] + list(form[1:]))
+                new_form = form.__class__([f] + list(form[1:]))
                 return self(self, new_form)
 
-            args = SExp([self(self, _) for _ in form[1:]])
+            args = form.__class__([self(self, _) for _ in form[1:]])
 
             if f_index == REDUCE_KEYWORD and len(args) == 1:
                 if args[0].is_list():
@@ -147,7 +145,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
                     if r_first.as_int() == QUOTE_KEYWORD:
                         return args[0][1]
 
-            new_form = SExp([first_item] + list(args))
+            new_form = form.__class__([first_item] + list(args))
 
             if reduce_constants:
                 new_form = optimize_form(optimize_form, new_form)
@@ -190,7 +188,7 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
             return form
 
         if len(form) == 0:
-            return SExp([QUOTE_KEYWORD, form])
+            return form.__class__([QUOTE_KEYWORD, form])
 
         first_item = form[0]
 
@@ -202,14 +200,14 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
         if f_index == QUOTE_KEYWORD:
             return form
 
-        args = SExp([self(self, _) for _ in form[1:]])
+        args = form.__class__([self(self, _) for _ in form[1:]])
 
-        new_form = SExp([first_item] + list(args))
+        new_form = form.__class__([first_item] + list(args))
 
         if contains_no_free_variables(new_form):
-            empty_env = SExp([])
+            empty_env = form.__class__([])
             new_form = reduce_f(reduce_f, new_form, empty_env)
-            return SExp([QUOTE_KEYWORD, new_form])
+            return form.__class__([QUOTE_KEYWORD, new_form])
 
         return new_form
 
@@ -222,16 +220,16 @@ def op_rewrite(items):
 
 # TODO: rewrite as a derived operator
 def op_and(items):
-    if any(_ == SExp(0) for _ in items):
-        return SExp(0)
-    return SExp(1)
+    if any(_ == items.__class__(0) for _ in items):
+        return items.__class__(0)
+    return items.__class__(1)
 
 
 def make_rewriting_reduce(rewrite_f, core_reduce_f, log_reduce_f):
     def my_reduce_f(self, form, env):
         rewritten_form = rewrite_f(rewrite_f, form)
         rv = core_reduce_f(self, rewritten_form, env)
-        log_reduce_f(SExp([form, rewritten_form, env, rv]))
+        log_reduce_f(form.__class__([form, rewritten_form, env, rv]))
         return rv
     return my_reduce_f
 
@@ -264,7 +262,7 @@ def transform(sexp):
             return sexp
         sexp, args = sexp[0], sexp[1:]
     else:
-        args = SExp([])
+        args = sexp.__class__([])
 
     return reduce_f(reduce_f, sexp, args)
 

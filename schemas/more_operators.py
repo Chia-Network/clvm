@@ -1,7 +1,6 @@
 import hashlib
 
 from opacity.ReduceError import ReduceError
-from opacity.SExp import SExp
 from opacity.casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes
 
 
@@ -9,7 +8,7 @@ def op_sha256(args):
     h = hashlib.sha256()
     for _ in args:
         h.update(_.as_bytes())
-    return SExp(h.digest())
+    return args.__class__(h.digest())
 
 
 MASK_128 = ((1 << 128) - 1)
@@ -30,12 +29,12 @@ def op_add(args):
             raise ReduceError("add takes integer arguments, %s is not an int" % arg)
         total += r
     total = truncate_int(total)
-    return SExp(total)
+    return args.__class__(total)
 
 
 def op_subtract(args):
     if len(args) == 0:
-        return SExp(0)
+        return args.__class__(0)
     sign = 1
     total = 0
     for arg in args:
@@ -45,7 +44,7 @@ def op_subtract(args):
         total += sign * r
         total = truncate_int(total)
         sign = -1
-    return SExp(total)
+    return args.__class__(total)
 
 
 def op_multiply(args):
@@ -55,12 +54,12 @@ def op_multiply(args):
         if r is None:
             raise ReduceError("add takes integer arguments, %s is not an int" % arg)
         v = truncate_int(v * r)
-    return SExp(v)
+    return args.__class__(v)
 
 
 def op_unwrap(items):
     try:
-        return SExp.from_blob(items[0].as_bytes())
+        return items.__class__.from_blob(items[0].as_bytes())
     except (IndexError, ValueError):
         raise ReduceError("bad stream: %s" % items[0])
 
@@ -68,14 +67,14 @@ def op_unwrap(items):
 def op_wrap(items):
     if len(items) != 1:
         raise ReduceError("wrap expects exactly one argument, got %d" % len(items))
-    return SExp(items[0].as_bin())
+    return items.__class__(items[0].as_bin())
 
 
 def op_pubkey_for_exp(items):
     if len(items) != 1:
         raise ReduceError("op_pubkey_for_exp expects exactly one argument, got %d" % len(items))
     try:
-        return SExp(bls12_381_to_bytes(bls12_381_generator * items[0].as_int()))
+        return items.__class__(bls12_381_to_bytes(bls12_381_generator * items[0].as_int()))
     except Exception as ex:
         raise ReduceError("problem in op_pubkey_for_exp: %s" % ex)
 
@@ -89,4 +88,4 @@ def op_point_add(items):
             p += bls12_381_from_bytes(_.as_bytes())
         except Exception as ex:
             raise ReduceError("point_add expects blob, got %s: %s" % (_, ex))
-    return SExp(bls12_381_to_bytes(p))
+    return items.__class__(bls12_381_to_bytes(p))
