@@ -72,8 +72,10 @@ def op_wrap(items):
 
 
 def op_pubkey_for_exp(items):
+    if len(items) != 1:
+        raise ReduceError("op_pubkey_for_exp expects exactly one argument, got %d" % len(items))
     try:
-        return SExp([bls12_381_to_bytes(bls12_381_generator * _.as_int()) for _ in items])
+        return SExp(bls12_381_to_bytes(bls12_381_generator * items[0].as_int()))
     except Exception as ex:
         raise ReduceError("problem in op_pubkey_for_exp: %s" % ex)
 
@@ -81,9 +83,12 @@ def op_pubkey_for_exp(items):
 def op_point_add(items):
     if len(items) < 1:
         raise ReduceError("point_add expects at least one argument, got %d" % len(items))
-    p = bls12_381_from_bytes(items[0].as_bytes())
-    for _ in items[1:]:
-        p += bls12_381_from_bytes(_.as_bytes())
+    p = bls12_381_generator.infinity()
+    for _ in items:
+        try:
+            p += bls12_381_from_bytes(_.as_bytes())
+        except Exception as ex:
+            raise ReduceError("point_add expects blob, got %s" % _)
     return SExp(bls12_381_to_bytes(p))
 
 
