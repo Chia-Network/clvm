@@ -2,6 +2,7 @@ import argparse
 import binascii
 import hashlib
 import importlib
+import io
 import sys
 
 from .core import ReduceError
@@ -52,22 +53,19 @@ def opc(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Compile an opacity script.'
     )
-
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_2",
-                       help="Python module imported with rewrite")
-    group.add_argument("-c", "--core", action="store_true",
-                       help="Don't use a derived language, just the core implementation")
-    parser.add_argument("-s", "--script_hash", action="store_true", help="Show sha256 script hash")
+    parser.add_argument("-s", "--schema", default="schemas.v0_0_2",
+                        help="Python module imported with rewrite")
+    parser.add_argument("-H", "--script_hash", action="store_true", help="Show sha256 script hash")
     parser.add_argument(
         "path_or_code", nargs="*", type=path_or_code, help="path to opacity script, or literal script")
+
     args = parser.parse_args(args=args[1:])
 
-    mod = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
+    mod = importlib.import_module(args.schema)
 
     for text in args.path_or_code:
         try:
-            sexp = compile_to_sexp(text, schema.keyword_to_int)
+            sexp = mod.from_tokens(reader.read_tokens(text))
         except SyntaxError as ex:
             print("%s" % ex.msg)
             continue
@@ -81,20 +79,18 @@ def opd(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Disassemble a compiled opacity script.'
     )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-r", "--rewrite-actions", default="schemas.v0_0_2",
-                       help="Python module imported with rewrite")
-    group.add_argument("-c", "--core", action="store_true",
-                       help="Don't use a derived language, just the core implementation")
+    parser.add_argument("-s", "--schema", default="schemas.v0_0_2",
+                        help="Python module imported with rewrite")
     parser.add_argument(
         "script", nargs="+", type=binascii.unhexlify, help="hex version of opacity script")
     args = parser.parse_args(args=args[1:])
 
-    schema = schema_for_name("opacity.core" if args.core else args.rewrite_actions)
+    mod = importlib.import_module(args.schema)
 
     for blob in args.script:
-        text = disassemble(blob, schema.keyword_from_int)
-        print(text)
+        sexp = SExp.from_stream(io.BytesIO(blob))
+        output = mod.to_tokens(sexp)
+        print(writer.write_tokens(output))
 
 
 def trace_to_text(trace, keyword_from_int):
@@ -120,9 +116,8 @@ def reduce(args=sys.argv):
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-s", "--schema", default="schemas.v0_0_2",
-                       help="Python module imported with rewrite")
+    parser.add_argument("-s", "--schema", default="schemas.v0_0_2",
+                        help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
     parser.add_argument(
