@@ -5,11 +5,12 @@ import importlib
 import io
 import sys
 
+from . import reader, writer
+
 from .core import ReduceError
 from .debug import make_tracing_f, trace_to_html
 from .SExp import SExp
 
-from sexp import reader, writer
 
 
 def script(item, keyword_to_int):

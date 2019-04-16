@@ -1,10 +1,10 @@
-from opacity import core_operators
 from opacity.core import make_reduce_f
+from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
+from opacity.reader import read_tokens
 
 from opacity.SExp import SExp
 
-from sexp.reader import read_tokens
 
 from . import more_operators
 

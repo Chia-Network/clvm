@@ -1,5 +1,5 @@
-from sexp.reader import read_tokens
-from sexp.writer import write_tokens
+from opacity.reader import read_tokens
+from opacity.writer import write_tokens
 
 
 def test_tokenize_comments():
