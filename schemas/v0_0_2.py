@@ -2,7 +2,7 @@ from opacity.core import make_reduce_f
 from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.reader import read_tokens
-from opacity.SExp import SExp
+from opacity.SExp import sexp_from_stream, to_sexp_f
 
 
 from . import more_operators
@@ -75,8 +75,8 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
     derived_operators = {}
     for kw, program in DERIVED_OPERATORS:
-        derived_operators[keyword_to_int[kw]] = from_int_keyword_tokens(
-            read_tokens(program), keyword_to_int)
+        derived_operators[keyword_to_int[kw]] = to_sexp_f(from_int_keyword_tokens(
+            read_tokens(program), keyword_to_int))
 
     def has_unquote(form):
         if form.listp() and len(form) > 0:
@@ -273,8 +273,8 @@ def to_tokens(sexp):
 
 
 def from_tokens(sexp):
-    return from_int_keyword_tokens(sexp, KEYWORD_TO_INT)
+    return to_sexp_f(from_int_keyword_tokens(sexp, KEYWORD_TO_INT))
 
 
 def from_stream(f):
-    return SExp.from_stream(f)
+    return sexp_from_stream(f)

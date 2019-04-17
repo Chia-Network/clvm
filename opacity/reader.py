@@ -1,12 +1,12 @@
 # read strings into Token
 
-from opacity.SExp import SExp
+from opacity.SExp import to_sexp_f
 
 
 def Token(s, offset):
     if isinstance(s, str):
         s = s.encode("utf8")
-    s = SExp(s)
+    s = to_sexp_f(s)
     s._offset = offset
     return s
 

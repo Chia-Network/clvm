@@ -1,18 +1,10 @@
 import enum
 import io
 
-from dataclasses import dataclass
-
 from .casts import int_to_bytes, int_from_bytes
-from .serialize import sexp_from_stream, sexp_to_stream
+from .serialize import make_sexp_from_stream, sexp_to_stream
 
-
-@dataclass
-class Var:
-    index: int
-
-    def __repr__(self):
-        return "x%d" % self.index
+from .Var import Var
 
 
 ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB PAIR")
@@ -64,7 +56,7 @@ class SExp:
 
     @classmethod
     def from_stream(class_, f):
-        return sexp_from_stream(f, class_)
+        return sexp_from_stream(f)
 
     @classmethod
     def from_blob(class_, blob):
@@ -170,3 +162,6 @@ class SExp:
 
 SExp.false = SExp(0)
 SExp.null = SExp([])
+
+to_sexp_f = SExp
+sexp_from_stream = make_sexp_from_stream(SExp)
