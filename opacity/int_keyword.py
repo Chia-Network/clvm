@@ -2,7 +2,7 @@
 
 import binascii
 
-from .SExp import SExp
+from .SExp import SExp, Var
 
 
 class Token(str):
@@ -26,7 +26,7 @@ class bytes_as_hex(bytes):
 def parse_as_int(s, offset):
     try:
         v = int(s)
-        return SExp(v)
+        return v
     except (ValueError, TypeError):
         pass
 
@@ -34,7 +34,7 @@ def parse_as_int(s, offset):
 def parse_as_hex(s, offset):
     if s[:2].upper() == "0X":
         try:
-            return SExp(bytes_as_hex(binascii.unhexlify(s[2:])))
+            return bytes_as_hex(binascii.unhexlify(s[2:]))
         except Exception:
             raise SyntaxError("invalid hex at %d: %s" % (offset, s))
 
@@ -42,7 +42,7 @@ def parse_as_hex(s, offset):
 def parse_as_var(s, offset):
     if s[:1].upper() == "X":
         try:
-            return SExp.from_var_index(int(s[1:]))
+            return Var(int(s[1:]))
         except Exception:
             raise SyntaxError("invalid variable at %d: %s" % (offset, s))
 
@@ -64,7 +64,7 @@ def compile_atom(token, keyword_to_int):
     for f in [parse_as_int, parse_as_var, parse_as_hex]:
         v = f(s, token._offset)
         if v is not None:
-            return v
+            return SExp(v)
     raise SyntaxError("can't parse %s at %d" % (s, token._offset))
 
 
