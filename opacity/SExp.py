@@ -100,6 +100,9 @@ class SExp:
         sexp_to_stream(self, f)
         return f.getvalue()
 
+    def cons(self, right):
+        return self.__class__((self, right))
+
     def first(self):
         return self.__class__(self.item[0])
 

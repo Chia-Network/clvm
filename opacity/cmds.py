@@ -9,7 +9,6 @@ from . import reader, writer
 
 from .core import ReduceError
 from .debug import trace_to_html, trace_to_text
-from .SExp import SExp
 
 
 def path_or_code(arg):
@@ -59,7 +58,7 @@ def opd(args=sys.argv):
     mod = importlib.import_module(args.schema)
 
     for blob in args.script:
-        sexp = SExp.from_stream(io.BytesIO(blob))
+        sexp = mod.from_stream(io.BytesIO(blob))
         output = mod.to_tokens(sexp)
         print(writer.write_tokens(output))
 
@@ -78,7 +77,7 @@ def reduce(args=sys.argv):
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
     parser.add_argument(
-        "solution", nargs="?", help="solution in hex or uncompiled text", default=SExp([]))
+        "solution", nargs="?", help="solution in hex or uncompiled text")
 
     args = parser.parse_args(args=args[1:])
 
@@ -86,7 +85,7 @@ def reduce(args=sys.argv):
 
     sexp = mod.from_tokens(reader.read_tokens(args.script))
 
-    solution = SExp([])
+    solution = sexp.__class__([])
     if args.solution:
         solution = mod.from_tokens(reader.read_tokens(args.solution))
     do_reduction(args, mod, sexp, solution)
@@ -94,7 +93,7 @@ def reduce(args=sys.argv):
 
 def do_reduction(args, mod, sexp, solution):
     try:
-        reductions = mod.transform(SExp([sexp] + list(solution)))
+        reductions = mod.transform(sexp.__class__([sexp] + list(solution)))
         output = mod.to_tokens(reductions)
         if not args.debug:
             print(writer.write_tokens(output))
@@ -130,8 +129,8 @@ def rewrite(args=sys.argv):
 
     mod = importlib.import_module(args.schema)
 
-    solution = SExp([])
     sexp = mod.from_tokens(reader.read_tokens("(rewrite %s)" % args.script))
+    solution = sexp.__class__([])
     do_reduction(args, mod, sexp, solution)
 
 

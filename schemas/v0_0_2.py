@@ -2,6 +2,7 @@ from opacity.core import make_reduce_f
 from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.reader import read_tokens
+from opacity.SExp import SExp
 
 
 from . import more_operators
@@ -273,3 +274,7 @@ def to_tokens(sexp):
 
 def from_tokens(sexp):
     return from_int_keyword_tokens(sexp, KEYWORD_TO_INT)
+
+
+def from_stream(f):
+    return SExp.from_stream(f)
