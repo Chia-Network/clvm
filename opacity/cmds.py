@@ -85,7 +85,7 @@ def reduce(args=sys.argv):
 
     sexp = mod.from_tokens(reader.read_tokens(args.script))
 
-    solution = sexp.__class__([])
+    solution = sexp.null
     if args.solution:
         solution = mod.from_tokens(reader.read_tokens(args.solution))
     do_reduction(args, mod, sexp, solution)
@@ -130,7 +130,7 @@ def rewrite(args=sys.argv):
     mod = importlib.import_module(args.schema)
 
     sexp = mod.from_tokens(reader.read_tokens("(rewrite %s)" % args.script))
-    solution = sexp.__class__([])
+    solution = sexp.null
     do_reduction(args, mod, sexp, solution)
 
 

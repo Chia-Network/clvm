@@ -206,7 +206,7 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
         new_form = form.__class__([first_item] + list(args))
 
         if contains_no_free_variables(new_form):
-            empty_env = form.__class__([])
+            empty_env = form.null
             new_form = reduce_f(reduce_f, new_form, empty_env)
             return form.__class__([QUOTE_KEYWORD, new_form])
 
@@ -263,7 +263,7 @@ def transform(sexp):
             return sexp
         sexp, args = sexp[0], sexp[1:]
     else:
-        args = sexp.__class__([])
+        args = sexp.null
 
     return reduce_f(reduce_f, sexp, args)
 

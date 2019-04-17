@@ -70,7 +70,7 @@ def compile_atom(token, keyword_to_int):
 
 def compile_list(tokens, keyword_to_int):
     if len(tokens) == 0:
-        return SExp([])
+        return SExp.null
 
     r = []
     if not tokens[0].is_list():

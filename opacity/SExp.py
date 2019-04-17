@@ -166,3 +166,4 @@ class SExp:
 
 
 SExp.false = SExp(0)
+SExp.null = SExp([])

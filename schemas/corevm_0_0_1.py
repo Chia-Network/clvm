@@ -30,7 +30,7 @@ def build_runtime(keyword_from_int, keyword_to_int, operator_lookup):
                 return sexp
             sexp, args = sexp[0], sexp[1:]
         else:
-            args = sexp.__class__([])
+            args = sexp.null
 
         return reduce_f(reduce_f, sexp, args)
 
