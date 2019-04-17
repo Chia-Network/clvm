@@ -79,7 +79,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
             read_tokens(program), keyword_to_int)
 
     def has_unquote(form):
-        if form.is_list() and len(form) > 0:
+        if form.listp() and len(form) > 0:
             return form[0].as_int() == UNQUOTE_KEYWORD or any(has_unquote(_) for _ in form[1:])
 
         return False
@@ -88,7 +88,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
         if len(form) < 2:
             return form
 
-        if form[1].is_list() and form[1][0].as_int() == UNQUOTE_KEYWORD:
+        if form[1].listp() and form[1][0].as_int() == UNQUOTE_KEYWORD:
             return form[1][1]
 
         if has_unquote(form[1]):
@@ -116,7 +116,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
         first_item = form[0]
 
-        if first_item.is_list():
+        if first_item.listp():
             new_env = form[1:]
             new_first_item = self(self, first_item)
             new_form = reduce_f(reduce_f, new_first_item, new_env)
@@ -141,7 +141,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
             args = form.__class__([self(self, _) for _ in form[1:]])
 
             if f_index == REDUCE_KEYWORD and len(args) == 1:
-                if args[0].is_list():
+                if args[0].listp():
                     r_first = args[0][0]
                     if r_first.as_int() == QUOTE_KEYWORD:
                         return args[0][1]
@@ -165,9 +165,9 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
     REDUCE_KEYWORD = keyword_to_int["reduce"]
 
     def contains_no_free_variables(form):
-        if form.is_list():
+        if form.listp():
             first_item = form[0]
-            if first_item.is_list():
+            if first_item.listp():
                 return False
             if first_item == ENV_KEYWORD:
                 return False
@@ -185,7 +185,7 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
 
     def optimize_form(self, form):
 
-        if not form.is_list():
+        if not form.listp():
             return form
 
         if len(form) == 0:
@@ -258,7 +258,7 @@ rewrite_f = make_rewrite_f(KEYWORD_TO_INT, reduce_f, reduce_constants=False)
 
 
 def transform(sexp):
-    if sexp.is_list():
+    if sexp.listp():
         if len(sexp) == 0:
             return sexp
         sexp, args = sexp[0], sexp[1:]

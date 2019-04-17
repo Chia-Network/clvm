@@ -69,11 +69,11 @@ def compile_atom(token, keyword_to_int):
 
 
 def compile_list(tokens, keyword_to_int):
-    if len(tokens) == 0:
-        return SExp.null
+    if tokens.nullp():
+        return tokens
 
     r = []
-    if not tokens[0].is_list():
+    if not tokens[0].listp():
         keyword = keyword_to_int.get(tokens[0].as_bytes().decode("utf8").lower())
         if keyword:
             r.append(SExp(keyword))
@@ -86,13 +86,13 @@ def compile_list(tokens, keyword_to_int):
 
 
 def from_int_keyword_tokens(token, keyword_to_int):
-    if token.is_list():
+    if token.listp():
         return compile_list(token, keyword_to_int)
     return compile_atom(token, keyword_to_int)
 
 
 def to_int_keyword_tokens(form, keywords=[], is_first_element=False):
-    if form.is_list():
+    if form.listp():
         return SExp([to_int_keyword_tokens(f, keywords, _ == 0) for _, f in enumerate(form)])
 
     if form.is_var():

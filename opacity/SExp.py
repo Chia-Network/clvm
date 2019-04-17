@@ -80,8 +80,11 @@ class SExp:
     def is_bytes(self):
         return self.type == ATOM_TYPES.BLOB
 
-    def is_list(self):
+    def listp(self):
         return self.type == ATOM_TYPES.PAIR
+
+    def nullp(self):
+        return self.type == ATOM_TYPES.PAIR and len(self) == 0
 
     def var_index(self):
         if self.is_var():
@@ -153,7 +156,7 @@ class SExp:
             t = "x%d" % self.item
         if self.is_bytes():
             t = repr(self.item)
-        if self.is_list():
+        if self.listp():
             t = repr([_.as_obj() for _ in self])
         return "SExp(%s)" % t
 

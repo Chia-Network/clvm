@@ -25,7 +25,7 @@ def build_runtime(keyword_from_int, keyword_to_int, operator_lookup):
     reduce_f = make_reduce_f(operator_lookup, keyword_to_int)
 
     def transform(sexp):
-        if sexp.is_list():
+        if sexp.listp():
             if len(sexp) == 0:
                 return sexp
             sexp, args = sexp[0], sexp[1:]

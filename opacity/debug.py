@@ -1,5 +1,3 @@
-from .SExp import SExp
-
 from .writer import write_tokens as disassemble
 
 
@@ -42,7 +40,7 @@ def dump_invocation(form, rewrit_form, env, result):
         print('<li>x%d: <a href="#id_%s">%s</a></li>' % (_, id(e), dump_sexp(e)))
     print('</ul>')
     print('<span class="form">%s</span>' % dump_sexp(result))
-    if form.is_list() and len(form) > 1:
+    if form.listp() and len(form) > 1:
         print('<ul>')
         for _, arg in enumerate(form[1:]):
             print('<li>arg %d: <a href="#id_%s">%s</a></li>' % (
@@ -95,7 +93,7 @@ def make_tracing_f(inner_f):
         try:
             rv = inner_f(self, *args)
         except Exception as ex:
-            rv = SExp(("FAIL: %s" % str(ex)).encode("utf8"))
+            rv = args[-1].__class__(("FAIL: %s" % str(ex)).encode("utf8"))
             raise
         finally:
             log_entry = (args, rv)

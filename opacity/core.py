@@ -10,7 +10,7 @@ def make_reduce_f(operator_lookup, keyword_to_int):
     ENV_KEYWORD = keyword_to_int["env"]
 
     def reduce_core(reduce_f, form, env):
-        if not form.is_list():
+        if not form.listp():
             raise ReduceError("%s is not a list" % form)
 
         if len(form) == 0:

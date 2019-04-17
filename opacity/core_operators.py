@@ -1,6 +1,5 @@
 from .ReduceError import ReduceError
 
-
 # s-expression operators
 
 
@@ -36,7 +35,7 @@ def op_var(args):
 
 def op_is_null(args):
     if len(args) == 1:
-        return args[0].__class__(args[0].is_list() and len(args[0]) == 0)
+        return args[0].__class__(args[0].listp() and args[0].nullp())
     raise ReduceError("is_null takes exactly one parameter, got %d" % len(args))
 
 
@@ -44,7 +43,7 @@ def op_get(args):
     if len(args) != 2:
         raise ReduceError("get takes exactly 2 parameters, got %d" % len(args))
     item, index = args[0], args[1]
-    if not item.is_list():
+    if not item.listp():
         raise ReduceError("get got non-list: %s" % item)
     if not index.is_bytes():
         raise ReduceError("get bad index type: %s" % index)

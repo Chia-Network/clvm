@@ -26,7 +26,7 @@ def sexp_to_stream(v, f):
         f.write(blob)
         return
 
-    if v.is_list():
+    if v.listp():
         encode_size(f, len(v), 32, 0x20)
         for _ in v:
             sexp_to_stream(_, f)
