@@ -4,13 +4,7 @@ from .ReduceError import ReduceError
 from .casts import int_from_bytes
 
 
-def make_reduce_f(operator_lookup, keyword_to_int):
-
-    keyword_from_int = {v: k for k, v in keyword_to_int.items()}
-
-    QUOTE_KEYWORD = keyword_to_int["quote"]
-    REDUCE_KEYWORD = keyword_to_int["reduce"]
-    ENV_KEYWORD = keyword_to_int["env"]
+def make_reduce_f(operator_lookup, quote_kw, reduce_kw, env_kw):
 
     def reduce_core(reduce_f, form, env):
         if not form.listp():
@@ -28,7 +22,7 @@ def make_reduce_f(operator_lookup, keyword_to_int):
 
         # special form QUOTE
 
-        if f_index == QUOTE_KEYWORD:
+        if f_index == quote_kw:
             if form.rest().nullp() or not form.rest().rest().nullp():
                 raise ReduceError("quote requires exactly 1 parameter, got %d" % (len(form) - 1))
             return form[1]
@@ -38,14 +32,14 @@ def make_reduce_f(operator_lookup, keyword_to_int):
 
         # keyword REDUCE
 
-        if f_index == REDUCE_KEYWORD:
+        if f_index == reduce_kw:
             if args.rest().nullp() or not args.rest().rest().nullp():
                 raise ReduceError("reduce_list requires 2 parameters, got %d" % len(args))
             return reduce_f(reduce_f, args[0], args[1])
 
         # keyword ENV
 
-        if f_index == ENV_KEYWORD:
+        if f_index == env_kw:
             if form.nullp() or not form.rest().nullp():
                 raise ReduceError("env requires no parameters, got %d" % (len(form) - 1))
             return env
@@ -56,9 +50,6 @@ def make_reduce_f(operator_lookup, keyword_to_int):
         if f:
             return f(args)
 
-        msg = "unknown function index %d" % f_index
-        if f_index in keyword_from_int:
-            msg += ' for keyword "%s"' % keyword_from_int[f_index]
-        raise ReduceError(msg)
+        raise ReduceError("unknown function index %d" % f_index)
 
     return reduce_core

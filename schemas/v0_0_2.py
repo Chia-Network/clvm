@@ -246,7 +246,7 @@ OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_INT, more_operators, MORE
 OPERATOR_LOOKUP[KEYWORD_TO_INT["and"]] = op_and
 OPERATOR_LOOKUP[KEYWORD_TO_INT["rewrite_op"]] = op_rewrite
 
-BASE_REDUCE_F = make_reduce_f(OPERATOR_LOOKUP, KEYWORD_TO_INT)
+BASE_REDUCE_F = make_reduce_f(OPERATOR_LOOKUP, KEYWORD_TO_INT["quote"], KEYWORD_TO_INT["reduce"], KEYWORD_TO_INT["env"])
 
 
 def reduce_f(self, sexp, args):

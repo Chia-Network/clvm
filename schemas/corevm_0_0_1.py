@@ -25,7 +25,7 @@ def operators_for_module(keyword_to_int, mod, op_name_lookup={}):
 
 def build_runtime(to_sexp_f, keyword_from_int, keyword_to_int, operator_lookup):
 
-    reduce_f = make_reduce_f(operator_lookup, keyword_to_int)
+    reduce_f = make_reduce_f(operator_lookup, keyword_to_int["quote"], keyword_to_int["reduce"], keyword_to_int["env"])
 
     def transform(sexp):
         if sexp.listp():
