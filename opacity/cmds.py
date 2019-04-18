@@ -93,7 +93,7 @@ def reduce(args=sys.argv):
 
 def do_reduction(args, mod, sexp, solution):
     try:
-        reductions = mod.transform(sexp.__class__([sexp] + list(solution)))
+        reductions = mod.transform(sexp.cons(solution))
         output = mod.to_tokens(reductions)
         if not args.debug:
             print(writer.write_tokens(output))

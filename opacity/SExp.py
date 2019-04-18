@@ -96,7 +96,7 @@ class SExp:
         return f.getvalue()
 
     def cons(self, right):
-        return self.__class__((self, right))
+        return self.__class__([self] + list(right))
 
     def first(self):
         return self.__class__(self.item[0])
