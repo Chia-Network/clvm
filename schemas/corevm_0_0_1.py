@@ -29,9 +29,9 @@ def build_runtime(to_sexp_f, keyword_from_int, keyword_to_int, operator_lookup):
 
     def transform(sexp):
         if sexp.listp():
-            if len(sexp) == 0:
+            if sexp.nullp():
                 return sexp
-            sexp, args = sexp[0], sexp[1:]
+            sexp, args = sexp.first(), sexp.rest()
         else:
             args = sexp.null
 

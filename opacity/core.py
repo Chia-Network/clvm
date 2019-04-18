@@ -1,5 +1,8 @@
 from .ReduceError import ReduceError
 
+# TODO remove this
+from .casts import int_from_bytes
+
 
 def make_reduce_f(operator_lookup, keyword_to_int):
 
@@ -13,20 +16,20 @@ def make_reduce_f(operator_lookup, keyword_to_int):
         if not form.listp():
             raise ReduceError("%s is not a list" % form)
 
-        if len(form) == 0:
+        if form.nullp():
             raise ReduceError("reduce_list cannot handle empty list")
 
-        first_item = form[0]
+        first_item = form.first()
 
         if not first_item.is_bytes():
             raise ReduceError("non-byte atom %s in first element of list" % first_item)
 
-        f_index = first_item.as_int()
+        f_index = int_from_bytes(first_item.as_atom())
 
         # special form QUOTE
 
         if f_index == QUOTE_KEYWORD:
-            if len(form) != 2:
+            if form.rest().nullp() or not form.rest().rest().nullp():
                 raise ReduceError("quote requires exactly 1 parameter, got %d" % (len(form) - 1))
             return form[1]
 
@@ -36,14 +39,14 @@ def make_reduce_f(operator_lookup, keyword_to_int):
         # keyword REDUCE
 
         if f_index == REDUCE_KEYWORD:
-            if len(args) != 2:
+            if args.rest().nullp() or not args.rest().rest().nullp():
                 raise ReduceError("reduce_list requires 2 parameters, got %d" % len(args))
             return reduce_f(reduce_f, args[0], args[1])
 
         # keyword ENV
 
         if f_index == ENV_KEYWORD:
-            if len(form) != 1:
+            if form.nullp() or not form.rest().nullp():
                 raise ReduceError("env requires no parameters, got %d" % (len(form) - 1))
             return env
 

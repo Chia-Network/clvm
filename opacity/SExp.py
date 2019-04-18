@@ -90,6 +90,10 @@ class SExp:
         if self.is_bytes():
             return self.item
 
+    def as_atom(self):
+        assert not self.listp()
+        return self.item
+
     def as_bin(self):
         f = io.BytesIO()
         sexp_to_stream(self, f)
