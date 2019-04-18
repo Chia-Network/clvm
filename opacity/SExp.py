@@ -117,6 +117,8 @@ class SExp:
             yield v[0]
             v = v[1]
 
+    as_iter = __iter__
+
     def __len__(self):
         return sum(1 for _ in self)
 
