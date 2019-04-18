@@ -1,8 +1,5 @@
 from .ReduceError import ReduceError
 
-# TODO remove this
-from .casts import int_from_bytes
-
 
 def make_reduce_f(operator_lookup, quote_kw, reduce_kw, env_kw):
 
@@ -15,10 +12,9 @@ def make_reduce_f(operator_lookup, quote_kw, reduce_kw, env_kw):
 
         first_item = form.first()
 
-        if not first_item.is_bytes():
+        f_index = first_item.as_atom()
+        if f_index is None:
             raise ReduceError("non-byte atom %s in first element of list" % first_item)
-
-        f_index = int_from_bytes(first_item.as_atom())
 
         # special form QUOTE
 
@@ -50,6 +46,6 @@ def make_reduce_f(operator_lookup, quote_kw, reduce_kw, env_kw):
         if f:
             return f(args)
 
-        raise ReduceError("unknown function index %d" % f_index)
+        raise ReduceError("unknown function index %s" % f_index)
 
     return reduce_core

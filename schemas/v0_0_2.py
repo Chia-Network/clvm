@@ -1,3 +1,4 @@
+from opacity.casts import int_from_bytes, int_to_bytes
 from opacity.core import make_reduce_f
 from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
@@ -16,8 +17,8 @@ KEYWORDS = (
     "if not bool or map raise rewrite rewrite_op ").split()
 
 
-KEYWORD_FROM_INT = KEYWORDS
-KEYWORD_TO_INT = {v: k for k, v in enumerate(KEYWORD_FROM_INT)}
+KEYWORD_FROM_INT = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}
+KEYWORD_TO_INT = {v: k for k, v in KEYWORD_FROM_INT.items()}
 
 
 def operators_for_module(keyword_to_int, mod, op_name_lookup={}):
@@ -80,7 +81,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
     def has_unquote(form):
         if form.listp() and len(form) > 0:
-            return form[0].as_int() == UNQUOTE_KEYWORD or any(has_unquote(_) for _ in form[1:])
+            return form[0].as_bytes() == UNQUOTE_KEYWORD or any(has_unquote(_) for _ in form[1:])
 
         return False
 
@@ -88,7 +89,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
         if len(form) < 2:
             return form
 
-        if form[1].listp() and form[1][0].as_int() == UNQUOTE_KEYWORD:
+        if form[1].listp() and form[1][0].as_bytes() == UNQUOTE_KEYWORD:
             return form[1][1]
 
         if has_unquote(form[1]):
@@ -123,7 +124,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
             return self(self, new_form)
 
         if first_item.is_bytes():
-            f_index = first_item.as_int()
+            f_index = first_item.as_atom()
 
             if f_index in (QUOTE_KEYWORD, ENV_KEYWORD):
                 return form
@@ -143,7 +144,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
             if f_index == REDUCE_KEYWORD and len(args) == 1:
                 if args[0].listp():
                     r_first = args[0][0]
-                    if r_first.as_int() == QUOTE_KEYWORD:
+                    if r_first.as_atom() == QUOTE_KEYWORD:
                         return args[0][1]
 
             new_form = form.__class__([first_item] + list(args))
@@ -196,7 +197,7 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
         if not first_item.is_bytes():
             return form
 
-        f_index = first_item.as_int()
+        f_index = first_item.as_atom()
 
         if f_index == QUOTE_KEYWORD:
             return form

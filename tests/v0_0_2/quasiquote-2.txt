@@ -1,2 +1,2 @@
 reduce '(quasiquote (quasiquote (+ 1 2 (unquote (+ 1 2)) (unquote (unquote (+ 1 2))))))'
-FAIL: unknown function index 20
+FAIL: unknown function index b'\x14'

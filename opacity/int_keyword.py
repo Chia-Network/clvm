@@ -100,9 +100,9 @@ def to_int_keyword_tokens(form, keywords=[], is_first_element=False):
     if form.is_var():
         return to_sexp_f(("x%d" % form.var_index()).encode("utf8"))
 
-    if is_first_element and 0 <= form.as_int() < len(keywords):
-        v = keywords[form.as_int()]
-        if v != '.':
+    if is_first_element:
+        v = keywords.get(form.as_atom())
+        if v is not None and v != '.':
             return v.encode("utf8")
 
     if len(form.as_bytes()) > 4:
