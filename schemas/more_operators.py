@@ -49,7 +49,7 @@ def op_subtract(args):
 
 def op_multiply(args):
     v = 1
-    for arg in args:
+    for arg in args.as_iter():
         r = arg.as_int()
         if r is None:
             raise ReduceError("add takes integer arguments, %s is not an int" % arg)

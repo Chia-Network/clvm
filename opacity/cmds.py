@@ -83,7 +83,8 @@ def reduce(args=sys.argv):
 
     mod = importlib.import_module(args.schema)
 
-    sexp = mod.from_tokens(reader.read_tokens(args.script))
+    read_sexp = reader.read_tokens(args.script)
+    sexp = mod.from_tokens(read_sexp)
 
     solution = sexp.null
     if args.solution:

@@ -3,6 +3,7 @@
 import binascii
 
 from .Var import Var
+from opacity.casts import int_from_bytes
 
 
 class Token(str):
@@ -70,14 +71,14 @@ def compile_atom(token, keyword_to_int):
 
 def compile_list(tokens, keyword_to_int):
     if tokens.nullp():
-        return tokens
+        return []
 
     r = []
-    if not tokens[0].listp():
-        keyword = keyword_to_int.get(tokens[0].as_bytes().decode("utf8").lower())
+    if not tokens.first().listp():
+        keyword = keyword_to_int.get(tokens.first().as_bytes().decode("utf8").lower())
         if keyword:
             r.append(keyword)
-            tokens = tokens[1:]
+            tokens = tokens.rest()
 
     for token in tokens:
         r.append(from_int_keyword_tokens(token, keyword_to_int))
@@ -95,17 +96,18 @@ def to_int_keyword_tokens(form, keywords=[], is_first_element=False):
     to_sexp_f = form.__class__
 
     if form.listp():
-        return to_sexp_f([to_int_keyword_tokens(f, keywords, _ == 0) for _, f in enumerate(form)])
+        return to_sexp_f([to_int_keyword_tokens(f, keywords, _ == 0) for _, f in enumerate(form.as_iter())])
 
-    if form.is_var():
-        return to_sexp_f(("x%d" % form.var_index()).encode("utf8"))
+    as_atom = form.as_atom()
+    if isinstance(as_atom, Var):
+        return to_sexp_f(("x%d" % as_atom.index).encode("utf8"))
 
     if is_first_element:
-        v = keywords.get(form.as_atom())
+        v = keywords.get(as_atom)
         if v is not None and v != '.':
             return v.encode("utf8")
 
-    if len(form.as_bytes()) > 4:
-        return to_sexp_f(("0x%s" % binascii.hexlify(form.as_bytes()).decode("utf8")).encode("utf8"))
+    if len(as_atom) > 4:
+        return to_sexp_f(("0x%s" % binascii.hexlify(as_atom).decode("utf8")).encode("utf8"))
 
-    return to_sexp_f(("%d" % form.as_int()).encode("utf8"))
+    return to_sexp_f(("%d" % int_from_bytes(as_atom)).encode("utf8"))

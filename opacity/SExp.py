@@ -92,6 +92,8 @@ class SExp:
 
     def as_atom(self):
         assert not self.listp()
+        if self.type == ATOM_TYPES.VAR:
+            return Var(self.item)
         return self.item
 
     def as_bin(self):
