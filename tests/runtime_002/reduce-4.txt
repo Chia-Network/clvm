@@ -1,2 +1,0 @@
-reduce -s schemas.runtime_002 '(e (q 0) (q 1) (q 2))'
-FAIL: reduce_list requires 2 parameters, got 3

@@ -1,2 +1,0 @@
-reduce -s schemas.runtime_002 '(i (q 100) (q 200) (q 300))'
-300

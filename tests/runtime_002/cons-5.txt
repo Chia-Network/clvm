@@ -1,2 +1,0 @@
-reduce -s schemas.runtime_002 '(c (q 100))'
-FAIL: first of non-cons

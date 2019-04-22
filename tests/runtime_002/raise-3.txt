@@ -1,2 +1,0 @@
-reduce -s schemas.runtime_002 '(x (q (100)) (q (200)) (q (300)))'
-FAIL: RExp([[b'd'], [b'\x00\xc8'], [b'\x01,']])

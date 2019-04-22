@@ -1,2 +1,0 @@
-reduce -s schemas.runtime_002 '(sha256 "hel" "lo.there.my.dear.friend")'
-FAIL: RExp(b'hel') is not a list

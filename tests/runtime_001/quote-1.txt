@@ -1,0 +1,2 @@
+reduce -s schemas.runtime_001 '(q 0)'
+0

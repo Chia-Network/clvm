@@ -1,2 +1,0 @@
-reduce -s schemas.runtime_002 '(q)'
-FAIL: quote requires exactly 1 parameter, got 0

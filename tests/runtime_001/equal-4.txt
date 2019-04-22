@@ -1,0 +1,2 @@
+reduce -s schemas.runtime_001 '(= (q x0) (q x0))'
+1

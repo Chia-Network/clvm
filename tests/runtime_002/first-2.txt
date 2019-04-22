@@ -1,2 +1,0 @@
-reduce -s schemas.runtime_002 '(f (q (1 2 3)))'
-(q 2 3)

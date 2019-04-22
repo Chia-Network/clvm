@@ -1,0 +1,2 @@
+reduce -s schemas.runtime_001 '(f (q (100)))'
+(100)
