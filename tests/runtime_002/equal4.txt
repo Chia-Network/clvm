@@ -1,0 +1,2 @@
+reduce -s schemas.runtime_002 "(= x0 (+ x1 x2))" "(7 3 3)"
+FAIL: RExp(x0) is not a list

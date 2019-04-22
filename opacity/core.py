@@ -30,14 +30,14 @@ def make_reduce_f(operator_lookup, quote_kw, reduce_kw, env_kw):
 
         if f_index == reduce_kw:
             if args.rest().nullp() or not args.rest().rest().nullp():
-                raise ReduceError("reduce_list requires 2 parameters, got %d" % len(args))
-            return reduce_f(reduce_f, args[0], args[1])
+                raise ReduceError("reduce_list requires 2 parameters, got %d" % len(list(args.as_iter())))
+            return reduce_f(reduce_f, args.first(), args.rest().first())
 
         # keyword ENV
 
         if f_index == env_kw:
             if form.nullp() or not form.rest().nullp():
-                raise ReduceError("env requires no parameters, got %d" % (len(form) - 1))
+                raise ReduceError("env requires no parameters, got %d" % (list(args.as_iter())))
             return env
 
         # special form APPLY

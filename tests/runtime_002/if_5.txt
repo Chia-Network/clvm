@@ -1,0 +1,2 @@
+reduce -s schemas.runtime_002 '(i x2 x0 x1)' '(200 300 0)'
+FAIL: RExp(x2) is not a list

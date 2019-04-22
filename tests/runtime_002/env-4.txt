@@ -1,0 +1,2 @@
+reduce -s schemas.runtime_002 '(a)' '(100 200)'
+(100 200)

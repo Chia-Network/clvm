@@ -89,6 +89,7 @@ def inject(*paths):
 
 inject("opc", "v0_0_2", "corevm_0_0_1")
 
+inject("runtime_002")
 
 def main():
     unittest.main()

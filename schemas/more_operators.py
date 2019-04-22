@@ -23,7 +23,7 @@ def truncate_int(v):
 
 def op_add(args):
     total = 0
-    for arg in args:
+    for arg in args.as_iter():
         r = arg.as_int()
         if r is None:
             raise ReduceError("add takes integer arguments, %s is not an int" % arg)
@@ -37,7 +37,7 @@ def op_subtract(args):
         return args.__class__(0)
     sign = 1
     total = 0
-    for arg in args:
+    for arg in args.as_iter():
         r = arg.as_int()
         if r is None:
             raise ReduceError("add takes integer arguments, %s is not an int" % arg)
