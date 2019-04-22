@@ -93,7 +93,7 @@ def from_int_keyword_tokens(token, keyword_to_int):
 
 
 def to_int_keyword_tokens(form, keywords=[], is_first_element=False):
-    to_sexp_f = form.__class__
+    to_sexp_f = form.to
 
     if form.listp():
         return to_sexp_f([to_int_keyword_tokens(f, keywords, _ == 0) for _, f in enumerate(form.as_iter())])

@@ -16,6 +16,10 @@ class SExp:
 
     ATOM_TYPES = ATOM_TYPES
 
+    @classmethod
+    def to(class_, v):
+        return class_(v)
+
     def __init__(self, v):
 
         if isinstance(v, SExp):
@@ -102,13 +106,13 @@ class SExp:
         return f.getvalue()
 
     def cons(self, right):
-        return self.__class__([self] + list(right))
+        return self.to([self] + list(right))
 
     def first(self):
-        return self.__class__(self.item[0])
+        return self.to(self.item[0])
 
     def rest(self):
-        return self.__class__(self.item[1])
+        return self.to(self.item[1])
 
     def __iter__(self):
         assert self.type == ATOM_TYPES.PAIR
@@ -123,6 +127,9 @@ class SExp:
 
     def __len__(self):
         return sum(1 for _ in self)
+
+    def null(self):
+        return self.__null__
 
     def get_sublist_at_index(self, s):
         v = self.item
@@ -169,7 +176,7 @@ class SExp:
 
 
 SExp.false = SExp(0)
-SExp.null = SExp([])
+SExp.__null__ = SExp([])
 
 to_sexp_f = SExp
 sexp_from_stream = make_sexp_from_stream(SExp)

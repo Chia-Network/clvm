@@ -1,4 +1,4 @@
-from opacity.casts import int_from_bytes, int_to_bytes
+from opacity.casts import int_to_bytes
 from opacity.core import make_reduce_f
 from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
@@ -93,8 +93,8 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
             return form[1][1]
 
         if has_unquote(form[1]):
-            return form.__class__([LIST_KEYWORD] + [[QUASIQUOTE_KEYWORD, _] for _ in form[1:][0]])
-        return form.__class__([QUOTE_KEYWORD] + list(form[1:]))
+            return form.to([LIST_KEYWORD] + [[QUASIQUOTE_KEYWORD, _] for _ in form[1:][0]])
+        return form.to([QUOTE_KEYWORD] + list(form[1:]))
 
     NATIVE_REWRITE_OPERATORS = [
         ("quasiquote", rewrite_quasiquote),
@@ -107,13 +107,13 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
     def rewrite(self, form):
 
         if form.is_bytes():
-            return form.__class__([QUOTE_KEYWORD, form])
+            return form.to([QUOTE_KEYWORD, form])
 
         if form.is_var():
-            return form.__class__([GET_KEYWORD, [ENV_KEYWORD], [QUOTE_KEYWORD, form.var_index()]])
+            return form.to([GET_KEYWORD, [ENV_KEYWORD], [QUOTE_KEYWORD, form.var_index()]])
 
         if len(form) == 0:
-            return form.__class__([QUOTE_KEYWORD, form])
+            return form.to([QUOTE_KEYWORD, form])
 
         first_item = form[0]
 
@@ -136,10 +136,10 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
             f = derived_operators.get(f_index)
             if f:
-                new_form = form.__class__([f] + list(form[1:]))
+                new_form = form.to([f] + list(form[1:]))
                 return self(self, new_form)
 
-            args = form.__class__([self(self, _) for _ in form[1:]])
+            args = form.to([self(self, _) for _ in form[1:]])
 
             if f_index == REDUCE_KEYWORD and len(args) == 1:
                 if args[0].listp():
@@ -147,7 +147,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
                     if r_first.as_atom() == QUOTE_KEYWORD:
                         return args[0][1]
 
-            new_form = form.__class__([first_item] + list(args))
+            new_form = form.to([first_item] + list(args))
 
             if reduce_constants:
                 new_form = optimize_form(optimize_form, new_form)
@@ -190,7 +190,7 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
             return form
 
         if len(form) == 0:
-            return form.__class__([QUOTE_KEYWORD, form])
+            return form.to([QUOTE_KEYWORD, form])
 
         first_item = form[0]
 
@@ -202,14 +202,14 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
         if f_index == QUOTE_KEYWORD:
             return form
 
-        args = form.__class__([self(self, _) for _ in form[1:]])
+        args = form.to([self(self, _) for _ in form[1:]])
 
-        new_form = form.__class__([first_item] + list(args))
+        new_form = form.to([first_item] + list(args))
 
         if contains_no_free_variables(new_form):
             empty_env = form.null
             new_form = reduce_f(reduce_f, new_form, empty_env)
-            return form.__class__([QUOTE_KEYWORD, new_form])
+            return form.to([QUOTE_KEYWORD, new_form])
 
         return new_form
 
@@ -222,16 +222,16 @@ def op_rewrite(items):
 
 # TODO: rewrite as a derived operator
 def op_and(items):
-    if any(_ == items.__class__(0) for _ in items):
-        return items.__class__(0)
-    return items.__class__(1)
+    if any(_ == items.to(0) for _ in items):
+        return items.to(0)
+    return items.to(1)
 
 
 def make_rewriting_reduce(rewrite_f, core_reduce_f, log_reduce_f):
     def my_reduce_f(self, form, env):
         rewritten_form = rewrite_f(rewrite_f, form)
         rv = core_reduce_f(self, rewritten_form, env)
-        log_reduce_f(form.__class__([form, rewritten_form, env, rv]))
+        log_reduce_f(form.to([form, rewritten_form, env, rv]))
         return rv
     return my_reduce_f
 
@@ -247,7 +247,8 @@ OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_INT, more_operators, MORE
 OPERATOR_LOOKUP[KEYWORD_TO_INT["and"]] = op_and
 OPERATOR_LOOKUP[KEYWORD_TO_INT["rewrite_op"]] = op_rewrite
 
-BASE_REDUCE_F = make_reduce_f(OPERATOR_LOOKUP, KEYWORD_TO_INT["quote"], KEYWORD_TO_INT["reduce"], KEYWORD_TO_INT["env"])
+BASE_REDUCE_F = make_reduce_f(
+    OPERATOR_LOOKUP, KEYWORD_TO_INT["quote"], KEYWORD_TO_INT["reduce"], KEYWORD_TO_INT["env"])
 
 
 def reduce_f(self, sexp, args):

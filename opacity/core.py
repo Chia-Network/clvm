@@ -24,7 +24,7 @@ def make_reduce_f(operator_lookup, quote_kw, reduce_kw, env_kw):
             return form.rest().first()
 
         # TODO: rewrite with cons, rest, etc.
-        args = form.__class__([reduce_f(reduce_f, _, env) for _ in form.rest().as_iter()])
+        args = form.to([reduce_f(reduce_f, _, env) for _ in form.rest().as_iter()])
 
         # keyword REDUCE
 

@@ -93,7 +93,7 @@ def make_tracing_f(inner_f):
         try:
             rv = inner_f(self, *args)
         except Exception as ex:
-            rv = args[-1].__class__(("FAIL: %s" % str(ex)).encode("utf8"))
+            rv = args[-1].to(("FAIL: %s" % str(ex)).encode("utf8"))
             raise
         finally:
             log_entry = (args, rv)

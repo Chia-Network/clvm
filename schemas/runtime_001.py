@@ -1,13 +1,37 @@
-from opacity import core_operators
-
 from opacity.casts import int_from_bytes, int_to_bytes
-from opacity.core import make_reduce_f
+from opacity.serialize import make_sexp_from_stream
 from opacity.ReduceError import ReduceError
-from opacity.RExp import to_sexp_f
+from opacity.RExp import RExp
+from opacity.Var import Var
+
 
 from . import more_operators
 from .corevm_0_0_1 import build_runtime, operators_for_dict, operators_for_module
 
+
+class SExp(RExp):
+    ATOM_TYPES = (bytes, Var)
+
+    @classmethod
+    def to_atom(class_, v):
+        if isinstance(v, int):
+            v = int_to_bytes(v)
+        return v
+
+    def as_int(self):
+        return int_from_bytes(self.as_atom())
+
+    __iter__ = RExp.as_iter
+
+
+SExp.__null__ = SExp(b'')
+SExp.__null__.v = None
+to_sexp_f = SExp.to
+
+SExp.false = SExp.__null__
+SExp.true = to_sexp_f(b'\1')
+
+sexp_from_stream = make_sexp_from_stream(SExp)
 
 CORE_KEYWORDS = ". quote eval args if cons first rest listp raise eq".split()
 
