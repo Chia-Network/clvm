@@ -1,14 +1,23 @@
 # read strings into Token
 
-from opacity.SExp import to_sexp_f
+from opacity.RExp import RExp
 
 
-def Token(s, offset):
-    if isinstance(s, str):
-        s = s.encode("utf8")
-    s = to_sexp_f(s)
-    s._offset = offset
-    return s
+class TokenExp(RExp):
+    ATOM_TYPES = (str, )
+
+    @classmethod
+    def to(class_, v, offset=None):
+        s = super(TokenExp, class_).to(v)
+        if not hasattr(s, "_offset") or s._offset is None:
+            s._offset = offset
+        return s
+
+    def __iter__(self):
+        return self.as_iter()
+
+
+tokenize = TokenExp.to
 
 
 def consume_whitespace(s: str, offset):
@@ -39,7 +48,7 @@ def tokenize_str(s: str, offset):
     while offset < len(s) and s[offset] != initial_c:
         offset += 1
     if offset < len(s):
-        token = Token(s[start:offset+1], start)
+        token = tokenize(s[start:offset+1], start)
         return token, offset + 1
     raise SyntaxError("unterminated string starting at %d: %s" % (start, s[start:]))
 
@@ -57,7 +66,7 @@ def tokenize_list(s: str, offset):
         c = s[offset]
 
         if c == ")":
-            return Token(r, initial_offset), offset + 1
+            return tokenize(r, initial_offset), offset + 1
 
         t, offset = tokenize_sexp(s, offset)
         r.append(t)
@@ -73,7 +82,7 @@ def tokenize_atom(s: str, offset):
 
     start_offset = offset
     item, offset = consume_until_whitespace(s, offset)
-    return Token(item, start_offset), offset
+    return tokenize(item, start_offset), offset
 
 
 def tokenize_sexp(s: str, offset: int):

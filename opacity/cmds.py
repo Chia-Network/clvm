@@ -88,7 +88,8 @@ def reduce(args=sys.argv):
 
     solution = sexp.null()
     if args.solution:
-        solution = mod.from_tokens(reader.read_tokens(args.solution))
+        tokens = reader.read_tokens(args.solution)
+        solution = mod.from_tokens(tokens)
     do_reduction(args, mod, sexp, solution)
 
 

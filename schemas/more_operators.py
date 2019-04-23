@@ -7,7 +7,7 @@ from opacity.casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_fro
 def op_sha256(args):
     h = hashlib.sha256()
     for _ in args:
-        h.update(_.as_bytes())
+        h.update(_.as_atom())
     return args.to(h.digest())
 
 
@@ -59,7 +59,7 @@ def op_multiply(args):
 
 def op_unwrap(items):
     try:
-        return items.from_blob(items[0].as_bytes())
+        return items.from_blob(items[0].as_atom())
     except (IndexError, ValueError):
         raise ReduceError("bad stream: %s" % items[0])
 
@@ -85,7 +85,7 @@ def op_point_add(items):
     p = bls12_381_generator.infinity()
     for _ in items:
         try:
-            p += bls12_381_from_bytes(_.as_bytes())
+            p += bls12_381_from_bytes(_.as_atom())
         except Exception as ex:
             raise ReduceError("point_add expects blob, got %s: %s" % (_, ex))
     return items.to(bls12_381_to_bytes(p))

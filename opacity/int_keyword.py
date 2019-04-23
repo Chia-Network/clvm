@@ -4,13 +4,7 @@ import binascii
 
 from .Var import Var
 from opacity.casts import int_from_bytes
-
-
-class Token(str):
-    def __new__(self, s, offset):
-        self = str.__new__(self, s)
-        self._offset = offset
-        return self
+from opacity.reader import tokenize
 
 
 class bytes_as_hex(bytes):
@@ -37,7 +31,7 @@ def parse_as_hex(s, offset):
         try:
             return bytes_as_hex(binascii.unhexlify(s[2:]))
         except Exception:
-            raise SyntaxError("invalid hex at %d: %s" % (offset, s))
+            raise SyntaxError("invalid hex at %s: %s" % (offset, s))
 
 
 def parse_as_var(s, offset):
@@ -45,15 +39,15 @@ def parse_as_var(s, offset):
         try:
             return Var(int(s[1:]))
         except Exception:
-            raise SyntaxError("invalid variable at %d: %s" % (offset, s))
+            raise SyntaxError("invalid variable at %s: %s" % (offset, s))
 
 
 def compile_atom(token, keyword_to_int):
-    s = token.as_bytes().decode("utf8")
+    s = token.as_atom()
     c = s[0]
     if c in "\'\"":
         assert c == s[-1] and len(s) >= 2
-        return token.as_bytes()[1:-1]
+        return s[1:-1].encode("utf8")
 
     if c == '#':
         keyword = s[1:].lower()
@@ -75,12 +69,12 @@ def compile_list(tokens, keyword_to_int):
 
     r = []
     if not tokens.first().listp():
-        keyword = keyword_to_int.get(tokens.first().as_bytes().decode("utf8").lower())
+        keyword = keyword_to_int.get(tokens.first().as_atom().lower())
         if keyword:
             r.append(keyword)
             tokens = tokens.rest()
 
-    for token in tokens:
+    for token in tokens.as_iter():
         r.append(from_int_keyword_tokens(token, keyword_to_int))
 
     return r
@@ -93,21 +87,21 @@ def from_int_keyword_tokens(token, keyword_to_int):
 
 
 def to_int_keyword_tokens(form, keywords=[], is_first_element=False):
-    to_sexp_f = form.to
+    to_sexp_f = tokenize
 
     if form.listp():
         return to_sexp_f([to_int_keyword_tokens(f, keywords, _ == 0) for _, f in enumerate(form.as_iter())])
 
     as_atom = form.as_atom()
     if isinstance(as_atom, Var):
-        return to_sexp_f(("x%d" % as_atom.index).encode("utf8"))
+        return to_sexp_f(("x%d" % as_atom.index))
 
     if is_first_element:
         v = keywords.get(as_atom)
         if v is not None and v != '.':
-            return v.encode("utf8")
+            return v
 
     if len(as_atom) > 4:
-        return to_sexp_f(("0x%s" % binascii.hexlify(as_atom).decode("utf8")).encode("utf8"))
+        return to_sexp_f(("0x%s" % binascii.hexlify(as_atom).decode("utf8")))
 
-    return to_sexp_f(("%d" % int_from_bytes(as_atom)).encode("utf8"))
+    return to_sexp_f(("%d" % int_from_bytes(as_atom)))

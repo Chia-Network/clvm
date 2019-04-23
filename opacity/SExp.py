@@ -18,19 +18,19 @@ class SExp:
 
     @classmethod
     def to(class_, v):
+        if isinstance(v, SExp):
+            return v
         return class_(v)
 
     def __init__(self, v):
+
+        if isinstance(v, str):
+            v = v.encode("utf8")
 
         if isinstance(v, SExp):
             self.item = v.item
             self.type = v.type
             return
-
-        def to_sexp(v):
-            if isinstance(v, SExp):
-                return v
-            return SExp(v)
 
         if isinstance(v, int):
             v = int_to_bytes(v)
@@ -52,7 +52,7 @@ class SExp:
         elif hasattr(v, "__iter__"):
             rest = None
             for _ in reversed(v):
-                rest = (to_sexp(_), rest)
+                rest = (self.to(_), rest)
             self.item = rest
             self.type = ATOM_TYPES.PAIR
         else:

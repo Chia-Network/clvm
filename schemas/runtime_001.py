@@ -68,11 +68,11 @@ def op_cons(args):
 
 
 def op_first(args):
-    return args.first()
+    return args.first().first()
 
 
 def op_rest(args):
-    return args.rest()
+    return args.first().rest()
 
 
 def op_listp(args):
