@@ -10,7 +10,6 @@ setup(
     packages=[
         "opacity",
         "schemas",
-        "sexp",
     ],
     author="Chia Network, Inc.",
 
