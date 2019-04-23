@@ -1,14 +1,12 @@
 # read strings into Token
 
-from opacity.RExp import RExp
+from opacity.RExp import subclass_rexp
 
 
-class TokenExp(RExp):
-    ATOM_TYPES = (str, )
-
+class TokenMixin:
     @classmethod
     def to(class_, v, offset=None):
-        s = super(TokenExp, class_).to(v)
+        s = super(TokenMixin, class_).to(v)
         if not hasattr(s, "_offset") or s._offset is None:
             s._offset = offset
         return s
@@ -17,7 +15,7 @@ class TokenExp(RExp):
         return self.as_iter()
 
 
-tokenize = TokenExp.to
+tokenize = subclass_rexp(TokenMixin, (str, bytes))
 
 
 def consume_whitespace(s: str, offset):

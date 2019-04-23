@@ -101,8 +101,13 @@ class RExp:
         return other.type == self.type and other.v == self.v
 
 
-RExp.__null__ = RExp(None)
-to_sexp_f = RExp.to
+def subclass_rexp(mixin_class=object, atom_types=RExp.ATOM_TYPES):
 
-RExp.false = RExp.__null__
-RExp.true = to_sexp_f(b'\1')
+    class SExp(mixin_class, RExp):
+        ATOM_TYPES = atom_types
+
+    SExp.__null__ = SExp(None)
+    SExp.false = SExp.__null__
+    SExp.true = SExp(b'\1')
+
+    return SExp.to
