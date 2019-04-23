@@ -59,8 +59,8 @@ OP_REWRITE = {
 def op_if(args):
     r = args.rest()
     if args.first().nullp():
-        return r.first()
-    return r.rest().first()
+        return r.rest().first()
+    return r.first()
 
 
 def op_cons(args):
