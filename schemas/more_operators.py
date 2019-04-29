@@ -33,7 +33,7 @@ def op_add(args):
 
 
 def op_subtract(args):
-    if len(args) == 0:
+    if args.nullp() == 0:
         return args.to(0)
     sign = 1
     total = 0
@@ -59,7 +59,7 @@ def op_multiply(args):
 
 def op_unwrap(items):
     try:
-        return items.from_blob(items[0].as_atom())
+        return items.from_blob(items.first().as_atom())
     except (IndexError, ValueError):
         raise ReduceError("bad stream: %s" % items[0])
 
@@ -67,12 +67,12 @@ def op_unwrap(items):
 def op_wrap(items):
     if len(items) != 1:
         raise ReduceError("wrap expects exactly one argument, got %d" % len(items))
-    return items.to(items[0].as_bin())
+    return items.to(items.first().as_bin())
 
 
 def op_pubkey_for_exp(items):
-    if len(items) != 1:
-        raise ReduceError("op_pubkey_for_exp expects exactly one argument, got %d" % len(items))
+    if items.nullp() or items.rest().rest().nullp():
+        raise ReduceError("op_pubkey_for_exp expects exactly one argument, got %d" % len(list(items.as_iter())))
     try:
         return items.to(bls12_381_to_bytes(bls12_381_generator * items[0].as_int()))
     except Exception as ex:
