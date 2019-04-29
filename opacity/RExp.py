@@ -13,15 +13,18 @@ class RExp:
 
     @classmethod
     def to(class_, v):
-        if isinstance(v, RExp):
+        if isinstance(v, class_):
             return v
+
+        if isinstance(v, RExp):
+            return class_.to(v.v)
 
         if v is None:
             return class_.null()
 
         if isinstance(v, tuple):
             assert len(v) == 2
-            return class_(class_.to(v[0]), class_.to(v[1]))
+            return class_((class_.to(v[0]), class_.to(v[1])))
 
         v = class_.to_atom(v)
 

@@ -54,8 +54,9 @@ to_sexp_f = subclass_rexp(mixin, (bytes, Var))
 
 KEYWORDS = (
     ". quote e args if_op cons first rest listp raise eq_atom "
-    "eval if pubkey_for_exp equal sha256 + * - / wrap unwrap list "
-    "compile compile_op quasiquote unquote case var not and or map function ").split()
+    "sha256 + - * / wrap unwrap point_add pubkey_for_exp "
+    "eval if equal list bool not assert "
+    "compile compile_op quasiquote unquote case var and or map map_raw function ").split()
 
 
 KEYWORD_FROM_INT = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}
@@ -77,6 +78,16 @@ DERIVED_OPERATORS = [
         "(if (args) "
         "(cons #cons (cons (first (args)) (cons (cons #list (rest (args))) (quote ())))) "
         "(quote ()))"),
+    ("bool",
+        "(quote (if x0 1 ()))"),
+    ("not",
+        "(quote (if x0 () 1))"),
+    ("and",
+        "(if (args) (list #if (first (args)) (cons #and (rest (args))) ()) 1)"),
+    ("or",
+        "(if (args) (list #if (first (args)) 1 (cons #or (rest (args)))) ())"),
+    ("assert",
+        "(if (rest (args)) (list #if (quote x0) (cons #assert (rest (args))) (list #raise)) (quote x0))"),
 ]
 
 
@@ -84,13 +95,6 @@ DERIVED_OPERATORS_PROGRAMS = {}
 for kw, program in DERIVED_OPERATORS:
     DERIVED_OPERATORS_PROGRAMS[KEYWORD_TO_INT[kw]] = to_sexp_f(from_int_keyword_tokens(
         read_tokens(program), KEYWORD_TO_INT))
-
-
-# TODO: rewrite as a derived operator
-def op_and(items):
-    if any(_ == items.false for _ in items):
-        return items.false
-    return items.true
 
 
 def op_compile_op(items):
@@ -169,7 +173,6 @@ def compile_f(compile_f, sexp):
         return r
 
     if f_index in DERIVED_OPERATORS_PROGRAMS:
-        #breakpoint()
         prog = DERIVED_OPERATORS_PROGRAMS[f_index]
         args = sexp.rest()
         expanded_prog = macro_expand(prog, args)
@@ -180,7 +183,7 @@ def compile_f(compile_f, sexp):
         print("  prog: %s" % prog)
         print("  expanded_prog: %s" % expanded_prog)
         print("  sexp: %s" % sexp)
-        print("  r: %s" % r)
+        print("  r: %s" % to_sexp_f(r))
         return compile_f(compile_f, r)
 
     args = sexp.to([compile_f(compile_f, _) for _ in sexp.rest().as_iter()])
