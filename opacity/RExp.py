@@ -95,10 +95,10 @@ class RExp:
 
     def __eq__(self, other):
         try:
-            other = RExp(other)
+            other = self.to(other)
         except ValueError:
             return False
-        return other.type == self.type and other.v == self.v
+        return other.v == self.v
 
 
 def subclass_rexp(mixin_class=object, atom_types=RExp.ATOM_TYPES):
