@@ -1,13 +1,5 @@
-from opacity import core_operators
-
-from opacity.casts import int_to_bytes
 from opacity.core import make_reduce_f
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
-
-from opacity.SExp import to_sexp_f
-
-
-CORE_KEYWORDS = ". quote reduce cons first rest type var env is_null get raise equal".split()
 
 
 def operators_for_dict(keyword_to_atom, op_dict, op_name_lookup={}):
@@ -50,14 +42,3 @@ def build_runtime(
         return to_sexp_f(ikt)
 
     return reduce_f, transform, to_tokens, from_tokens
-
-
-# core vm
-
-KEYWORD_FROM_ATOM = {int_to_bytes(k): v for k, v in enumerate(CORE_KEYWORDS)}
-KEYWORD_TO_ATOM = {v: k for k, v in KEYWORD_FROM_ATOM.items()}
-
-OPERATOR_LOOKUP = operators_for_module(KEYWORD_TO_ATOM, core_operators)
-
-reduce_f, transform, to_tokens, from_tokens = build_runtime(
-    to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, OPERATOR_LOOKUP)
