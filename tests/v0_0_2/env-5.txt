@@ -1,2 +1,0 @@
-reduce '(envr 2)' '((100 101 102) 105)'
-FAIL: get bad index 2

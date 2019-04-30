@@ -1,2 +1,0 @@
-reduce -s schemas.v0_0_2 "(and (equal 400 x0) (equal 500 x1) (equal 600 x2))" "(x7 500)"
-FAIL: get bad index 2

@@ -1,2 +1,0 @@
-reduce '(reduce x0 (list x0 x1))' '((choose1 (equal x1 1) (* x1 (reduce x0 (list x0 (- x1 1)))) 1) 10)'
-3628800
