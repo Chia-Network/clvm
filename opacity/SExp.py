@@ -73,11 +73,6 @@ class mixin:
     def from_blob(class_, blob):
         return class_.from_stream(io.BytesIO(blob))
 
-    @classmethod
-    def from_var_index(class_, index):
-        v = Var(index)
-        return class_.to(v)
-
 
 to_sexp_f = subclass_rexp(mixin, (bytes, Var))
 
@@ -85,4 +80,4 @@ to_sexp_f = subclass_rexp(mixin, (bytes, Var))
 
 SExp = to_sexp_f(None).__class__
 SExp.false = to_sexp_f(0)
-sexp_from_stream = make_sexp_from_stream(SExp)
+sexp_from_stream = make_sexp_from_stream(to_sexp_f)

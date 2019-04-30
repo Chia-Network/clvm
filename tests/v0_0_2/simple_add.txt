@@ -1,2 +1,2 @@
-reduce "(+ 10 20)"
+reduce -s schemas.compiler_001 "(+ 10 20)"
 30

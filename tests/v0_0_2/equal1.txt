@@ -1,2 +1,2 @@
-reduce "(equal 2 3)"
-0
+reduce -s schemas.compiler_001 "(equal 2 3)"
+()

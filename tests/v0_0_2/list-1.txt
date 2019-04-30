@@ -1,2 +1,2 @@
-reduce '(list x0 x1)' '((100 102) "hello")'
+reduce -s schemas.compiler_001 '(list x0 x1)' '((100 102) "hello")'
 ((100 102) 0x68656c6c6f)

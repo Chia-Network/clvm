@@ -1,2 +1,2 @@
-reduce "(+ (+ 5 x0) x1)" "(9 1000)"
+reduce -s schemas.compiler_001 "(+ (+ 5 x0) x1)" "(9 1000)"
 1014

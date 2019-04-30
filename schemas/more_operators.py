@@ -72,7 +72,8 @@ def op_wrap(items):
 
 def op_pubkey_for_exp(items):
     if items.nullp() or not items.rest().nullp():
-        raise ReduceError("op_pubkey_for_exp expects exactly one argument, got %d" % len(list(items.as_iter())))
+        raise ReduceError("op_pubkey_for_exp expects exactly one argument, got %d" % len(
+            list(items.as_iter())))
     try:
         return items.to(bls12_381_to_bytes(bls12_381_generator * items.first().as_int()))
     except Exception as ex:

@@ -1,2 +1,2 @@
 reduce -s schemas.corevm_0_0_1 '(equal (quote 10))'
-FAIL: equal requires 2 arguments, got 1
+FAIL: first of non-cons

@@ -1,2 +1,2 @@
-reduce "(equal x0 (+ x1 x2))" "(7 3 3)"
-0
+reduce -s schemas.compiler_001 "(equal x0 (+ x1 x2))" "(7 3 3)"
+()

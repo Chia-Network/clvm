@@ -1,2 +1,2 @@
-reduce "(and (equal 400 x0) (equal 500 x1) (equal 600 x2))" "(400)"
-FAIL: get bad index 1
+reduce -s schemas.compiler_001 "(and (equal 400 x0) (equal 500 x1) (equal 600 x2))" "(400)"
+FAIL: first of non-cons

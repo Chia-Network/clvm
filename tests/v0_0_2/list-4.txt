@@ -1,2 +1,2 @@
-reduce -s schemas.v0_0_2 '(list x0 100 200 300 400 500)' '(2000)'
+reduce -s schemas.compiler_001 '(list x0 100 200 300 400 500)' '(2000)'
 (2000 100 200 300 400 500)

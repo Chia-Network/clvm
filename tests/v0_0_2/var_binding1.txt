@@ -1,2 +1,2 @@
-reduce x0 '("foobarbaz")'
+reduce -s schemas.compiler_001 x0 '("foobarbaz")'
 0x666f6f62617262617a

@@ -28,6 +28,10 @@ class mixin:
         sexp_to_stream(self, f)
         return f.getvalue()
 
+    @classmethod
+    def from_blob(class_, blob):
+        return sexp_from_stream(io.BytesIO(blob))
+
     def __iter__(self):
         return self.as_iter()
 
@@ -37,7 +41,7 @@ class mixin:
 
 
 to_sexp_f = subclass_rexp(mixin, (bytes, Var))
-
+sexp_from_stream = make_sexp_from_stream(to_sexp_f)
 
 CORE_KEYWORDS = ". quote eval args if cons first rest listp raise eq".split()
 

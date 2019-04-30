@@ -1,17 +1,13 @@
 import io
 
 from opacity.casts import int_from_bytes, int_to_bytes
-from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.reader import read_tokens
-from opacity.serialize import make_sexp_from_stream, sexp_to_stream
+from opacity.serialize import sexp_to_stream
 from opacity.writer import write_tokens
 from opacity.RExp import subclass_rexp
 from opacity.Var import Var
 
-from .corevm_0_0_1 import operators_for_module, operators_for_dict
-
-from . import more_operators
 from . import runtime_001
 
 
@@ -29,6 +25,10 @@ class mixin:
         f = io.BytesIO()
         sexp_to_stream(self, f)
         return f.getvalue()
+
+    @classmethod
+    def from_blob(class_, blob):
+        return class_.from_stream(io.BytesIO(blob))
 
     def __iter__(self):
         return self.as_iter()
@@ -99,7 +99,7 @@ DERIVED_OPERATORS = [
 ]
 
 
-KEYWORD_TO_INT.update({ "aggsig": 80 })
+KEYWORD_TO_INT.update({"aggsig": 80})
 
 
 DERIVED_OPERATORS_PROGRAMS = {}
@@ -109,7 +109,6 @@ for kw, program in DERIVED_OPERATORS:
 
 
 def op_compile_op(items):
-    #breakpoint()
     return compile_f(compile_f, items.first())
 
 
@@ -145,12 +144,14 @@ CORE_REMAP = {
         ("listp", "l"),
         ("raise", "x"),
         ("eq_atom", "="),
+        ("equal", "="),
         ("+", "+"),
         ("-", "-"),
         ("*", "*"),
         ("compile_op", "compile_op"),
         ("sha256", "sha256"),
         ("wrap", "wrap"),
+        ("unwrap", "unwrap"),
         ("point_add", "point_add"),
         ("pubkey_for_exp", "pubkey_for_exp"),
     )
@@ -193,12 +194,12 @@ def compile_f(compile_f, sexp):
         expanded_prog = macro_expand(prog, args)
         sexp = compile_f(compile_f, expanded_prog)
         r = runtime_001.reduce_f(runtime_001.reduce_f, sexp, args)
-        #print("op: %s" % KEYWORD_FROM_INT[f_index])
-        #print("  args: %s" % args)
-        #print("  prog: %s" % prog)
-        #print("  expanded_prog: %s" % expanded_prog)
-        #print("  sexp: %s" % sexp)
-        #print("  r: %s" % to_sexp_f(r))
+        # print("op: %s" % KEYWORD_FROM_INT[f_index])
+        # print("  args: %s" % args)
+        # print("  prog: %s" % prog)
+        # print("  expanded_prog: %s" % expanded_prog)
+        # print("  sexp: %s" % sexp)
+        # print("  r: %s" % to_sexp_f(r))
         return compile_f(compile_f, r)
 
     args = sexp.to([compile_f(compile_f, _) for _ in sexp.rest().as_iter()])
@@ -223,9 +224,9 @@ MORE_OP_REWRITE = {
 
 
 def debug_compile_f(f, sexp):
-    #print("COMPILING: %s" % sexp)
+    # print("COMPILING: %s" % sexp)
     new_sexp = compile_f(f, sexp)
-    #print("COMPILED: %s\n %s" % (sexp, new_sexp))
+    # print("COMPILED: %s\n %s" % (sexp, new_sexp))
     return new_sexp
 
 
@@ -251,7 +252,3 @@ def to_tokens(sexp):
 
 def from_tokens(sexp):
     return to_sexp_f(from_int_keyword_tokens(sexp, KEYWORD_TO_INT))
-
-
-def from_stream(f):
-    return sexp_from_stream(f)
