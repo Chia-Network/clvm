@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(type (quote x0) (quote x5))'
-FAIL: type takes exactly one parameter

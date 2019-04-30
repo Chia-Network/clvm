@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(raise 2000)'
-FAIL: SExp(b'\x07\xd0') is not a list

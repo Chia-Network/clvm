@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(cons (quote 100))'
-FAIL: cons must take 2 args, got 1

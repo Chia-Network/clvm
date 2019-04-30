@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(equal (quote ()) (quote x0))'
-FAIL: = on list

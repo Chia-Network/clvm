@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(rest (quote ()))'
-FAIL: rest of non-cons

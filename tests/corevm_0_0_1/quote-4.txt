@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(quote (0 1 x0 (quote 15 20)))'
-(0 1 x0 (quote 15 20))

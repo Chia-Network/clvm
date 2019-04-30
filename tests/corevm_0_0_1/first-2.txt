@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(first (quote (1 2 3)))'
-1

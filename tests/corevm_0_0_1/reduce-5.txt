@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(reduce (quote (get (env) (quote 0))) (cons (get (env) (quote 1)) (quote (100 200))))' '(700 800)'
-800

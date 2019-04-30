@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(env 0)' '(x0)'
-FAIL: SExp(b'') is not a list

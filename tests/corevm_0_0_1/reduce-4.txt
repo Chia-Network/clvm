@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(reduce (quote 0) (quote 1) (quote 2))'
-FAIL: reduce_list requires 2 parameters, got 3

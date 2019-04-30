@@ -1,2 +1,0 @@
-reduce -s schemas.corevm_0_0_1 '(var (quote 100))' '(x1 x2 x15)'
-FAIL: type takes exactly one parameter, which must be a var
