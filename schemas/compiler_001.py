@@ -25,6 +25,11 @@ class mixin:
     def as_int(self):
         return int_from_bytes(self.as_atom())
 
+    def as_bin(self):
+        f = io.BytesIO()
+        sexp_to_stream(self, f)
+        return f.getvalue()
+
     def __iter__(self):
         return self.as_iter()
 
@@ -94,6 +99,9 @@ DERIVED_OPERATORS = [
 ]
 
 
+KEYWORD_TO_INT.update({ "aggsig": 80 })
+
+
 DERIVED_OPERATORS_PROGRAMS = {}
 for kw, program in DERIVED_OPERATORS:
     DERIVED_OPERATORS_PROGRAMS[KEYWORD_TO_INT[kw]] = to_sexp_f(from_int_keyword_tokens(
@@ -141,6 +149,10 @@ CORE_REMAP = {
         ("-", "-"),
         ("*", "*"),
         ("compile_op", "compile_op"),
+        ("sha256", "sha256"),
+        ("wrap", "wrap"),
+        ("point_add", "point_add"),
+        ("pubkey_for_exp", "pubkey_for_exp"),
     )
 }
 
@@ -181,12 +193,12 @@ def compile_f(compile_f, sexp):
         expanded_prog = macro_expand(prog, args)
         sexp = compile_f(compile_f, expanded_prog)
         r = runtime_001.reduce_f(runtime_001.reduce_f, sexp, args)
-        print("op: %s" % KEYWORD_FROM_INT[f_index])
-        print("  args: %s" % args)
-        print("  prog: %s" % prog)
-        print("  expanded_prog: %s" % expanded_prog)
-        print("  sexp: %s" % sexp)
-        print("  r: %s" % to_sexp_f(r))
+        #print("op: %s" % KEYWORD_FROM_INT[f_index])
+        #print("  args: %s" % args)
+        #print("  prog: %s" % prog)
+        #print("  expanded_prog: %s" % expanded_prog)
+        #print("  sexp: %s" % sexp)
+        #print("  r: %s" % to_sexp_f(r))
         return compile_f(compile_f, r)
 
     args = sexp.to([compile_f(compile_f, _) for _ in sexp.rest().as_iter()])
@@ -213,12 +225,11 @@ MORE_OP_REWRITE = {
 def debug_compile_f(f, sexp):
     #print("COMPILING: %s" % sexp)
     new_sexp = compile_f(f, sexp)
-    print("COMPILED: %s\n %s" % (sexp, new_sexp))
+    #print("COMPILED: %s\n %s" % (sexp, new_sexp))
     return new_sexp
 
 
 def my_eval_f(my_eval_f, sexp, args):
-    print("EVAL %s" % sexp)
     new_sexp = debug_compile_f(debug_compile_f, sexp)
     return runtime_001.reduce_f(runtime_001.reduce_f, new_sexp, args)
 

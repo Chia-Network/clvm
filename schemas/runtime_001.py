@@ -1,7 +1,12 @@
+import io
+
 from opacity.casts import int_from_bytes, int_to_bytes
 from opacity.ReduceError import ReduceError
 from opacity.RExp import subclass_rexp
 from opacity.Var import Var
+from opacity.int_keyword import to_int_keyword_tokens
+from opacity.serialize import make_sexp_from_stream, sexp_to_stream
+from opacity.writer import write_tokens
 
 
 from . import more_operators
@@ -18,8 +23,17 @@ class mixin:
     def as_int(self):
         return int_from_bytes(self.as_atom())
 
+    def as_bin(self):
+        f = io.BytesIO()
+        sexp_to_stream(self, f)
+        return f.getvalue()
+
     def __iter__(self):
         return self.as_iter()
+
+    def __repr__(self):
+        tokens = to_int_keyword_tokens(self, KEYWORD_FROM_ATOM)
+        return write_tokens(tokens)
 
 
 to_sexp_f = subclass_rexp(mixin, (bytes, Var))
