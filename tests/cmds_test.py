@@ -14,7 +14,8 @@ REPAIR = os.getenv("REPAIR", 0)
 
 
 def get_test_cases(path):
-    TESTS_PATH = os.path.join(os.path.dirname(__file__), path)
+    PREFIX = os.path.dirname(__file__)
+    TESTS_PATH = os.path.join(PREFIX, path)
     paths = []
     for dirpath, dirnames, filenames in os.walk(TESTS_PATH):
         for fn in filenames:
@@ -33,7 +34,7 @@ def get_test_cases(path):
                 comments.append(cmd)
             expected_output = f.read()
             test_name = os.path.relpath(
-                p, TESTS_PATH).replace(".", "_").replace("/", "_")
+                p, PREFIX).replace(".", "_").replace("/", "_")
             test_cases.append((test_name, cmd, expected_output, comments, p))
     return test_cases
 
