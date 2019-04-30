@@ -1,2 +1,2 @@
 reduce -s schemas.runtime_001 '(x (q 2000))'
-FAIL: SExp([b'\x07\xd0'])
+FAIL: (2000)

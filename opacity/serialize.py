@@ -1,3 +1,5 @@
+from .Var import Var
+
 
 def encode_size(f, size, step_size, base_byte_int):
     step_count, remainder = divmod(size, step_size)
@@ -11,8 +13,15 @@ def encode_size(f, size, step_size, base_byte_int):
 
 
 def sexp_to_stream(v, f):
-    if v.is_bytes():
-        blob = v.as_bytes()
+    if v.listp():
+        encode_size(f, len(list(v)), 32, 0x20)
+        for _ in v:
+            sexp_to_stream(_, f)
+        return
+
+    as_atom = v.as_atom()
+    if isinstance(as_atom, bytes):
+        blob = as_atom
         size = len(blob)
         if size == 0:
             f.write(b'\0')
@@ -26,14 +35,8 @@ def sexp_to_stream(v, f):
         f.write(blob)
         return
 
-    if v.listp():
-        encode_size(f, len(v), 32, 0x20)
-        for _ in v:
-            sexp_to_stream(_, f)
-        return
-
-    if v.is_var():
-        encode_size(f, v.var_index(), 32, 0x40)
+    if isinstance(as_atom, Var):
+        encode_size(f, as_atom.index, 32, 0x40)
         return
 
     assert 0
@@ -74,7 +77,7 @@ def make_sexp_from_stream(class_):
         if v < 0x40:
             size = v - 0x20 + steps * 0x20
             items = [sexp_from_stream(f) for _ in range(size)]
-            return class_(items)
+            return class_.to(items)
 
         if v < 0x60:
             index = v - 0x40 + steps * 0x20
@@ -84,6 +87,6 @@ def make_sexp_from_stream(class_):
         blob = f.read(size)
         if len(blob) < size:
             raise ValueError("unexpected end of stream")
-        return class_(blob)
+        return class_.to(blob)
 
     return sexp_from_stream

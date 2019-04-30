@@ -1,7 +1,10 @@
+import io
+
 from opacity.casts import int_from_bytes, int_to_bytes
 from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.reader import read_tokens
+from opacity.serialize import make_sexp_from_stream, sexp_to_stream
 from opacity.writer import write_tokens
 from opacity.RExp import subclass_rexp
 from opacity.Var import Var

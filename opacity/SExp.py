@@ -1,62 +1,69 @@
-import enum
 import io
 
 from .casts import int_to_bytes, int_from_bytes
 from .serialize import make_sexp_from_stream, sexp_to_stream
-
+from .RExp import subclass_rexp
 from .Var import Var
 
 
-ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB PAIR")
-
-
-class SExp:
-    item: object
-    type: ATOM_TYPES
-
-    ATOM_TYPES = ATOM_TYPES
-
+class mixin:
     @classmethod
-    def to(class_, v):
-        if isinstance(v, SExp):
-            return v
-        return class_(v)
-
-    def __init__(self, v):
-
-        if isinstance(v, str):
-            v = v.encode("utf8")
-
-        if isinstance(v, SExp):
-            self.item = v.item
-            self.type = v.type
-            return
-
+    def to_atom(class_, v):
         if isinstance(v, int):
             v = int_to_bytes(v)
+        return v
 
-        if v is None:
-            v = []
+    def as_int(self):
+        return int_from_bytes(self.as_atom())
 
-        if isinstance(v, bytes):
-            self.item = v
-            self.type = ATOM_TYPES.BLOB
-        elif isinstance(v, Var):
-            self.item = v.index
-            self.type = ATOM_TYPES.VAR
-        elif isinstance(v, tuple):
-            assert len(v) == 2
-            assert isinstance(v[0], SExp)
-            self.item = v
-            self.type = ATOM_TYPES.PAIR
-        elif hasattr(v, "__iter__"):
-            rest = None
-            for _ in reversed(v):
-                rest = (self.to(_), rest)
-            self.item = rest
-            self.type = ATOM_TYPES.PAIR
-        else:
-            raise ValueError("bad type for %s" % v)
+    def as_bin(self):
+        f = io.BytesIO()
+        sexp_to_stream(self, f)
+        return f.getvalue()
+
+    def is_var(self):
+        return isinstance(self.v, Var)
+
+    def is_bytes(self):
+        return isinstance(self.v, bytes)
+
+    def var_index(self):
+        if self.is_var():
+            return self.v.index
+
+    def as_bytes(self):
+        if self.is_bytes():
+            return self.as_atom()
+
+    def type_index(self):
+        # ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB PAIR")
+        if self.is_var():
+            return 0
+        if self.is_bytes():
+            return 1
+        return 2
+
+    def __len__(self):
+        return len(list(self.as_iter()))
+
+    def __iter__(self):
+        return self.as_iter()
+
+    def get_sublist_at_index(self, s):
+        v = self
+        while s > 0:
+            v = v.v[1]
+            s -= 1
+        return v
+
+    def get_at_index(self, s):
+        return self.get_sublist_at_index(s).v[0]
+
+    def __getitem__(self, s):
+        if isinstance(s, int):
+            return self.get_at_index(s)
+        if s.stop is None and s.step is None:
+            return self.get_sublist_at_index(s.start)
 
     @classmethod
     def from_stream(class_, f):
@@ -68,115 +75,14 @@ class SExp:
 
     @classmethod
     def from_var_index(class_, index):
-        return class_(Var(index))
-
-    def is_var(self):
-        return self.type == ATOM_TYPES.VAR
-
-    def is_bytes(self):
-        return self.type == ATOM_TYPES.BLOB
-
-    def listp(self):
-        return self.type == ATOM_TYPES.PAIR
-
-    def nullp(self):
-        return self.type == ATOM_TYPES.PAIR and len(self) == 0
-
-    def var_index(self):
-        if self.is_var():
-            return self.item
-
-    def as_int(self):
-        if self.is_bytes():
-            return int_from_bytes(self.as_bytes())
-
-    def as_bytes(self):
-        if self.is_bytes():
-            return self.item
-
-    def as_atom(self):
-        assert not self.listp()
-        if self.type == ATOM_TYPES.VAR:
-            return Var(self.item)
-        return self.item
-
-    def as_bin(self):
-        f = io.BytesIO()
-        sexp_to_stream(self, f)
-        return f.getvalue()
-
-    def cons(self, right):
-        return self.to([self] + list(right))
-
-    def first(self):
-        return self.to(self.item[0])
-
-    def rest(self):
-        return self.to(self.item[1])
-
-    def __iter__(self):
-        assert self.type == ATOM_TYPES.PAIR
-        v = self.item
-        while True:
-            if v is None:
-                break
-            yield v[0]
-            v = v[1]
-
-    as_iter = __iter__
-
-    def __len__(self):
-        return sum(1 for _ in self)
-
-    def null(self):
-        return self.__null__
-
-    def get_sublist_at_index(self, s):
-        v = self.item
-        while s > 0:
-            v = v[1]
-            s -= 1
-        return SExp(v)
-
-    def get_at_index(self, s):
-        return self.get_sublist_at_index(s).item[0]
-
-    def __getitem__(self, s):
-        if isinstance(s, int):
-            return self.get_at_index(s)
-        if s.stop is None and s.step is None:
-            return self.get_sublist_at_index(s.start)
-
-    def as_obj(self):
-        type = self.type
-        if type == ATOM_TYPES.VAR:
-            return Var(index=self.var_index())
-        if type == ATOM_TYPES.BLOB:
-            return self.item
-        if type == ATOM_TYPES.PAIR:
-            return [_.as_obj() for _ in self]
-        assert 0
-
-    def __repr__(self):
-        t = "??"
-        if self.is_var():
-            t = "x%d" % self.item
-        if self.is_bytes():
-            t = repr(self.item)
-        if self.listp():
-            t = repr([_.as_obj() for _ in self])
-        return "SExp(%s)" % t
-
-    def __eq__(self, other):
-        try:
-            other = SExp(other)
-        except ValueError:
-            return False
-        return other.type == self.type and other.item == self.item
+        v = Var(index)
+        return class_.to(v)
 
 
-SExp.false = SExp(0)
-SExp.__null__ = SExp([])
+to_sexp_f = subclass_rexp(mixin, (bytes, Var))
 
-to_sexp_f = SExp
+# HACK
+
+SExp = to_sexp_f(None).__class__
+SExp.false = to_sexp_f(0)
 sexp_from_stream = make_sexp_from_stream(SExp)

@@ -20,7 +20,8 @@ def make_reduce_f(operator_lookup, quote_kw, reduce_kw, env_kw):
 
         if f_index == quote_kw:
             if form.rest().nullp() or not form.rest().rest().nullp():
-                raise ReduceError("quote requires exactly 1 parameter, got %d" % (len(list(form.as_iter())) - 1))
+                raise ReduceError("quote requires exactly 1 parameter, got %d" % (
+                    len(list(form.as_iter())) - 1))
             return form.rest().first()
 
         # TODO: rewrite with cons, rest, etc.

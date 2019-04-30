@@ -10,25 +10,25 @@ def op_cons(args):
 
 
 def op_first(args):
-    if len(args) == 1 and args[0].item and args[0].type == args[0].ATOM_TYPES.PAIR:
+    if len(args) == 1 and args[0].listp():
         return args[0].first()
     raise ReduceError("first takes 1 argument, which must be a pair")
 
 
 def op_rest(args):
-    if len(args) == 1 and args[0].item and args[0].type == args[0].ATOM_TYPES.PAIR:
+    if len(args) == 1 and args[0].listp():
         return args[0].rest()
     raise ReduceError("rest takes 1 argument, which must be a pair")
 
 
 def op_type(args):
     if len(args) == 1:
-        return args[0].to(args[0].type - 1)
+        return args[0].to(args[0].type_index())
     raise ReduceError("type takes exactly one parameter")
 
 
 def op_var(args):
-    if len(args) == 1 and args[0].type == args[0].ATOM_TYPES.VAR:
+    if len(args) == 1 and args[0].is_var():
         return args[0].to(args[0].var_index())
     raise ReduceError("type takes exactly one parameter, which must be a var")
 
@@ -61,15 +61,10 @@ def op_raise(args):
 
 # logical operators
 
-
 def op_equal(args):
-    if len(args) != 2:
-        raise ReduceError("equal requires 2 arguments, got %d" % len(args))
-    a0, a1 = args
-    if a0.type != a1.type:
-        return a0.false
-    if a0.type == a0.ATOM_TYPES.PAIR:
-        return a0.false
-    if a0.type == a0.ATOM_TYPES.VAR:
-        return a0.to(a0.var_index() == a1.var_index())
-    return a0.to(a0.as_bytes() == a1.as_bytes())
+    a0 = args.first()
+    a1 = args.rest().first()
+    if a0.listp() or a1.listp():
+        raise ReduceError("= on list")
+    r = args.true if a0.as_atom() == a1.as_atom() else args.false
+    return r

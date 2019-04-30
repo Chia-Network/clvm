@@ -33,7 +33,7 @@ def op_add(args):
 
 
 def op_subtract(args):
-    if args.nullp() == 0:
+    if args.nullp():
         return args.to(0)
     sign = 1
     total = 0
@@ -65,23 +65,21 @@ def op_unwrap(items):
 
 
 def op_wrap(items):
-    if len(items) != 1:
+    if items.nullp() or not items.rest().nullp():
         raise ReduceError("wrap expects exactly one argument, got %d" % len(items))
     return items.to(items.first().as_bin())
 
 
 def op_pubkey_for_exp(items):
-    if items.nullp() or items.rest().rest().nullp():
+    if items.nullp() or not items.rest().nullp():
         raise ReduceError("op_pubkey_for_exp expects exactly one argument, got %d" % len(list(items.as_iter())))
     try:
-        return items.to(bls12_381_to_bytes(bls12_381_generator * items[0].as_int()))
+        return items.to(bls12_381_to_bytes(bls12_381_generator * items.first().as_int()))
     except Exception as ex:
         raise ReduceError("problem in op_pubkey_for_exp: %s" % ex)
 
 
 def op_point_add(items):
-    if len(items) < 1:
-        raise ReduceError("point_add expects at least one argument, got %d" % len(items))
     p = bls12_381_generator.infinity()
     for _ in items:
         try:

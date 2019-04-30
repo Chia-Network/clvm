@@ -1,2 +1,2 @@
 reduce -s schemas.runtime_001 "(= 3 3)"
-FAIL: SExp(b'\x03') is not a list
+FAIL: 3 is not a list
