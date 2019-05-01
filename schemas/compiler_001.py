@@ -64,6 +64,7 @@ KEYWORDS = (
     ". quote e args if_op cons first rest listp raise eq_atom "
     "sha256 + - * / wrap unwrap point_add pubkey_for_exp "
     "eval if equal list bool not assert "
+    "get "
     "compile compile_op quasiquote unquote case var and or map map_raw function ").split()
 
 
@@ -96,6 +97,14 @@ DERIVED_OPERATORS = [
         "(if (args) (list #if (first (args)) 1 (cons #or (rest (args)))) ())"),
     ("assert",
         "(if (rest (args)) (list #if (quote x0) (cons #assert (rest (args))) (list #raise)) (quote x0))"),
+    ("get",
+        "(if (equal x1 0) (list #first (quote x0)) (list #get (list #rest (quote x0)) (- x1 1)))"),
+    ("map",
+        "(function (e (function (e (first (args)) (args)))"
+        "(list (function "
+        "(if (first (rest (args)))"
+        "(cons (eval x0 (list (first (first (rest (args)))))) (eval (first (args)) (list (first (args)) (rest (first (rest (args)))))))"
+        "(quote ()))) x1)))"),
 ]
 
 
