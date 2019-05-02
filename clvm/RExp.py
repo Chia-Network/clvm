@@ -67,11 +67,6 @@ class RExp:
         assert not(self.listp())
         return self.v
 
-    def as_obj(self):
-        if self.listp():
-            return [_.as_obj() for _ in self.as_iter()]
-        return self.v
-
     @classmethod
     def null(class_):
         return class_.__null__

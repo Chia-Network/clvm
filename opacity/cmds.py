@@ -5,7 +5,7 @@ import importlib
 import io
 import sys
 
-from clvm.core import ReduceError
+from clvm.ReduceError import ReduceError
 
 from . import reader, writer
 

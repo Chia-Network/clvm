@@ -7,7 +7,7 @@ from opacity.writer import write_tokens
 from . import more_operators
 
 from .casts import int_from_bytes, int_to_bytes
-from .corevm_0_0_1 import build_runtime, operators_for_dict, operators_for_module
+from .core import build_runtime, operators_for_dict, operators_for_module
 from .ReduceError import ReduceError
 from .RExp import subclass_rexp
 from .serialize import make_sexp_from_stream, sexp_to_stream
