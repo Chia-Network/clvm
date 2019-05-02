@@ -1,7 +1,7 @@
 import unittest
 
-from opacity.ecdsa.bls12_381 import bls12_381_generator
-from opacity.casts import bls12_381_from_bytes, bls12_381_to_bytes
+from clvm.ecdsa.bls12_381 import bls12_381_generator
+from clvm.casts import bls12_381_from_bytes, bls12_381_to_bytes
 
 
 class BLS12_381_Test(unittest.TestCase):
