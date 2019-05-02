@@ -33,7 +33,7 @@ class mixin:
     def __iter__(self):
         return self.as_iter()
 
-    def __repr__(self):
+    def __str__(self):
         return disassemble(self)
 
 

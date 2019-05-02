@@ -101,14 +101,14 @@ def do_reduction(args, mod, sexp, solution):
     try:
         reductions = mod.transform(sexp.cons(solution))
         output = mod.to_tokens(reductions)
-        if not args.debug:
-            print(writer.write_tokens(output))
+        final_output = writer.write_tokens(output)
     except ReduceError as e:
         final_output = "FAIL: %s" % e
-        if not args.debug:
-            print(final_output)
         return -1
     finally:
+        if not args.debug:
+            print(final_output)
+
         # TODO solve the debugging problem
         the_log = []
         if args.debug:

@@ -34,7 +34,7 @@ class RExp:
                 r = class_.to(_).cons(r)
             return r
 
-        raise ValueError("bad atom %s" % v)
+        raise ValueError("can't cast to %s: %s" % (class_, v))
 
     def __init__(self, v):
         assert (
@@ -77,16 +77,6 @@ class RExp:
         assert self.listp()
         yield self.first()
         yield from self.rest().as_iter()
-
-    def __repr__(self):
-        t = "??"
-        if self.nullp():
-            t = None
-        elif self.listp():
-            t = repr([_.as_obj() for _ in self.as_iter()])
-        else:
-            t = repr(self.v)
-        return "%s(%s)" % (self.__class__.__name__, t)
 
     def __eq__(self, other):
         try:
