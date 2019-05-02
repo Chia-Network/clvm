@@ -7,7 +7,8 @@ from opacity.reader import read_tokens
 from opacity.SExp import sexp_from_stream, to_sexp_f
 
 
-from clvm import more_operators
+from clvm import more_ops
+from clvm.op_utils import operators_for_module
 
 
 KEYWORDS = (
@@ -20,16 +21,6 @@ KEYWORDS = (
 
 KEYWORD_FROM_INT = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}
 KEYWORD_TO_INT = {v: k for k, v in KEYWORD_FROM_INT.items()}
-
-
-def operators_for_module(keyword_to_int, mod, op_name_lookup={}):
-    d = {}
-    for op in keyword_to_int.keys():
-        op_name = "op_%s" % op_name_lookup.get(op, op)
-        op_f = getattr(mod, op_name, None)
-        if op_f:
-            d[keyword_to_int[op]] = op_f
-    return d
 
 
 DERIVED_OPERATORS = [
@@ -244,7 +235,7 @@ MORE_OP_REWRITE = {
 }
 
 OPERATOR_LOOKUP = operators_for_module(KEYWORD_TO_INT, core_operators)
-OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_INT, more_operators, MORE_OP_REWRITE))
+OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_INT, more_ops, MORE_OP_REWRITE))
 OPERATOR_LOOKUP[KEYWORD_TO_INT["and"]] = op_and
 OPERATOR_LOOKUP[KEYWORD_TO_INT["rewrite_op"]] = op_rewrite
 

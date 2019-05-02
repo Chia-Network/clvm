@@ -1,2 +1,2 @@
-reduce -s clvm.runtime_001 '(i x2 x0 x1)' '(200 300 0)'
-FAIL: x2 is not a list
+reduce -s clvm.runtime_001 '(i (f (r (r (a)))) (f (a)) (f (r (a))))' '(200 300 0)'
+200
