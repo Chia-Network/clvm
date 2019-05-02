@@ -1,8 +1,6 @@
 import io
 
 from opacity.Var import Var
-from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
-from opacity.writer import write_tokens
 
 from . import core_ops, more_ops
 
@@ -36,8 +34,7 @@ class mixin:
         return self.as_iter()
 
     def __repr__(self):
-        tokens = to_int_keyword_tokens(self, KEYWORD_FROM_ATOM)
-        return write_tokens(tokens)
+        return disassemble(self)
 
 
 to_sexp_f = subclass_rexp(mixin, (bytes, Var))
@@ -71,6 +68,12 @@ reduce_f = make_reduce_f(
     OPERATOR_LOOKUP, KEYWORD_TO_ATOM["q"], KEYWORD_TO_ATOM["e"], KEYWORD_TO_ATOM["a"])
 
 
+# HACK
+# TODO: remove everything below here
+
+from opacity.binutils import assemble_from_symbols, disassemble_to_symbols, disassemble
+
+
 def transform(sexp):
     if sexp.listp():
         if sexp.nullp():
@@ -83,9 +86,8 @@ def transform(sexp):
 
 
 def to_tokens(sexp):
-    return to_int_keyword_tokens(sexp, KEYWORD_FROM_ATOM)
+    return disassemble_to_symbols(sexp)
 
 
 def from_tokens(sexp):
-    ikt = from_int_keyword_tokens(sexp, KEYWORD_TO_ATOM)
-    return to_sexp_f(ikt)
+    return assemble_from_symbols(sexp)
