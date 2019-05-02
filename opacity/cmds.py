@@ -11,6 +11,9 @@ from .core import ReduceError
 from .debug import trace_to_html, trace_to_text
 
 
+DEFAULT_SCHEMA = "schemas.compiler_001"
+
+
 def path_or_code(arg):
     try:
         with open(arg) as f:
@@ -23,7 +26,7 @@ def opc(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Compile an opacity script.'
     )
-    parser.add_argument("-s", "--schema", default="schemas.v0_0_2",
+    parser.add_argument("-s", "--schema", default=DEFAULT_SCHEMA,
                         help="Python module imported with rewrite")
     parser.add_argument("-H", "--script_hash", action="store_true", help="Show sha256 script hash")
     parser.add_argument(
@@ -49,7 +52,7 @@ def opd(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Disassemble a compiled opacity script.'
     )
-    parser.add_argument("-s", "--schema", default="schemas.v0_0_2",
+    parser.add_argument("-s", "--schema", default=DEFAULT_SCHEMA,
                         help="Python module imported with rewrite")
     parser.add_argument(
         "script", nargs="+", type=binascii.unhexlify, help="hex version of opacity script")
@@ -72,7 +75,7 @@ def reduce(args=sys.argv):
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
-    parser.add_argument("-s", "--schema", default="schemas.v0_0_2",
+    parser.add_argument("-s", "--schema", default=DEFAULT_SCHEMA,
                         help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")

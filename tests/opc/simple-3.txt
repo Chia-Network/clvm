@@ -1,2 +1,2 @@
-opc "(((equal (sha256 x0) x1)) (reduce x1 x2))"
+opc -s schemas.v0_0_2 "(((equal (sha256 x0) x1)) (reduce x1 x2))"
 2221230822094041230a4142

@@ -1,2 +1,2 @@
-reduce '(and (equal (sha256 (wrap x0)) 0xeea4823f2b031ca77ef66abf3fb4dde479527980a77463c0c59cc2d288620896) (reduce x0 x1))' '((and (equal x0 500) (equal x1 600)) (500 599))'
+reduce -s schemas.v0_0_2 '(and (equal (sha256 (wrap x0)) 0xeea4823f2b031ca77ef66abf3fb4dde479527980a77463c0c59cc2d288620896) (reduce x0 x1))' '((and (equal x0 500) (equal x1 600)) (500 599))'
 0
