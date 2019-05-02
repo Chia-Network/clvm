@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(sha256 "hel" "lo.there.my.dear.friend")'
+reduce -s clvm.runtime_001 '(sha256 "hel" "lo.there.my.dear.friend")'
 FAIL: 6841708 is not a list

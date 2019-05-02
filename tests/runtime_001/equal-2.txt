@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(= (q 10) (q 10))'
+reduce -s clvm.runtime_001 '(= (q 10) (q 10))'
 1

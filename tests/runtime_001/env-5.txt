@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(a)' '((100 101 102) 105)'
+reduce -s clvm.runtime_001 '(a)' '((100 101 102) 105)'
 ((100 101 102) 105)

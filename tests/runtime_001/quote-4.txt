@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(q (0 1 x0 (q 15 20)))'
+reduce -s clvm.runtime_001 '(q (0 1 x0 (q 15 20)))'
 (0 1 x0 (q 15 20))

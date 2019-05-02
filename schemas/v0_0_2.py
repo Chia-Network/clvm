@@ -1,12 +1,13 @@
-from opacity.casts import int_to_bytes
-from opacity.core import make_reduce_f
+from clvm.casts import int_to_bytes
+from clvm.core import make_reduce_f
+
 from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.reader import read_tokens
 from opacity.SExp import sexp_from_stream, to_sexp_f
 
 
-from . import more_operators
+from clvm import more_operators
 
 
 KEYWORDS = (

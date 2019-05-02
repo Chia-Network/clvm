@@ -1,16 +1,16 @@
 import io
 
-from opacity.casts import int_from_bytes, int_to_bytes
-from opacity.ReduceError import ReduceError
-from opacity.RExp import subclass_rexp
 from opacity.Var import Var
 from opacity.int_keyword import to_int_keyword_tokens
-from opacity.serialize import make_sexp_from_stream, sexp_to_stream
 from opacity.writer import write_tokens
 
-
 from . import more_operators
+
+from .casts import int_from_bytes, int_to_bytes
 from .corevm_0_0_1 import build_runtime, operators_for_dict, operators_for_module
+from .ReduceError import ReduceError
+from .RExp import subclass_rexp
+from .serialize import make_sexp_from_stream, sexp_to_stream
 
 
 class mixin:

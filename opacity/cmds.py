@@ -5,9 +5,10 @@ import importlib
 import io
 import sys
 
+from clvm.core import ReduceError
+
 from . import reader, writer
 
-from .core import ReduceError
 from .debug import trace_to_html, trace_to_text
 
 

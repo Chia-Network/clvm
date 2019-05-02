@@ -1,4 +1,4 @@
-from .Var import Var
+from opacity.Var import Var
 
 
 def encode_size(f, size, step_size, base_byte_int):

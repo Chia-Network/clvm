@@ -8,6 +8,7 @@ setup(
     name="opacity",
     version=version,
     packages=[
+        "clvm",
         "opacity",
         "schemas",
     ],

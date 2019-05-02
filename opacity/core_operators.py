@@ -1,4 +1,4 @@
-from .ReduceError import ReduceError
+from clvm.ReduceError import ReduceError
 
 # s-expression operators
 

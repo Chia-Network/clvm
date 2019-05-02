@@ -1,7 +1,7 @@
 import hashlib
 
-from opacity.ReduceError import ReduceError
-from opacity.casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes
+from .ReduceError import ReduceError
+from .casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes
 
 
 def op_sha256(args):

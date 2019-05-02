@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(q 0 1)'
+reduce -s clvm.runtime_001 '(q 0 1)'
 FAIL: quote requires exactly 1 parameter, got 2

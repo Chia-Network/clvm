@@ -2,9 +2,10 @@
 
 import binascii
 
+from clvm.casts import int_from_bytes
+
 from .Var import Var
-from opacity.casts import int_from_bytes
-from opacity.reader import tokenize
+from .reader import tokenize
 
 
 class bytes_as_hex(bytes):

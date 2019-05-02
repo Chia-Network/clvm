@@ -1,14 +1,15 @@
 import io
 
-from opacity.casts import int_from_bytes, int_to_bytes
+from clvm.casts import int_from_bytes, int_to_bytes
+from clvm.serialize import sexp_to_stream
+from clvm.RExp import subclass_rexp
+
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.reader import read_tokens
-from opacity.serialize import sexp_to_stream
 from opacity.writer import write_tokens
-from opacity.RExp import subclass_rexp
 from opacity.Var import Var
 
-from . import runtime_001
+from clvm import runtime_001
 
 
 class mixin:

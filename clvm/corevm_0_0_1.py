@@ -1,4 +1,4 @@
-from opacity.core import make_reduce_f
+from .core import make_reduce_f
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 
 

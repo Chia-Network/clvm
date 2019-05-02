@@ -1,6 +1,6 @@
 # read strings into Token
 
-from opacity.RExp import subclass_rexp
+from clvm.RExp import subclass_rexp
 
 
 class TokenMixin:
