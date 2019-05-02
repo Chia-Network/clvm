@@ -1,0 +1,15 @@
+# this script creates a pay-to-taproot standard script. x0 = hidden public key; x1 = hidden script
+#
+# if x1 is not specified, the default "(raise)" should be used
+#
+# example: x0 = (pubkey_for_exp 1), x1 = (quote (raise (quote 0xdeadbeef)))
+#    ie. (0x97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb (raise 0xdeadbeef))
+#
+# reduce '(pubkey_for_exp 1)' => 0x97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb
+# reduce '(wrap (quote (raise 0xdeadbeef)))' => 0x220964deadbeef
+# reduce '(sha256 x0 (wrap x1))' => 0xac186394ef316cac5e1788286687802ed45b268f5440493e2123f4f80665dfcb
+# reduce '(pubkey_for_exp (sha256 x0 (wrap x1)))' => 0x8bd429b60a77a026949a5fa77f76579de8679f2401c3b0eca8db8aa028884d6742b840f513e2faefbd379ceeeb7b5996
+# reduce '(point_add x0 (pubkey_for_exp (sha256 x0 (wrap x1))))' => 0x98360c4f1e6c01c8600b80595d34ef91c8dd17e82e0df7638c2a181de1333da1a46f0353029417ff5b6ccaa6767836d2
+#
+reduce -s schemas.compiler_001 '(list #e (function (function (if x1 (assert (eq_atom x0 (point_add x3 (pubkey_for_exp (sha256 x3 (wrap x1))))) (e x1 x2)) (cons (list #aggsig x0 (sha256 (wrap x2))) (e x2 x3))))) (list #cons (point_add x0 (pubkey_for_exp (sha256 x0 (wrap x1)))) (list #args)))' '(0x97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb (quote 0xdeadbeefdeadbeef))'
+(e (quote (e (if_op (first (rest (args))) (quote (e (if_op (eq_atom (first (args)) (point_add (first (rest (rest (rest (args))))) (pubkey_for_exp (sha256 (first (rest (rest (rest (args))))) (wrap (first (rest (args)))))))) (quote (e (first (rest (args))) (first (rest (rest (args)))))) (quote (raise))) (args))) (quote (cons (cons (quote 80) (cons (first (args)) (cons (sha256 (wrap (first (rest (rest (args)))))) (quote ())))) (e (first (rest (rest (args)))) (first (rest (rest (rest (args))))))))) (args))) (cons 0x01031383a372ae073bae6820b487550a7bcb78ae8359daf3db831fe50bda77e7ede389de3a636c44e62841cdc6c38286 (args)))

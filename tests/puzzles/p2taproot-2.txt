@@ -1,0 +1,16 @@
+# x0, x1, x2 are passed in, then renamed to x1, x2 and x3 so x0 can be a constant used by both paths
+#
+# taproot case
+# x0 = publicly revealed key (constant)
+# x1 = hidden script (which is run to enumerate conditions)
+# x2 = solution to hidden script
+# x3 = hidden public key
+#
+# regular case
+# x0 = publicly revealed key (constant)
+# x1 = null
+# x2 = signed solution script (which is run to enumerate conditions)
+# x3 = solution to x2
+#
+reduce -s schemas.compiler_001 '(e (quote (e (if_op (first (rest (args))) (quote (e (if_op (eq_atom (first (args)) (point_add (first (rest (rest (rest (args))))) (pubkey_for_exp (sha256 (first (rest (rest (rest (args))))) (wrap (first (rest (args)))))))) (quote (e (first (rest (args))) (first (rest (rest (args)))))) (quote (raise))) (args))) (quote (cons (cons (quote 80) (cons (first (args)) (cons (sha256 (wrap (first (rest (rest (args)))))) (quote ())))) (e (first (rest (rest (args)))) (first (rest (rest (rest (args))))))))) (args))) (cons 0x01031383a372ae073bae6820b487550a7bcb78ae8359daf3db831fe50bda77e7ede389de3a636c44e62841cdc6c38286 (args)))' '((quote 0xdeadbeefdeadbeef) () 0x97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb)'
+0xdeadbeefdeadbeef

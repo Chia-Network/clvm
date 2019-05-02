@@ -94,6 +94,8 @@ inject("runtime_001")
 
 inject("compiler_001")
 
+inject("puzzles")
+
 def main():
     unittest.main()
 
