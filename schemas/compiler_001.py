@@ -65,7 +65,7 @@ KEYWORDS = (
     "sha256 + - * / wrap unwrap point_add pubkey_for_exp "
     "eval if equal list bool not assert "
     "get "
-    "compile compile_op quasiquote unquote case var and or map map_raw function ").split()
+    "compile compile_op quasiquote unquote case var and or map map_inner function ").split()
 
 
 KEYWORD_FROM_INT = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}
@@ -99,12 +99,14 @@ DERIVED_OPERATORS = [
         "(if (rest (args)) (list #if (quote x0) (cons #assert (rest (args))) (list #raise)) (quote x0))"),
     ("get",
         "(if (equal x1 0) (list #first (quote x0)) (list #get (list #rest (quote x0)) (- x1 1)))"),
-    ("map",
-        "(function (e (function (e (first (args)) (args)))"
+    ("map_inner",
+        "(quote (e (function (e (first (args)) (args)))"
         "(list (function "
         "(if (first (rest (args)))"
-        "(cons (eval x0 (list (first (first (rest (args)))))) (eval (first (args)) (list (first (args)) (rest (first (rest (args)))))))"
+        "(cons (e x0 (list (first (first (rest (args)))))) (e (first (args)) (list (first (args)) (rest (first (rest (args)))))))"
         "(quote ()))) x1)))"),
+    ("map",
+        "(list #map_inner (function x0) (quote x1))"),
 ]
 
 

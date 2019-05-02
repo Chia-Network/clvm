@@ -1,2 +1,2 @@
-reduce -s schemas.compiler_001 '(map (quote (+ x0 1)) (list 100 2 3 15 20))'
+reduce -s schemas.compiler_001 '(map (function (+ x0 1)) (list 100 2 3 15 20))'
 (101 3 4 16 21)
