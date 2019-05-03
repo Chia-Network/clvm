@@ -5,7 +5,7 @@ import importlib
 import io
 import sys
 
-from clvm.ReduceError import ReduceError
+from clvm.EvalError import EvalError
 
 from . import reader, writer
 
@@ -102,7 +102,7 @@ def do_reduction(args, mod, sexp, solution):
         reductions = mod.transform(sexp.cons(solution))
         result = mod.to_tokens(reductions)
         output = writer.write_tokens(result)
-    except ReduceError as e:
+    except EvalError as e:
         result = mod.to_tokens(e._sexp)
         output = "FAIL: %s %s" % (e, writer.write_tokens(result))
         result = e._sexp

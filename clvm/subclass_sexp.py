@@ -1,4 +1,4 @@
-from .ReduceError import ReduceError
+from .EvalError import EvalError
 
 
 class BaseSExp:
@@ -56,12 +56,12 @@ class BaseSExp:
     def first(self):
         if isinstance(self.v, tuple):
             return self.v[0]
-        raise ReduceError("first of non-cons", self)
+        raise EvalError("first of non-cons", self)
 
     def rest(self):
         if isinstance(self.v, tuple):
             return self.v[1]
-        raise ReduceError("rest of non-cons", self)
+        raise EvalError("rest of non-cons", self)
 
     def as_atom(self):
         assert not(self.listp())

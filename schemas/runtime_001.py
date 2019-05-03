@@ -1,4 +1,4 @@
-from clvm.runtime_001 import reduce_f
+from clvm.runtime_001 import eval_f
 from opacity.binutils import assemble_from_symbols, disassemble_to_symbols
 
 
@@ -10,7 +10,7 @@ def transform(sexp):
     else:
         args = sexp.null
 
-    return reduce_f(reduce_f, sexp, args)
+    return eval_f(eval_f, sexp, args)
 
 
 def to_tokens(sexp):

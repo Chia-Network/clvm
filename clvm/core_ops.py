@@ -1,4 +1,4 @@
-from .ReduceError import ReduceError
+from .EvalError import EvalError
 
 
 def op_if(args):
@@ -25,12 +25,12 @@ def op_listp(args):
 
 
 def op_raise(args):
-    raise ReduceError("clvm raise", args)
+    raise EvalError("clvm raise", args)
 
 
 def op_eq(args):
     a0 = args.first()
     a1 = args.rest().first()
     if a0.listp() or a1.listp():
-        raise ReduceError("= on list", args)
+        raise EvalError("= on list", args)
     return args.true if a0.as_atom() == a1.as_atom() else args.false

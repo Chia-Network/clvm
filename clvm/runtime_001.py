@@ -3,7 +3,7 @@ from opacity.Var import Var
 from . import core_ops, more_ops
 
 from .casts import int_from_bytes, int_to_bytes
-from .core import make_reduce_f
+from .make_eval import make_eval_f
 from .op_utils import operators_for_module
 from .subclass_sexp import subclass_sexp
 
@@ -46,5 +46,5 @@ OPERATOR_LOOKUP = operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE)
 OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRITE))
 
 
-reduce_f = make_reduce_f(
+eval_f = make_eval_f(
     OPERATOR_LOOKUP, KEYWORD_TO_ATOM["q"], KEYWORD_TO_ATOM["e"], KEYWORD_TO_ATOM["a"])

@@ -1,7 +1,7 @@
 import hashlib
 import io
 
-from .ReduceError import ReduceError
+from .EvalError import EvalError
 from .casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes
 from .serialize import sexp_from_stream, sexp_to_stream
 
@@ -28,7 +28,7 @@ def op_add(args):
     for arg in args.as_iter():
         r = arg.as_int()
         if r is None:
-            raise ReduceError("+ takes integer arguments", args)
+            raise EvalError("+ takes integer arguments", args)
         total += r
     total = truncate_int(total)
     return args.to(total)
@@ -42,7 +42,7 @@ def op_subtract(args):
     for arg in args.as_iter():
         r = arg.as_int()
         if r is None:
-            raise ReduceError("- takes integer arguments", args)
+            raise EvalError("- takes integer arguments", args)
         total += sign * r
         total = truncate_int(total)
         sign = -1
@@ -54,7 +54,7 @@ def op_multiply(args):
     for arg in args.as_iter():
         r = arg.as_int()
         if r is None:
-            raise ReduceError("* takes integer arguments", args)
+            raise EvalError("* takes integer arguments", args)
         v = truncate_int(v * r)
     return args.to(v)
 
@@ -63,12 +63,12 @@ def op_unwrap(items):
     try:
         return sexp_from_stream(io.BytesIO(items.first().as_atom()), items.to)
     except (IndexError, ValueError):
-        raise ReduceError("bad stream", items)
+        raise EvalError("bad stream", items)
 
 
 def op_wrap(items):
     if items.nullp() or not items.rest().nullp():
-        raise ReduceError("wrap expects exactly one argument", items)
+        raise EvalError("wrap expects exactly one argument", items)
     f = io.BytesIO()
     sexp_to_stream(items.first(), f)
     return items.to(f.getvalue())
@@ -76,11 +76,11 @@ def op_wrap(items):
 
 def op_pubkey_for_exp(items):
     if items.nullp() or not items.rest().nullp():
-        raise ReduceError("op_pubkey_for_exp expects exactly one argument", items)
+        raise EvalError("op_pubkey_for_exp expects exactly one argument", items)
     try:
         return items.to(bls12_381_to_bytes(bls12_381_generator * items.first().as_int()))
     except Exception as ex:
-        raise ReduceError("problem in op_pubkey_for_exp: %s" % ex, items)
+        raise EvalError("problem in op_pubkey_for_exp: %s" % ex, items)
 
 
 def op_point_add(items):
@@ -89,5 +89,5 @@ def op_point_add(items):
         try:
             p += bls12_381_from_bytes(_.as_atom())
         except Exception as ex:
-            raise ReduceError("point_add expects blob, got %s: %s" % (_, ex), items)
+            raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
     return items.to(bls12_381_to_bytes(p))

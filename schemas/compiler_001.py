@@ -138,7 +138,7 @@ def macro_expand(sexp, args):
     return sexp
 
 
-eval_f = runtime_001.reduce_f
+eval_f = runtime_001.eval_f
 
 runtime_001.KEYWORD_TO_ATOM["compile_op"] = KEYWORD_TO_INT["compile_op"]
 runtime_001.OPERATOR_LOOKUP[KEYWORD_TO_INT["compile_op"]] = op_compile_op
@@ -205,7 +205,7 @@ def compile_f(compile_f, sexp):
         args = sexp.rest()
         expanded_prog = macro_expand(prog, args)
         sexp = compile_f(compile_f, expanded_prog)
-        r = runtime_001.reduce_f(runtime_001.reduce_f, sexp, args)
+        r = runtime_001.eval_f(runtime_001.eval_f, sexp, args)
         # print("op: %s" % KEYWORD_FROM_INT[f_index])
         # print("  args: %s" % args)
         # print("  prog: %s" % prog)
@@ -244,7 +244,7 @@ def debug_compile_f(f, sexp):
 
 def my_eval_f(my_eval_f, sexp, args):
     new_sexp = debug_compile_f(debug_compile_f, sexp)
-    return runtime_001.reduce_f(runtime_001.reduce_f, new_sexp, args)
+    return runtime_001.eval_f(runtime_001.eval_f, new_sexp, args)
 
 
 def transform(sexp):

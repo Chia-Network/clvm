@@ -1,5 +1,5 @@
 from clvm.casts import int_to_bytes
-from clvm.core import make_reduce_f
+from clvm.make_eval import make_eval_f
 
 from opacity import core_operators
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
@@ -53,7 +53,7 @@ DERIVED_OPERATORS = [
 ]
 
 
-def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
+def make_rewrite_f(keyword_to_int, eval_f, reduce_constants=True):
 
     ENV_KEYWORD = keyword_to_int["env"]
     GET_KEYWORD = keyword_to_int["get"]
@@ -63,7 +63,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
     REDUCE_KEYWORD = keyword_to_int["reduce"]
     UNQUOTE_KEYWORD = keyword_to_int["unquote"]
 
-    optimize_form = make_optimize_form_f(keyword_to_int, reduce_f)
+    optimize_form = make_optimize_form_f(keyword_to_int, eval_f)
 
     derived_operators = {}
     for kw, program in DERIVED_OPERATORS:
@@ -76,7 +76,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
         return False
 
-    def rewrite_quasiquote(rewrite_f, reduce_f, form):
+    def rewrite_quasiquote(rewrite_f, eval_f, form):
         if len(form) < 2:
             return form
 
@@ -111,7 +111,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
         if first_item.listp():
             new_env = form[1:]
             new_first_item = self(self, first_item)
-            new_form = reduce_f(reduce_f, new_first_item, new_env)
+            new_form = eval_f(eval_f, new_first_item, new_env)
             return self(self, new_form)
 
         if first_item.is_bytes():
@@ -122,7 +122,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
 
             f = native_rewrite_operators.get(f_index)
             if f:
-                new_form = f(self, reduce_f, form)
+                new_form = f(self, eval_f, form)
                 return self(self, new_form)
 
             f = derived_operators.get(f_index)
@@ -150,7 +150,7 @@ def make_rewrite_f(keyword_to_int, reduce_f, reduce_constants=True):
     return rewrite
 
 
-def make_optimize_form_f(keyword_to_int, reduce_f):
+def make_optimize_form_f(keyword_to_int, eval_f):
 
     QUOTE_KEYWORD = keyword_to_int["quote"]
     ENV_KEYWORD = keyword_to_int["env"]
@@ -199,7 +199,7 @@ def make_optimize_form_f(keyword_to_int, reduce_f):
 
         if contains_no_free_variables(new_form):
             empty_env = form.null
-            new_form = reduce_f(reduce_f, new_form, empty_env)
+            new_form = eval_f(eval_f, new_form, empty_env)
             return form.to([QUOTE_KEYWORD, new_form])
 
         return new_form
@@ -218,13 +218,13 @@ def op_and(items):
     return items.to(1)
 
 
-def make_rewriting_reduce(rewrite_f, core_reduce_f, log_reduce_f):
-    def my_reduce_f(self, form, env):
+def make_rewriting_reduce(rewrite_f, core_eval_f, log_eval_f):
+    def my_eval_f(self, form, env):
         rewritten_form = rewrite_f(rewrite_f, form)
-        rv = core_reduce_f(self, rewritten_form, env)
-        log_reduce_f(form.to([form, rewritten_form, env, rv]))
+        rv = core_eval_f(self, rewritten_form, env)
+        log_eval_f(form.to([form, rewritten_form, env, rv]))
         return rv
-    return my_reduce_f
+    return my_eval_f
 
 
 MORE_OP_REWRITE = {
@@ -238,16 +238,16 @@ OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_INT, more_ops, MORE_OP_RE
 OPERATOR_LOOKUP[KEYWORD_TO_INT["and"]] = op_and
 OPERATOR_LOOKUP[KEYWORD_TO_INT["rewrite_op"]] = op_rewrite
 
-BASE_REDUCE_F = make_reduce_f(
+BASE_REDUCE_F = make_eval_f(
     OPERATOR_LOOKUP, KEYWORD_TO_INT["quote"], KEYWORD_TO_INT["reduce"], KEYWORD_TO_INT["env"])
 
 
-def reduce_f(self, sexp, args):
+def eval_f(self, sexp, args):
     new_sexp = rewrite_f(rewrite_f, sexp)
     return BASE_REDUCE_F(self, new_sexp, args)
 
 
-rewrite_f = make_rewrite_f(KEYWORD_TO_INT, reduce_f, reduce_constants=False)
+rewrite_f = make_rewrite_f(KEYWORD_TO_INT, eval_f, reduce_constants=False)
 
 
 def transform(sexp):
@@ -258,7 +258,7 @@ def transform(sexp):
     else:
         args = sexp.null
 
-    return reduce_f(reduce_f, sexp, args)
+    return eval_f(eval_f, sexp, args)
 
 
 def to_tokens(sexp):
