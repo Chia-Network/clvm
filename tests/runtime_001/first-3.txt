@@ -1,2 +1,2 @@
-reduce -s clvm.runtime_001 '(f (q ()))'
+reduce -s schemas.runtime_001 '(f (q ()))'
 FAIL: first of non-cons

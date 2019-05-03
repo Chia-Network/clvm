@@ -1,2 +1,2 @@
-reduce -s clvm.runtime_001 '(a)' '(990)'
+reduce -s schemas.runtime_001 '(a)' '(990)'
 (990)

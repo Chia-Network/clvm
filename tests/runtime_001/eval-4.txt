@@ -1,2 +1,2 @@
-reduce -s clvm.runtime_001 '(e (q 0) (q 1) (q 2))'
+reduce -s schemas.runtime_001 '(e (q 0) (q 1) (q 2))'
 FAIL: reduce_list requires 2 parameters, got 3

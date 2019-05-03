@@ -34,6 +34,8 @@ class mixin:
         return self.as_iter()
 
     def __str__(self):
+        # TODO: remove this
+        from opacity.binutils import disassemble
         return disassemble(self)
 
 
@@ -66,28 +68,3 @@ OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRIT
 
 reduce_f = make_reduce_f(
     OPERATOR_LOOKUP, KEYWORD_TO_ATOM["q"], KEYWORD_TO_ATOM["e"], KEYWORD_TO_ATOM["a"])
-
-
-# HACK
-# TODO: remove everything below here
-
-from opacity.binutils import assemble_from_symbols, disassemble_to_symbols, disassemble
-
-
-def transform(sexp):
-    if sexp.listp():
-        if sexp.nullp():
-            return sexp
-        sexp, args = sexp.first(), sexp.rest()
-    else:
-        args = sexp.null
-
-    return reduce_f(reduce_f, sexp, args)
-
-
-def to_tokens(sexp):
-    return disassemble_to_symbols(sexp)
-
-
-def from_tokens(sexp):
-    return assemble_from_symbols(sexp)

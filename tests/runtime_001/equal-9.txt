@@ -1,2 +1,2 @@
-reduce -s clvm.runtime_001 "(= (f (a)) (+ (f (r (a))) (f (r (r (a))))))" "(7 3 3)"
+reduce -s schemas.runtime_001 "(= (f (a)) (+ (f (r (a))) (f (r (r (a))))))" "(7 3 3)"
 ()
