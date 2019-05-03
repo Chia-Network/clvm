@@ -1,7 +1,7 @@
 from .ReduceError import ReduceError
 
 
-class RExp:
+class BaseSExp:
     ATOM_TYPES = (bytes, )
 
     @classmethod
@@ -13,7 +13,7 @@ class RExp:
         if isinstance(v, class_):
             return v
 
-        if isinstance(v, RExp):
+        if isinstance(v, BaseSExp):
             return class_.to(v.v)
 
         if v is None:
@@ -86,9 +86,9 @@ class RExp:
         return other.v == self.v
 
 
-def subclass_rexp(mixin_class=object, atom_types=RExp.ATOM_TYPES):
+def subclass_sexp(mixin_class=object, atom_types=BaseSExp.ATOM_TYPES):
 
-    class SExp(mixin_class, RExp):
+    class SExp(mixin_class, BaseSExp):
         ATOM_TYPES = atom_types
 
     SExp.__null__ = SExp(None)

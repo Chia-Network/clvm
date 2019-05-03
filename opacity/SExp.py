@@ -1,8 +1,8 @@
 import io
 
 from clvm.casts import int_to_bytes, int_from_bytes
-from clvm.RExp import subclass_rexp
 from clvm.serialize import make_sexp_from_stream, sexp_to_stream
+from clvm.subclass_sexp import subclass_sexp
 
 from .Var import Var
 
@@ -75,7 +75,7 @@ class mixin:
         return class_.from_stream(io.BytesIO(blob))
 
 
-to_sexp_f = subclass_rexp(mixin, (bytes, Var))
+to_sexp_f = subclass_sexp(mixin, (bytes, Var))
 
 # HACK
 

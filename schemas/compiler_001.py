@@ -2,7 +2,7 @@ import io
 
 from clvm.casts import int_from_bytes, int_to_bytes
 from clvm.serialize import sexp_to_stream
-from clvm.RExp import subclass_rexp
+from clvm.subclass_sexp import subclass_sexp
 
 from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.reader import read_tokens
@@ -58,7 +58,7 @@ class mixin:
         return write_tokens(tokens)
 
 
-to_sexp_f = subclass_rexp(mixin, (bytes, Var))
+to_sexp_f = subclass_sexp(mixin, (bytes, Var))
 
 
 KEYWORDS = (

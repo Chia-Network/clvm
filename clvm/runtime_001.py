@@ -7,8 +7,8 @@ from . import core_ops, more_ops
 from .casts import int_from_bytes, int_to_bytes
 from .core import make_reduce_f
 from .op_utils import operators_for_module
-from .RExp import subclass_rexp
 from .serialize import make_sexp_from_stream, sexp_to_stream
+from .subclass_sexp import subclass_sexp
 
 
 class mixin:
@@ -34,7 +34,7 @@ class mixin:
         return self.as_iter()
 
 
-to_sexp_f = subclass_rexp(mixin, (bytes, Var))
+to_sexp_f = subclass_sexp(mixin, (bytes, Var))
 sexp_from_stream = make_sexp_from_stream(to_sexp_f)
 
 KEYWORDS = ". q e a i c f r l x = sha256 + - * . wrap unwrap point_add pubkey_for_exp".split()

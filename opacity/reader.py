@@ -1,6 +1,6 @@
 # read strings into Token
 
-from clvm.RExp import subclass_rexp
+from clvm.subclass_sexp import subclass_sexp
 
 
 class TokenMixin:
@@ -15,7 +15,7 @@ class TokenMixin:
         return self.as_iter()
 
 
-tokenize = subclass_rexp(TokenMixin, (str, bytes))
+tokenize = subclass_sexp(TokenMixin, (str, bytes))
 
 
 def consume_whitespace(s: str, offset):
