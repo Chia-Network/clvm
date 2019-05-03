@@ -12,11 +12,27 @@ def encode_size(f, size, step_size, base_byte_int):
     f.write(bytes([base_byte_int+remainder]))
 
 
+def list_size(v):
+    """
+    Calculate list size
+    """
+    if v.nullp():
+        return 0
+
+    if v.listp():
+        t = list_size(v.rest())
+        if t is not None:
+            return t + 1
+    return t
+
+
 def sexp_to_stream(v, f):
     if v.listp():
-        encode_size(f, len(list(v)), 32, 0x20)
-        for _ in v:
-            sexp_to_stream(_, f)
+        size = list_size(v)
+        encode_size(f, size, 32, 0x20)
+        for _ in range(size):
+            sexp_to_stream(v.first(), f)
+            v = v.rest()
         return
 
     as_atom = v.as_atom()

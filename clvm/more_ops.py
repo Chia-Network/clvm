@@ -1,12 +1,14 @@
 import hashlib
+import io
 
 from .ReduceError import ReduceError
 from .casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes
+from .serialize import make_sexp_from_stream, sexp_to_stream
 
 
 def op_sha256(args):
     h = hashlib.sha256()
-    for _ in args:
+    for _ in args.as_iter():
         h.update(_.as_atom())
     return args.to(h.digest())
 
@@ -59,7 +61,8 @@ def op_multiply(args):
 
 def op_unwrap(items):
     try:
-        return items.from_blob(items.first().as_atom())
+        sexp_from_stream = make_sexp_from_stream(items.to)
+        return sexp_from_stream(io.BytesIO(items.first().as_atom()))
     except (IndexError, ValueError):
         raise ReduceError("bad stream", items)
 
@@ -67,7 +70,9 @@ def op_unwrap(items):
 def op_wrap(items):
     if items.nullp() or not items.rest().nullp():
         raise ReduceError("wrap expects exactly one argument", items)
-    return items.to(items.first().as_bin())
+    f = io.BytesIO()
+    sexp_to_stream(items.first(), f)
+    return items.to(f.getvalue())
 
 
 def op_pubkey_for_exp(items):
@@ -81,7 +86,7 @@ def op_pubkey_for_exp(items):
 
 def op_point_add(items):
     p = bls12_381_generator.infinity()
-    for _ in items:
+    for _ in items.as_iter():
         try:
             p += bls12_381_from_bytes(_.as_atom())
         except Exception as ex:
