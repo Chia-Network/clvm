@@ -3,7 +3,7 @@ import io
 
 from .ReduceError import ReduceError
 from .casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes
-from .serialize import make_sexp_from_stream, sexp_to_stream
+from .serialize import sexp_from_stream, sexp_to_stream
 
 
 def op_sha256(args):
@@ -61,8 +61,7 @@ def op_multiply(args):
 
 def op_unwrap(items):
     try:
-        sexp_from_stream = make_sexp_from_stream(items.to)
-        return sexp_from_stream(io.BytesIO(items.first().as_atom()))
+        return sexp_from_stream(io.BytesIO(items.first().as_atom()), items.to)
     except (IndexError, ValueError):
         raise ReduceError("bad stream", items)
 

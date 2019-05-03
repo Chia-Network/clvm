@@ -1,7 +1,7 @@
 import io
 
 from clvm.casts import int_to_bytes, int_from_bytes
-from clvm.serialize import make_sexp_from_stream, sexp_to_stream
+from clvm.serialize import sexp_from_stream, sexp_to_stream
 from clvm.subclass_sexp import subclass_sexp
 
 from .Var import Var
@@ -68,7 +68,7 @@ class mixin:
 
     @classmethod
     def from_stream(class_, f):
-        return sexp_from_stream(f)
+        return sexp_from_stream(f, class_.to)
 
     @classmethod
     def from_blob(class_, blob):
@@ -81,4 +81,3 @@ to_sexp_f = subclass_sexp(mixin, (bytes, Var))
 
 SExp = to_sexp_f(None).__class__
 SExp.false = to_sexp_f(0)
-sexp_from_stream = make_sexp_from_stream(to_sexp_f)

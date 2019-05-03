@@ -80,29 +80,25 @@ def decode_size(f):
     return steps, v
 
 
-def make_sexp_from_stream(to_sexp):
+def sexp_from_stream(f, to_sexp):
+    steps, v = decode_size(f)
+    if v == 0:
+        return to_sexp(b'')
 
-    def sexp_from_stream(f):
-        steps, v = decode_size(f)
-        if v == 0:
-            return to_sexp(b'')
+    if v < 0x20:
+        return to_sexp(bytes([v]))
 
-        if v < 0x20:
-            return to_sexp(bytes([v]))
+    if v < 0x40:
+        size = v - 0x20 + steps * 0x20
+        items = [sexp_from_stream(f, to_sexp) for _ in range(size)]
+        return to_sexp(items)
 
-        if v < 0x40:
-            size = v - 0x20 + steps * 0x20
-            items = [sexp_from_stream(f) for _ in range(size)]
-            return to_sexp(items)
+    if v < 0x60:
+        index = v - 0x40 + steps * 0x20
+        return to_sexp(Var(index))
 
-        if v < 0x60:
-            index = v - 0x40 + steps * 0x20
-            return to_sexp(Var(index))
-
-        size = v - 0x60 + steps * 160
-        blob = f.read(size)
-        if len(blob) < size:
-            raise ValueError("unexpected end of stream")
-        return to_sexp(blob)
-
-    return sexp_from_stream
+    size = v - 0x60 + steps * 160
+    blob = f.read(size)
+    if len(blob) < size:
+        raise ValueError("unexpected end of stream")
+    return to_sexp(blob)

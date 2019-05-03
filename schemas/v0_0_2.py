@@ -6,7 +6,6 @@ from opacity.int_keyword import from_int_keyword_tokens, to_int_keyword_tokens
 from opacity.reader import read_tokens
 from opacity.SExp import sexp_from_stream, to_sexp_f
 
-
 from clvm import more_ops
 from clvm.op_utils import operators_for_module
 
@@ -271,4 +270,4 @@ def from_tokens(sexp):
 
 
 def from_stream(f):
-    return sexp_from_stream(f)
+    return sexp_from_stream(f, to_sexp_f)

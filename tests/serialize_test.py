@@ -9,12 +9,12 @@ class SerializeTest(unittest.TestCase):
     def check_serde(self, s):
         v = to_sexp_f(s)
         b = v.as_bin()
-        v1 = sexp_from_stream(io.BytesIO(b))
+        v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)
         if v != v1:
             print("%s: %d %s %s" % (v, len(b), b, v1))
             breakpoint()
             b = v.as_bin()
-            v1 = sexp_from_stream(io.BytesIO(b))
+            v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)
         self.assertEqual(v, v1)
 
     def test_empty_string(self):
