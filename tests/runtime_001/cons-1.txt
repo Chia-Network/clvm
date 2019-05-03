@@ -1,2 +1,2 @@
 reduce -s schemas.runtime_001 '(c)'
-FAIL: first of non-cons
+FAIL: first of non-cons ()

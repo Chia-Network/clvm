@@ -26,7 +26,7 @@ def op_add(args):
     for arg in args.as_iter():
         r = arg.as_int()
         if r is None:
-            raise ReduceError("add takes integer arguments, %s is not an int" % arg)
+            raise ReduceError("+ takes integer arguments", args)
         total += r
     total = truncate_int(total)
     return args.to(total)
@@ -40,7 +40,7 @@ def op_subtract(args):
     for arg in args.as_iter():
         r = arg.as_int()
         if r is None:
-            raise ReduceError("add takes integer arguments, %s is not an int" % arg)
+            raise ReduceError("- takes integer arguments", args)
         total += sign * r
         total = truncate_int(total)
         sign = -1
@@ -52,7 +52,7 @@ def op_multiply(args):
     for arg in args.as_iter():
         r = arg.as_int()
         if r is None:
-            raise ReduceError("add takes integer arguments, %s is not an int" % arg)
+            raise ReduceError("* takes integer arguments", args)
         v = truncate_int(v * r)
     return args.to(v)
 
@@ -61,23 +61,22 @@ def op_unwrap(items):
     try:
         return items.from_blob(items.first().as_atom())
     except (IndexError, ValueError):
-        raise ReduceError("bad stream: %s" % items[0])
+        raise ReduceError("bad stream", items)
 
 
 def op_wrap(items):
     if items.nullp() or not items.rest().nullp():
-        raise ReduceError("wrap expects exactly one argument, got %d" % len(items))
+        raise ReduceError("wrap expects exactly one argument", items)
     return items.to(items.first().as_bin())
 
 
 def op_pubkey_for_exp(items):
     if items.nullp() or not items.rest().nullp():
-        raise ReduceError("op_pubkey_for_exp expects exactly one argument, got %d" % len(
-            list(items.as_iter())))
+        raise ReduceError("op_pubkey_for_exp expects exactly one argument", items)
     try:
         return items.to(bls12_381_to_bytes(bls12_381_generator * items.first().as_int()))
     except Exception as ex:
-        raise ReduceError("problem in op_pubkey_for_exp: %s" % ex)
+        raise ReduceError("problem in op_pubkey_for_exp: %s" % ex, items)
 
 
 def op_point_add(items):
@@ -86,5 +85,5 @@ def op_point_add(items):
         try:
             p += bls12_381_from_bytes(_.as_atom())
         except Exception as ex:
-            raise ReduceError("point_add expects blob, got %s: %s" % (_, ex))
+            raise ReduceError("point_add expects blob, got %s: %s" % (_, ex), items)
     return items.to(bls12_381_to_bytes(p))

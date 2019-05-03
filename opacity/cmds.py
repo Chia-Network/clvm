@@ -100,14 +100,16 @@ def reduce(args=sys.argv):
 def do_reduction(args, mod, sexp, solution):
     try:
         reductions = mod.transform(sexp.cons(solution))
-        output = mod.to_tokens(reductions)
-        final_output = writer.write_tokens(output)
+        result = mod.to_tokens(reductions)
+        output = writer.write_tokens(result)
     except ReduceError as e:
-        final_output = "FAIL: %s" % e
+        result = mod.to_tokens(e._sexp)
+        output = "FAIL: %s %s" % (e, writer.write_tokens(result))
+        result = e._sexp
         return -1
     finally:
         if not args.debug:
-            print(final_output)
+            print(output)
 
         # TODO solve the debugging problem
         the_log = []

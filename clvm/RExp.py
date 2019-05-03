@@ -56,12 +56,12 @@ class RExp:
     def first(self):
         if isinstance(self.v, tuple):
             return self.v[0]
-        raise ReduceError("first of non-cons")
+        raise ReduceError("first of non-cons", self)
 
     def rest(self):
         if isinstance(self.v, tuple):
             return self.v[1]
-        raise ReduceError("rest of non-cons")
+        raise ReduceError("rest of non-cons", self)
 
     def as_atom(self):
         assert not(self.listp())

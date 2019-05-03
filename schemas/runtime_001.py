@@ -1,5 +1,6 @@
 from clvm.runtime_001 import reduce_f
-from opacity.binutils import assemble_from_symbols, disassemble_to_symbols, disassemble
+from opacity.binutils import assemble_from_symbols, disassemble_to_symbols
+
 
 def transform(sexp):
     if sexp.listp():

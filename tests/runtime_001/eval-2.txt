@@ -1,2 +1,2 @@
 reduce -s schemas.runtime_001 '(e (q (a)))'
-FAIL: reduce_list requires 2 parameters, got 1
+FAIL: reduce_list requires 2 parameters (e (q (a)))

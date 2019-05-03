@@ -33,11 +33,6 @@ class mixin:
     def __iter__(self):
         return self.as_iter()
 
-    def __str__(self):
-        # TODO: remove this
-        from opacity.binutils import disassemble
-        return disassemble(self)
-
 
 to_sexp_f = subclass_rexp(mixin, (bytes, Var))
 sexp_from_stream = make_sexp_from_stream(to_sexp_f)
