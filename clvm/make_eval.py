@@ -48,6 +48,6 @@ def make_eval_f(operator_lookup, quote_kw, eval_kw, env_kw):
         if f:
             return f(args)
 
-        raise EvalError("unknown function index", form)
+        raise EvalError("unimplemented operator", first_item)
 
     return eval_core

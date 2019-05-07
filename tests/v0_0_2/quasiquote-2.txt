@@ -1,2 +1,2 @@
 reduce -s schemas.v0_0_2 '(quasiquote (quasiquote (+ 1 2 (unquote (+ 1 2)) (unquote (unquote (+ 1 2))))))'
-FAIL: unknown function index (unquote (+ (quote 1) (quote 2)))
+FAIL: unimplemented operator 20
