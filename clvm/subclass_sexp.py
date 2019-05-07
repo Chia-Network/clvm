@@ -48,7 +48,7 @@ class BaseSExp:
         return isinstance(self.v, (None.__class__, tuple))
 
     def nullp(self):
-        return self.v is None
+        return self == self.__null__
 
     def cons(self, right):
         return self.__class__((self, right))
@@ -86,13 +86,13 @@ class BaseSExp:
         return other.v == self.v
 
 
-def subclass_sexp(mixin_class=object, atom_types=BaseSExp.ATOM_TYPES):
+def subclass_sexp(mixin_class=object, atom_types=BaseSExp.ATOM_TYPES, true=b'\1', false=None):
 
     class SExp(mixin_class, BaseSExp):
         ATOM_TYPES = atom_types
 
-    SExp.__null__ = SExp(None)
+    SExp.__null__ = SExp(false)
     SExp.false = SExp.__null__
-    SExp.true = SExp(b'\1')
+    SExp.true = SExp(true)
 
     return SExp.to
