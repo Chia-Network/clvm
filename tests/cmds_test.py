@@ -98,6 +98,7 @@ inject("puzzles")
 
 inject("compiler")
 
+
 def main():
     unittest.main()
 

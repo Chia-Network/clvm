@@ -1,14 +1,35 @@
 # read strings into Token
 
-from opacity.SExp import SExp
+from clvm.subclass_sexp import subclass_sexp
+
+
+class mixin:
+    @classmethod
+    def to_atom(class_, v):
+        if isinstance(v, bytes):
+            v = v.decode(v, "utf8")
+        if isinstance(v, int):
+            return str(v)
+        return v
+
+    def as_int(self):
+        return int(self.v)
+
+    def __repr__(self):
+        if self.nullp():
+            return "()"
+        if isinstance(self.v, str):
+            return self.v
+        return "(%s)" % (" ".join(repr(_) for _ in self.as_iter()))
+
+
+to_sexp = subclass_sexp(mixin, (str, ), true="true", false="0")
 
 
 def Token(s, offset):
-    if isinstance(s, str):
-        s = s.encode("utf8")
-    s = SExp(s)
-    s._offset = offset
-    return s
+    t = to_sexp(s)
+    t._offset = offset
+    return t
 
 
 def consume_whitespace(s: str, offset):
@@ -88,5 +109,5 @@ def tokenize_sexp(s: str, offset: int):
     return tokenize_atom(s, offset)
 
 
-def tokenize_program(s: str):
+def read_tokens(s: str):
     return tokenize_sexp(s, 0)[0]
