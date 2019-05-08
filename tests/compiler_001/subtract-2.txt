@@ -1,2 +1,2 @@
-reduce -s schemas.compiler_001 '(- x0 5)' '(500)'
+run '(- x0 5)' '(500)'
 495

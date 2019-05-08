@@ -1,2 +1,2 @@
-reduce -s schemas.compiler_001 "(and (equal 1 1) (equal 2 2) (equal 3 3))"
-1
+run "(and (equal 1 1) (equal 2 2) (equal 3 3))"
+true

@@ -1,2 +1,2 @@
-reduce -s schemas.compiler_001 '(if () x0 300)' '(200)'
+run '(if () x0 300)' '(200)'
 300
