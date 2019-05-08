@@ -2,8 +2,16 @@
 
 from clvm.subclass_sexp import subclass_sexp
 
+from .Node import Node
+
 
 class mixin:
+    @classmethod
+    def to_castable(class_, v):
+        if isinstance(v, Node):
+            return v.path()
+        return v
+
     @classmethod
     def to_atom(class_, v):
         if isinstance(v, bytes):

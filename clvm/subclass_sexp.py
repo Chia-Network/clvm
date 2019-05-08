@@ -5,11 +5,17 @@ class BaseSExp:
     ATOM_TYPES = (bytes, )
 
     @classmethod
+    def to_castable(class_, v):
+        return v
+
+    @classmethod
     def to_atom(class_, v):
         return v
 
     @classmethod
     def to(class_, v):
+        v = class_.to_castable(v)
+
         if isinstance(v, class_):
             return v
 

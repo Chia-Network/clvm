@@ -1,2 +1,2 @@
 run '(prog (quote ((defmacro list () (eval (if (args) (quote (eval (if (args) (quote (cons cons (cons (first (args)) (cons (cons list (rest (args))) ())))) ()) (args))) ()) (args))))) (quote (list)))'
-(e (q ()) (c (q ()) (a)))
+(e (q (q ())) (c (q ()) (a)))

@@ -2,12 +2,14 @@ import argparse
 import binascii
 import sys
 
-from .reader import read_tokens
 from opacity.writer import write_tokens
 
 from clvm import core_ops, more_ops
 from clvm.make_eval import make_eval_f, EvalError
 from clvm.op_utils import operators_for_module, operators_for_dict
+
+from .reader import read_tokens
+from .Node import Node
 
 
 class CompileError(ValueError):
@@ -25,12 +27,14 @@ def arg_index(index):
     """
     Generate code that drills down to correct args node
     """
-    if index == 0:
-        return ["args"]
-    return ["first" if index & 1 else "rest", arg_index((index-1) >> 1)]
+    return Node(index)
 
 
 def list_to_cons(sexp):
+    """
+    Take an sexp that is a list and turn it into a bunch of cons
+    operators that build the list.
+    """
     if sexp.nullp():
         return sexp.null()
     return ["cons", sexp.first(), list_to_cons(sexp.rest())]
@@ -43,18 +47,19 @@ def do_local_subsitution(sexp, arg_lookup):
         return sexp.to([sexp.first()] + [
             do_local_subsitution(_, arg_lookup) for _ in sexp.rest().as_iter()])
     b = sexp.as_atom()
-    return sexp.to(arg_index(arg_lookup.get(b)))
+    return sexp.to(arg_lookup.get(b))
 
 
 def parse_defun(dec):
     name, args, definition = list(dec.rest().as_iter())
 
     # do arg substitution in definition so it's in terms of indices
-    arg_lookup = {_.as_atom(): (4 << index) - 3 for index, _ in enumerate(args.as_iter())}
+    base_node = Node().rest()
+    arg_lookup = {_.as_atom(): base_node.list_index(index) for index, _ in enumerate(args.as_iter())}
 
     def builder(compile_sexp, args, function_rewriters, function_index_lookup):
         function_index = function_index_lookup[name.as_atom()]
-        r = args.to(["eval", arg_index(function_index), [
+        r = args.to(["eval", function_index, [
             "cons", arg_index(0), list_to_cons(args)]])
         return compile_sexp(compile_sexp, r, function_rewriters, function_index_lookup)
 
@@ -166,7 +171,7 @@ def parse_as_var(sexp):
 
 def compile_atom(sexp):
     if sexp.nullp():
-        return sexp
+        return ["q", sexp]
     token = sexp.as_atom()
     c = token[0]
     if c in "\'\"":
@@ -264,7 +269,8 @@ def op_prog(sexp):
             function_imps[name] = imp
             function_name_lookup.append(name)
     # build the function table and put that in x0
-    function_index_lookup = {v: (4 << k) - 3 for k, v in enumerate(function_name_lookup)}
+    base_node = Node().first()
+    function_index_lookup = {v: base_node.list_index(k) for k, v in enumerate(function_name_lookup)}
     function_table = []
     function_rewriters.update(local_function_rewriters)
     function_table = [

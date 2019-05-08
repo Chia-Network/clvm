@@ -1,2 +1,2 @@
 run '(prog (quote ((defun add (n1 n2) (+ n1 n2)))) (quote (add 50 60)))'
-(e (q (e (f (a)) (c (a) (c (q 50) (c (q 60) ()))))) (c (q ((+ (f (a)) (f (r (a)))))) (a)))
+(e (q (e (f (f (a))) (c (a) (c (q 50) (c (q 60) (q ())))))) (c (q ((+ (f (r (a))) (f (r (r (a))))))) (a)))
