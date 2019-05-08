@@ -107,6 +107,9 @@ def do_reduction(args, mod, sexp, solution):
         output = "FAIL: %s %s" % (e, writer.write_tokens(result))
         result = e._sexp
         return -1
+    except Exception as e:
+        output = "EXCEPTION: %r" % e
+        raise
     finally:
         if not args.debug:
             print(output)

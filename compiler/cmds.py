@@ -26,8 +26,14 @@ def arg_index(index):
     Generate code that drills down to correct args node
     """
     if index == 0:
-        return [ARGS_KEYWORD]
-    return ["f" if index & 1 else "r", arg_index((index-1) >> 1)]
+        return ["args"]
+    return ["first" if index & 1 else "rest", arg_index((index-1) >> 1)]
+
+
+def list_to_cons(sexp):
+    if sexp.nullp():
+        return sexp.null()
+    return ["cons", sexp.first(), list_to_cons(sexp.rest())]
 
 
 def do_local_subsitution(sexp, arg_lookup):
@@ -47,11 +53,10 @@ def parse_defun(dec):
     arg_lookup = {_.as_atom(): (4 << index) - 3 for index, _ in enumerate(args.as_iter())}
 
     def builder(compile_sexp, args, function_rewriters, function_index_lookup):
-        args = args.to([compile_sexp(
-            compile_sexp, _, function_rewriters, function_index_lookup) for _ in args.as_iter()])
         function_index = function_index_lookup[name.as_atom()]
-        return args.to([EVAL_KEYWORD, arg_index(function_index), [
-            CONS_KEYWORD, arg_index(0), [LIST_KEYWORD] + list(args.as_iter())]])
+        r = args.to(["eval", arg_index(function_index), [
+            "cons", arg_index(0), list_to_cons(args)]])
+        return compile_sexp(compile_sexp, r, function_rewriters, function_index_lookup)
 
     imp = do_local_subsitution(definition, arg_lookup)
 
@@ -88,14 +93,16 @@ def parse_declaration(declaration):
 
 def make_remap(keyword, compiled_keyword):
     def remap(compile_sexp, args, function_rewriters, function_index_lookup):
-        return args.to([compiled_keyword] + list(compile_sexp(
-            compile_sexp, _, function_rewriters, function_index_lookup) for _ in args.as_iter()))
+        new_args = [compile_sexp(
+            compile_sexp, _, function_rewriters, function_index_lookup) for _ in args.as_iter()]
+        return args.to([compiled_keyword] + new_args)
     return remap
 
 
 def remap_eval(compile_sexp, sexp, function_rewriters, function_index_lookup):
-    args = sexp.to([compile_sexp(compile_sexp, _, function_rewriters, function_index_lookup) for _ in sexp])
-    r1 = sexp.to([EVAL_KEYWORD, args.first(), [ARGS_KEYWORD]])
+    args = sexp.to([compile_sexp(
+        compile_sexp, _, function_rewriters, function_index_lookup) for _ in sexp.as_iter()])
+    r1 = sexp.to(EVAL_KEYWORD).cons(args)
     return r1
 
 
@@ -158,6 +165,8 @@ def parse_as_var(sexp):
 
 
 def compile_atom(sexp):
+    if sexp.nullp():
+        return sexp
     token = sexp.as_atom()
     c = token[0]
     if c in "\'\"":
@@ -289,7 +298,6 @@ eval_list_f = make_eval_f(operators, "quote", "eval", "args")
 
 
 def eval_f(self, sexp, args):
-    print("SEXP: %s [%s]" % (sexp, args))
     if sexp.nullp():
         return sexp
 

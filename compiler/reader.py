@@ -23,7 +23,7 @@ class mixin:
         return "(%s)" % (" ".join(repr(_) for _ in self.as_iter()))
 
 
-to_sexp = subclass_sexp(mixin, (str, ), true="true", false="0")
+to_sexp = subclass_sexp(mixin, (str, ), true="true", false="()")
 
 
 def Token(s, offset):
