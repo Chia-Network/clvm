@@ -17,10 +17,12 @@ BUILT_IN_KEYWORDS = [
     ("function",
         "(list function_op (list quote x0))"),
     ("map",
-        "(list eval (quote (quote (eval x0 (list x0 x1)))) "
-        "(list list (list function (list if (quote x1) "
+        "(list eval (function (function (eval x0 (list x0 x1)))) "
+        "(list list (list function (list if (function x1) "
         "(list cons (list eval x0 (list list (list first (quote x1)))) "
-        "(list eval (quote x0) (list list (quote x0) (list rest (quote x1))))) ())) x1))"),
+        "(list eval (function x0) (list list (function x0) (list rest (function x1))))) ())) x1))"),
+    ("and",
+        "(if (args) (list if x0 (cons and (rest (args))) ()) 1)"),
 ]
 
 
@@ -98,7 +100,7 @@ def op_expand_sexp(sexp, operator_lookup=OPERATOR_LOOKUP):
             return sexp.to(["eval", macro_sexp, ["args"]])
         else:
             from .cmds import do_eval
-            return do_eval(macro_sexp, sexp.null())
+            return op_expand_sexp(do_eval(macro_sexp, sexp.null()))
     else:
         f = operator_lookup.get(operator.as_atom())
         if f:

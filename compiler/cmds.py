@@ -49,14 +49,6 @@ def op_equal(sexp):
     return sexp.true
 
 
-def op_and(sexp):
-    if sexp.nullp():
-        return sexp.true
-    if sexp.first().nullp():
-        return sexp.false
-    return op_and(sexp.rest())
-
-
 def op_sha256(args):
     h = hashlib.sha256()
     for _ in args.as_iter():

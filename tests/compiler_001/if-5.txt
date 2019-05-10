@@ -1,2 +1,2 @@
-reduce -s schemas.compiler_001 '(compile (if x5 100 200))'
-(e (if_op (first (rest (rest (rest (rest (rest (args))))))) (quote (quote 100)) (quote (quote 200))) (args))
+run '(compile (if x5 100 200))'
+(e (i (f (r (r (r (r (r (a))))))) (q (q 100)) (q (q 200))) (a))

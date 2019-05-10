@@ -1,2 +1,2 @@
-reduce -s schemas.compiler_001 '(list #+ (quote 1) (quote 2) (+ 1 2))'
-(+ 1 2 3)
+run '(compile_op (list + (function 1) (function 2) (+ 1 2)))'
+(+ (q 1) (q 2) (q 3))
