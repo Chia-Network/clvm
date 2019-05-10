@@ -1,4 +1,4 @@
-# read strings into Token
+import binascii
 
 from clvm.subclass_sexp import subclass_sexp, EvalError
 
@@ -27,9 +27,14 @@ class mixin:
         if not self.listp():
             as_atom = self.as_atom()
             if len(as_atom) > 1:
-                if as_atom[0] == as_atom[-1] == '"':
-                    return as_atom.encode("utf8")
-        raise EvalError("not bytes")
+                try:
+                    if as_atom[0] == as_atom[-1] == '"':
+                        return as_atom[1:-1].encode("utf8")
+                    if as_atom.upper().startswith("0X"):
+                        return binascii.unhexlify(as_atom[2:])
+                except Exception:
+                    pass
+        raise EvalError("not bytes", self)
 
     def __repr__(self):
         if self.nullp():

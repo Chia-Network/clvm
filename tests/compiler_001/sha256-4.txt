@@ -1,0 +1,2 @@
+run '(sha256 (sha256 x0 x1))' '("hel" "lo.there.my.dear.friend")'
+0x1f596aa79cc754cf3c587ea5f20319f5ad75d9167b494aa67e3a611ca781ecdd

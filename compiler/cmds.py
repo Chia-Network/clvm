@@ -53,7 +53,7 @@ def op_sha256(args):
     h = hashlib.sha256()
     for _ in args.as_iter():
         h.update(_.as_bytes())
-    return args.to(h.hexdigest())
+    return args.to("0x%s" % h.hexdigest())
 
 
 def op_if_op(args):
