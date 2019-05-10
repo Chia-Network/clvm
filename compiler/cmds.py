@@ -56,10 +56,6 @@ def op_sha256(args):
     return args.to(h.hexdigest())
 
 
-def op_list(args):
-    return args
-
-
 def op_if_op(args):
     r = args
     if r.first().nullp():

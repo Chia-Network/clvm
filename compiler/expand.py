@@ -5,6 +5,9 @@ from .reader import read_tokens
 
 
 BUILT_IN_KEYWORDS = [
+    ("list",
+        "(eval (if_op (args) (quote (cons cons (cons x0 (cons (cons list (rest (args))) ())))) ()) "
+        "(args))"),
     ("if",
         "(list eval (list if_op (first (args)) "
         "(list function (first (rest (args)))) (list function (first (rest (rest (args)))))) (list args))"),
@@ -29,16 +32,6 @@ BUILT_IN_KEYWORDS = [
 MACRO_KEYWORDS = {k: read_tokens(v) for k, v in BUILT_IN_KEYWORDS}
 
 
-def expand_list(sexp, op_expand_sexp):
-    """
-    Take an sexp that is a list and turn it into a bunch of cons
-    operators that build the list.
-    """
-    if sexp.nullp():
-        return sexp.null()
-    return sexp.to(["cons", sexp.first(), op_expand_sexp(sexp.to("list").cons(sexp.rest()))])
-
-
 def make_unexpanded_operator(operator):
     def stop_expanding(sexp, op_expand_sexp):
         return sexp.to(operator).cons(sexp)
@@ -46,9 +39,7 @@ def make_unexpanded_operator(operator):
 
 
 UNEXPANDED_OPS = ["quote"]
-OPERATOR_LOOKUP = {
-    "list": expand_list,
-}
+OPERATOR_LOOKUP = {}
 OPERATOR_LOOKUP.update({_: make_unexpanded_operator(_) for _ in UNEXPANDED_OPS})
 
 
