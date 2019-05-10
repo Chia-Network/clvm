@@ -4,9 +4,8 @@ class Node:
         self._index = index
 
     @classmethod
-    def node_for_list_index(class_, index, base_node=None):
-        base_node = base_node or Node()
-        return base_node.list_index(index)
+    def for_list_index(class_, index):
+        return Node().list_index(index)
 
     def list_index(self, index):
         node = self

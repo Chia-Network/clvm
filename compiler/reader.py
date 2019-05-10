@@ -1,6 +1,6 @@
 # read strings into Token
 
-from clvm.subclass_sexp import subclass_sexp
+from clvm.subclass_sexp import subclass_sexp, EvalError
 
 from .Node import Node
 
@@ -23,6 +23,14 @@ class mixin:
     def as_int(self):
         return int(self.v)
 
+    def as_bytes(self):
+        if not self.listp():
+            as_atom = self.as_atom()
+            if len(as_atom) > 1:
+                if as_atom[0] == as_atom[-1] == '"':
+                    return as_atom.encode("utf8")
+        raise EvalError("not bytes")
+
     def __repr__(self):
         if self.nullp():
             return "()"
@@ -31,7 +39,7 @@ class mixin:
         return "(%s)" % (" ".join(repr(_) for _ in self.as_iter()))
 
 
-to_sexp = subclass_sexp(mixin, (str, ), true="true", false="()")
+to_sexp = subclass_sexp(mixin, (str, None.__class__), true="true", false=None)
 
 
 def Token(s, offset):
