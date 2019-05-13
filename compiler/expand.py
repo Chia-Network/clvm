@@ -16,7 +16,7 @@ BUILT_IN_KEYWORDS = [
     ("expand",
         "(list expand_op (list quote x0))"),
     ("prog",
-        "(list prog_op (list quote x0))"),
+        "(list prog_op (list quote x0) (list quote x1))"),
     ("function",
         "(list function_op (list quote x0))"),
     ("map",

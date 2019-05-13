@@ -34,3 +34,40 @@ Try the command-line tools to create and reduce scripts.
     1
     $ reduce `opc '(equal x0 (+ x1 x2))'` `opc '(18 10 7)'`
     0
+
+
+From python
+===========
+
+Here's an example on how to create a script and invoke it from python.
+
+    $ python
+    >>> from clvm import to_sexp_f, eval_f, KEYWORD_TO_ATOM
+    >>> program = to_sexp_f([KEYWORD_TO_ATOM["q"], 100])     # (q 100)
+    >>> args = to_sexp_f([])
+    >>> r = eval_f(eval_f, program, args)
+    >>> print(r.listp())
+    False
+    >>> print(r.as_int())
+    100
+    >>>
+    >>> program = to_sexp_f([KEYWORD_TO_ATOM["+"], [KEYWORD_TO_ATOM["q"], 500], \
+    ...                     [KEYWORD_TO_ATOM["f"], [KEYWORD_TO_ATOM["a"]]]])     # (+ (q 500) (f (a)))
+    >>> args = to_sexp_f([25])   # (25)
+    >>> r = eval_f(eval_f, program, args)
+    >>> print(r.listp())
+    False
+    >>> print(r.as_int())
+    525
+    >>>
+    >>> program = to_sexp_f([KEYWORD_TO_ATOM["c"], \
+    ...                     [KEYWORD_TO_ATOM["f"], [KEYWORD_TO_ATOM["r"], [KEYWORD_TO_ATOM["a"]]]], \
+    ...                     [KEYWORD_TO_ATOM["f"], [KEYWORD_TO_ATOM["a"]]]])     # (c (f (r (a))) (f (a)))
+    >>> args = to_sexp_f([45, 55])
+    >>> r = eval_f(eval_f, program, args)
+    >>> print(r.listp())
+    True
+    >>> print(r.first().as_int())
+    55
+    >>> print(r.rest().as_int())
+    45
