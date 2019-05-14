@@ -4,13 +4,13 @@
 
 Cryptocurrency depends upon digital signatures corresponding to public keys. But what exactly do the digital signatures sign?
 
-In bitcoin, coins are grouped into a "utxo", which are protected by a "puzzle script" (known in bitcoin as "pubkey script"). This puzzle script generally lists one or more public keys, and to spend the coins in the utxo, these keys must sign a hash of a message derived from the spending transaction. Exactly how the message is derived can be chosen from several options depending on which parts of the spending transaction are relevant to the signer, and it's very complicated and frankly kind of a mess, but the message essentially says "this signature blesses the spending of these coins as long as the spending transactions includes this set of inputs and that set of outputs".
+In bitcoin, coins are grouped into a "utxo", which are protected by a "puzzle program" (known in bitcoin as "pubkey script"). This puzzle program generally lists one or more public keys, and to spend the coins in the utxo, these keys must sign a hash of a message derived from the spending transaction. Exactly how the message is derived can be chosen from several options depending on which parts of the spending transaction are relevant to the signer, and it's very complicated and frankly kind of a mess, but the message essentially says "this signature blesses the spending of these coins as long as the spending transactions includes this set of inputs and that set of outputs".
 
 Chia makes these messages explicit. Although clvm ("contract language virtual machine") is a general purpose language, typically a signature signs a program written in clvm which is then executed to produce a list of "conditions" which explicitly list out what restrictions the transaction or block which spends the coins must meet. These conditions include things like "the input being signed must be X", "this output Y must be included", "the signature is only valid in a block created after time Z". So the restrictions place upon inputs, outputs and spending time can be much more complicated than in bitcoin.
 
 * clvm
 
-The acronym *clvm* stands for Contract Language Virtual Machine, or Chia Lisp Virtual Machine depending upon whether we are referring to the trademarked version or generic version. Both puzzle scripts and solution scripts are written in this language.
+The acronym *clvm* stands for Contract Language Virtual Machine, or Chia Lisp Virtual Machine depending upon whether we are referring to the trademarked version or generic version. Both puzzles and solutions are written in this language.
 
 ** Compilers
 
@@ -64,7 +64,7 @@ When run, it roughly means "return condition (aggsig PUBKEY hash[x2]) along with
 
 ** taproot
 
-A taproot script has a base hidden public key P and a hidden script S. A new public key P1 is created using P and S, using something like ~P1 = P + G * sha256(P || S)~ where ~G~ is the group generator. *We need to check this formula with a cryptographer to ensure it's sufficiently secure for bls12_381.* Only P1 is revealed in the script; P is kept hidden except in the taproot case.
+A taproot puzzle has a base hidden public key P and a hidden program S. A new public key P1 is created using P and S, using something like ~P1 = P + G * sha256(P || S)~ where ~G~ is the group generator. *We need to check this formula with a cryptographer to ensure it's sufficiently secure for bls12_381.* Only P1 is revealed in the puzzle; P is kept hidden except in the taproot case.
 
 To execute the taproot branch, we reveal S and P, allowing us to prove that S is correct. Then we solve S with x1 (ie. x1 is a solution to S), yielding the conditions. So this branch looks something like
 
