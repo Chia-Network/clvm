@@ -1,0 +1,97 @@
+#+TITLE: clvm
+#+OPTIONS: ^:nil
+* Introduction
+
+Cryptocurrency depends upon digital signatures corresponding to public keys. But what exactly do the digital signatures sign?
+
+In bitcoin, coins are grouped into a "utxo", which are protected by a "puzzle script" (known in bitcoin as "pubkey script"). This puzzle script generally lists one or more public keys, and to spend the coins in the utxo, these keys must sign a hash of a message derived from the spending transaction. Exactly how the message is derived can be chosen from several options depending on which parts of the spending transaction are relevant to the signer, and it's very complicated and frankly kind of a mess, but the message essentially says "this signature blesses the spending of these coins as long as the spending transactions includes this set of inputs and that set of outputs".
+
+Chia makes these messages explicit. Although clvm ("contract language virtual machine") is a general purpose language, typically a signature signs a program written in clvm which is then executed to produce a list of "conditions" which explicitly list out what restrictions the transaction or block which spends the coins must meet. These conditions include things like "the input being signed must be X", "this output Y must be included", "the signature is only valid in a block created after time Z". So the restrictions place upon inputs, outputs and spending time can be much more complicated than in bitcoin.
+
+* clvm
+
+The acronym *clvm* stands for Contract Language Virtual Machine, or Chia Lisp Virtual Machine depending upon whether we are referring to the trademarked version or generic version. Both puzzle scripts and solution scripts are written in this language.
+
+** Compilers
+
+The clvm is intended to be like an assembly-language level of programming, and is intentionally missing such operators such as ~list~ which are in most LISP-like languages. This makes writing programs more difficult, so compilation tools that transform programs from a higher-level LISP to the clvm will be made available.
+
+** Opcodes
+
+The language is small, and similar to lisp, except most operators are one letter. To keep the implementation small, the operator set is minimal.
+
+*** list operators
+    - c :: *cons* ~(c A B)~ takes exactly two operands and returns the cons box with the two objects in it (in the obvious order)
+    - f :: *first* ~(f X)~ takes exactly one operand which must be a cons box, and returns the left half
+    - r :: *rest* ~(r X)~ takes exactly one operand which must be a cons box, and returns the right half
+    - l :: *listp* ~(l X)~ takes exactly one operand and returns ~()~ if it's an atom or ~1~ if it's a list
+*** control flow
+    - i :: *if* ~(i A B C)~ takes exactly three operands ~A~, ~B~, ~C~. If ~A~ is ~()~ (which means "false), return ~C~. Otherwise, return ~B~
+    - e :: *eval* ~(e A B)~ takes exactly two operands ~A~ and ~B~. Sets the ~args~ environment context to B and eval A with that context
+    - a :: *args* ~(a)~ zero argument. Returns the environment set by the most recent *eval* call
+    - x :: *raise* ~(x X Y...)~ takes an arbitrary number of arguments (even zero). Immediately fail, with the argument list passed up into the (python) exception
+    - = :: *equal* ~(= A B)~ returns 1 iff ~A~ and ~B~ are both atoms and both equal. Otherwise ~()~
+*** constants
+    - q :: *quote* ~(q X)~ takes exactly one operand which is *not* evaluated and returns it
+*** integer operators
+    - ~+~ :: ~(+ a0 a1...)~ takes an arbitrary number of integer operands and sums them
+    - ~-~ :: ~(- a0 a1...)~ takes an arbitrary number of integer operands and adds a0 to the negative of the rest
+    - ~*~ :: ~(* a0 a1...)~ takes an arbitrary number of integer operands and returns the product
+*** streaming operators
+    - sha256 :: ~(sha256 A)~ returns the sha256 hash (as a 32-byte blob) of the bytes A
+    - wrap :: ~(wrap A)~ streams A to a bytes blob
+    - unwrap :: ~(unwrap A)~ unstreams the bytes blob A to a generic S-expressionblob) of the bytes A
+*** ecdsa operators
+    - point_add :: ~(point_add a0 a1 ...)~ takes an arbitrary number of bls12_381 points and adds them
+    - pubkey_for_exp :: ~(pubkey_for_exp A)~ turns the integer A into a bls12_381 point
+
+* Standard Puzzles
+** pay to public key
+
+The simplest puzzle encumbers funds behind a public key. Anyone with the private key corresponding to a public key can unlock the funds and impose any conditions they want.
+
+We reserve x0 for the public key and leave x1 unused (it's reserved for the taproot case, as we'll explain below).
+
+The uncompiled version of this program looks like this:
+
+~(cons (list aggsig x0 (sha256 (wrap x2))) (eval x2 x3))~
+
+and it compiles to clvm that looks like
+
+~(c (c (q aggsig) (c (f (a)) (c (sha256 (wrap (f (r (r (a)))))) (q ())))) (e (f (r (r (a)))) (f (r (r (r (a)))))))~
+
+When run, it roughly means "return condition (aggsig PUBKEY hash[x2]) along with whatever conditions are created by running x2 with solution x3".
+
+** taproot
+
+A taproot script has a base hidden public key P and a hidden script S. A new public key P1 is created using P and S, using something like ~P1 = P + G * sha256(P || S)~ where ~G~ is the group generator. *We need to check this formula with a cryptographer to ensure it's sufficiently secure for bls12_381.* Only P1 is revealed in the script; P is kept hidden except in the taproot case.
+
+To execute the taproot branch, we reveal S and P, allowing us to prove that S is correct. Then we solve S with x1 (ie. x1 is a solution to S), yielding the conditions. So this branch looks something like
+
+~(assert (equal x0 (point_add x3 (pubkey_for_exp (sha256 x3 (wrap x1))))) (eval x1 x2))~
+
+which compiles to
+
+~(e (i (= (f (a)) (point_add (f (r (r (r (a))))) (pubkey_for_exp (sha256 (f (r (r (r (a))))) (wrap (f (r (a)))))))) (q (e (f (r (a))) (f (r (r (a)))))) (q (x))) (a))~
+
+We solve it by setting x1 to S, x2 to a solution for S (which will probably also specifiy conditions, especially if S does not), and x3 to P. Voila!
+
+** full standard taproot transaction
+
+We put the two above together, along with an "if" statement checking if x1 is set to nil or a revealed program to determine whether we take the taproot case. This yields the following:
+
+~(if x1 (assert (equal x0 (point_add x3 (pubkey_for_exp (sha256 x3 (wrap x1))))) (eval x1 x2)) (cons (list aggsig x0 (sha256 (wrap x2))) (eval x2 x3)))~
+
+However, x0 still needs to be set. We wrap the whole thing in a ~(quote (eval))~ that sets x0 to a constant and remaps the old x0, x1, x2 variables to x1, x2, x3.
+
+~(eval (quote (if x1 (assert (equal x0 (point_add x3 (pubkey_for_exp (sha256 x3 (wrap x1))))) (eval x1 x2)) (cons (list aggsig x0 (sha256 (wrap x2))) (eval x2 x3)))) (cons PUBLIC_KEY_P1 (list x0 x1 x2)))~
+
+This includes the public key in only one place, and gives us a three-parameter solution:
+
+- x0 :: nil for standard case or S for taproot case
+*** taproot case
+- x1 :: solution to S
+- x2 :: P
+*** standard case
+- x1 :: (signed) program to generate conditions
+- x2 :: solution to signed program (typically nil, but could be recursively complex for graftroot)
