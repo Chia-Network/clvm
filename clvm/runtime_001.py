@@ -23,17 +23,6 @@ class mixin:
     def as_bls12_381(self):
         return bls12_381_from_bytes(self.as_atom())
 
-    def as_python(self):
-        if isinstance(self.v, self.ATOM_TYPES):
-            return self.v
-        return list(_.as_python()for _ in self.as_iter())
-
-    def __str__(self):
-        return str(self.as_python())
-
-    def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, str(self))
-
 
 to_sexp_f = subclass_sexp(mixin, (bytes, Var))
 

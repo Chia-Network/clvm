@@ -91,6 +91,17 @@ class BaseSExp:
             return False
         return other.v == self.v
 
+    def as_python(self):
+        if isinstance(self.v, self.ATOM_TYPES):
+            return self.v
+        return list(_.as_python()for _ in self.as_iter())
+
+    def __str__(self):
+        return str(self.as_python())
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, str(self))
+
 
 def subclass_sexp(mixin_class=object, atom_types=BaseSExp.ATOM_TYPES, true=b'\1', false=None):
 
