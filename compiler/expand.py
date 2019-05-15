@@ -29,6 +29,11 @@ BUILT_IN_KEYWORDS = [
         "(list if x0 1 ())"),
     ("not",
         "(list if x0 () 1)"),
+    ("quasiquote",
+        "(if (listp x0) "
+        "(if (equal (first x0) unquote) (first (rest x0)) "
+        "(cons list (cons (first x0) (map (function (list quasiquote x0)) (rest x0))))) "
+        "(list quote x0))"),
 ]
 
 

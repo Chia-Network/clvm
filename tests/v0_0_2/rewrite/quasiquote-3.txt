@@ -1,2 +1,2 @@
 rewrite '(quasiquote (unquote x0))'
-(get (env) (quote 0))
+(first (args))

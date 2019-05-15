@@ -1,2 +1,2 @@
-rewrite '(quasiquote (+ x0 (unquote (type x0))))'
-(cons (quote 11) (cons (quote x0) (cons (type (get (env) (quote 0))) (quote ()))))
+rewrite '(quasiquote (+ x0 (unquote (sha256 x0))))'
+(cons (quote +) (cons (quote x0) (cons (sha256 (first (args))) (quote ()))))
