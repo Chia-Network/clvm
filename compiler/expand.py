@@ -20,10 +20,9 @@ BUILT_IN_KEYWORDS = [
     ("function",
         "(list function_op (list quote x0))"),
     ("map",
-        "(list eval (function (function (eval x0 (list x0 x1)))) "
-        "(list list (list function (list if (function x1) "
-        "(list cons (list eval x0 (list list (list first (quote x1)))) "
-        "(list eval (function x0) (list list (function x0) (list rest (function x1))))) ())) x1))"),
+        "(list eval (list function (quote (eval x0 (args)))) "
+        "(list list (list function (quote (if x1 (cons (eval x2 (list (first x1))) (eval x0 (list x0 (rest x1) x2))) ()))) "
+        "x1 (list function_op x0)))"),
     ("and",
         "(if (args) (list if x0 (cons and (rest (args))) ()) 1)"),
     ("bool",
