@@ -1,2 +1,2 @@
 rewrite '(if x0 100 200)'
-(reduce (get (quote (100 200)) (equal (get (env) (quote 0)) (quote 0))) (env))
+(eval (if_op (first (args)) (function_op (quote 100)) (function_op (quote 200))) (args))

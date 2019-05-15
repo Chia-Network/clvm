@@ -7,7 +7,8 @@ import sys
 
 from clvm.EvalError import EvalError
 
-from . import reader, writer
+from . import writer
+from compiler import reader
 
 from .debug import trace_to_html, trace_to_text
 
@@ -131,7 +132,7 @@ def rewrite(args=sys.argv):
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
-    parser.add_argument("-s", "--schema", default="schemas.v0_0_2",
+    parser.add_argument("-s", "--schema", default="schemas.compiler_002",
                         help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
@@ -140,7 +141,7 @@ def rewrite(args=sys.argv):
 
     mod = importlib.import_module(args.schema)
 
-    sexp = mod.from_tokens(reader.read_tokens("(rewrite %s)" % args.script))
+    sexp = mod.from_tokens(reader.read_tokens("(expand %s)" % args.script))
     solution = sexp.null()
     do_reduction(args, mod, sexp, solution)
 

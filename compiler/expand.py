@@ -26,6 +26,10 @@ BUILT_IN_KEYWORDS = [
         "(list eval (function x0) (list list (function x0) (list rest (function x1))))) ())) x1))"),
     ("and",
         "(if (args) (list if x0 (cons and (rest (args))) ()) 1)"),
+    ("bool",
+        "(list if x0 1 ())"),
+    ("not",
+        "(list if x0 () 1)"),
 ]
 
 

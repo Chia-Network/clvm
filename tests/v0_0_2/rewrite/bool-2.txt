@@ -1,2 +1,2 @@
 rewrite '(bool 1000)'
-(reduce (get (quote ((quote 1) (quote 0))) (equal (quote 1000) (quote 0))) (env))
+(eval (if_op (quote 1000) (function_op (quote 1)) (function_op (quote ()))) (args))

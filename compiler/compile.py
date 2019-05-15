@@ -68,6 +68,8 @@ def make_compile_rewriters():
         "equal": "=",
         "eval": "e",
         "if_op": "i",
+        "sha256": "sha256",
+        "wrap": "wrap",
     }
     remapped = {k: make_compile_remap(k, v) for k, v in REMAP_LIST.items()}
     remapped["function_op"] = compile_function_op
