@@ -1,2 +1,2 @@
 rewrite '(quasiquote x0)'
-(quote x0)
+(function_op (quote x0))

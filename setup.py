@@ -22,6 +22,7 @@ setup(
                 'reduce = opacity.cmds:reduce',
                 'rewrite = opacity.cmds:rewrite',
                 'run = compiler.cmds:run',
+                'brun = opacity.cmds:brun',
             ]
         },
     author_email="kiss@chia.net",

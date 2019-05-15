@@ -19,10 +19,12 @@ BUILT_IN_KEYWORDS = [
         "(list prog_op (list quote x0) (list quote x1))"),
     ("function",
         "(list function_op (list quote x0))"),
+    ("rebind",   # (rebind VARS sexp)
+        "(list eval x1 x0)"),
+    ("Y",     # (Y x0_function x1 x2 x3)
+        "(list eval (list function (quote (eval x0 (args)))) (list cons (function_op x0) (cons list (rest (args)))))"),
     ("map",
-        "(list eval (list function (quote (eval x0 (args)))) "
-        "(list list (list function (quote (if x1 (cons (eval x2 (list (first x1))) (eval x0 (list x0 (rest x1) x2))) ()))) "
-        "x1 (list function_op x0)))"),
+        "(cons Y (cons (quote (function (if x2 (cons (eval x1 (list (first x2))) (eval x0 (list x0 x1 (rest x2)))) ()))) (args)))"),
     ("and",
         "(if (args) (list if x0 (cons and (rest (args))) ()) 1)"),
     ("bool",

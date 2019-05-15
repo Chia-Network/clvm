@@ -1,2 +1,2 @@
 rewrite '(quasiquote (+ x0 (unquote x0)))'
-(cons (quote +) (cons (quote x0) (cons (first (args)) (quote ()))))
+(cons (quote +) (cons (function_op (quote x0)) (cons (first (args)) (quote ()))))

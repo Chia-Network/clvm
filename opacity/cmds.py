@@ -68,6 +68,32 @@ def opd(args=sys.argv):
         print(writer.write_tokens(output))
 
 
+def brun(args=sys.argv):
+    parser = argparse.ArgumentParser(
+        description='Run a clvm script.'
+    )
+
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Display resolve of all reductions, for debugging")
+    parser.add_argument(
+        "script", help="script in hex or uncompiled text")
+    parser.add_argument(
+        "solution", nargs="?", help="solution in hex or uncompiled text")
+
+    args = parser.parse_args(args=args[1:])
+    args.debug = 0
+
+    import schemas.runtime_001 as mod
+    read_sexp = reader.read_tokens(args.script)
+    sexp = mod.from_tokens(read_sexp)
+
+    solution = sexp.null()
+    if args.solution:
+        tokens = reader.read_tokens(args.solution)
+        solution = mod.from_tokens(tokens)
+    do_reduction(args, mod, sexp, solution)
+
+
 def reduce(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Reduce an opacity script.'
