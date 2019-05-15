@@ -94,6 +94,7 @@ def op_expand_sexp(sexp, operator_lookup=OPERATOR_LOOKUP):
         if 0:
             return sexp.to(["eval", macro_sexp, ["args"]])
         else:
+            # BRAIN DAMAGE: TODO fix this import
             from .cmds import do_eval
             return op_expand_sexp(do_eval(macro_sexp, sexp.null()))
     else:

@@ -57,7 +57,9 @@ def parse_defmacro(dec):
         arg_replacement = {k: args[v] for k, v in arg_lookup.items()}
         new_sexp = macro_expand(definition, arg_replacement)
         # run it
-        r = eval_f(eval_f, new_sexp, args)
+        # BRAIN DAMAGE: TODO fix this import
+        from .cmds import do_eval as eval_f
+        r = eval_f(new_sexp, args)
         # compile the output and return that
         return compile_sexp(compile_sexp, r, function_rewriters, function_index_lookup)
 
