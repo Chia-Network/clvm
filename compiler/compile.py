@@ -68,6 +68,7 @@ def make_compile_rewriters():
         "equal": "=",
         "eval": "e",
         "if_op": "i",
+        "listp": "l",
         "sha256": "sha256",
         "wrap": "wrap",
     }
