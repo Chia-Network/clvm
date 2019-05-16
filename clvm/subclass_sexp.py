@@ -77,10 +77,18 @@ class BaseSExp:
     def null(class_):
         return class_.__null__
 
+    def is_legit_list(self):
+        # return False if it's a cons box that doesn't have a null
+        if self.nullp():
+            return True
+        if self.listp():
+            return self.rest().is_legit_list()
+        return False
+
     def as_iter(self):
+        assert self.is_legit_list()
         if self.nullp():
             return
-        assert self.listp()
         yield self.first()
         yield from self.rest().as_iter()
 
@@ -94,7 +102,9 @@ class BaseSExp:
     def as_python(self):
         if isinstance(self.v, self.ATOM_TYPES):
             return self.v
-        return list(_.as_python()for _ in self.as_iter())
+        if self.is_legit_list():
+            return list(_.as_python()for _ in self.as_iter())
+        return tuple((self.first().as_python(), self.rest().as_python()))
 
     def __str__(self):
         return str(self.as_python())
