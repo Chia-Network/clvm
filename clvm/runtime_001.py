@@ -1,10 +1,15 @@
+import io
+
 from opacity.Var import Var
 
 from . import core_ops, more_ops
 
-from .casts import int_from_bytes, int_to_bytes, bls12_381_from_bytes, bls12_381_to_bytes, bls12_381_generator
-from .make_eval import make_eval_f, EvalError
+from .casts import (
+    int_from_bytes, int_to_bytes, bls12_381_from_bytes, bls12_381_to_bytes, bls12_381_generator
+)
+from .make_eval import make_eval_f
 from .op_utils import operators_for_module
+from .serialize import sexp_to_stream
 from .subclass_sexp import subclass_sexp
 
 
@@ -19,6 +24,11 @@ class mixin:
 
     def as_int(self):
         return int_from_bytes(self.as_atom())
+
+    def as_bin(self):
+        f = io.BytesIO()
+        sexp_to_stream(self, f)
+        return f.getvalue()
 
     def as_bls12_381(self):
         return bls12_381_from_bytes(self.as_atom())

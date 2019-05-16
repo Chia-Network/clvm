@@ -1,104 +1,86 @@
-from opacity.Var import Var
+# decoding:
+# read a byte
+# if it's 0xfe, it's nil (which might be same as 0)
+# if it's 0xff, it's a cons box. Read two items, build cons
+# otherwise, number of leading set bits is length in bytes to read size
+# 0-0x7f are literal one byte values
+# leading bits is the count of bytes to read of size
+# 0x80-0xbf is a size of one byte (perform logical and of first byte with 0x3f to get size)
+# 0xc0-0xdf is a size of two bytes (perform logical and of first byte with 0x1f)
+# 0xe0-0xef is 3 bytes ((perform logical and of first byte with 0xf))
+# 0xf0-0xf7 is 4 bytes ((perform logical and of first byte with 0x7))
+# 0xf7-0xfb is 5 bytes ((perform logical and of first byte with 0x3))
+
+MAX_SINGLE_BYTE = 0x7f
+NIL_MARKER = 0xfe
+CONS_BOX_MARKER = 0xff
 
 
-def encode_size(f, size, step_size, base_byte_int):
-    step_count, remainder = divmod(size, step_size)
-    if step_count > 0:
-        f.write(b'\x60')
-        step_count -= 1
-        while step_count > 0:
-            step_count, r = divmod(step_count, 32)
-            f.write(bytes([r]))
-    f.write(bytes([base_byte_int+remainder]))
-
-
-def list_size(v):
-    """
-    Calculate list size
-    """
-    if v.nullp():
-        return 0
-
-    if v.listp():
-        t = list_size(v.rest())
-        if t is not None:
-            return t + 1
-    return t
-
-
-def sexp_to_stream(v, f):
-    if v.listp():
-        size = list_size(v)
-        encode_size(f, size, 32, 0x20)
-        for _ in range(size):
-            sexp_to_stream(v.first(), f)
-            v = v.rest()
+def sexp_to_byte_iterator(sexp):
+    if sexp.nullp():
+        yield bytes([NIL_MARKER])
         return
-
-    as_atom = v.as_atom()
-    if isinstance(as_atom, bytes):
-        blob = as_atom
-        size = len(blob)
-        if size == 0:
-            f.write(b'\0')
+    if sexp.listp():
+        yield bytes([CONS_BOX_MARKER])
+        yield from sexp_to_byte_iterator(sexp.first())
+        yield from sexp_to_byte_iterator(sexp.rest())
+        return
+    as_atom = sexp.as_atom()
+    size = len(as_atom)
+    if size == 0:
+        yield b'\x80'
+        return
+    if size == 1:
+        if 0 < as_atom[0] <= MAX_SINGLE_BYTE:
+            yield as_atom
             return
-        if size == 1:
-            v1 = v.as_int()
-            if v1 and 0 < v1 <= 31:
-                f.write(bytes([v1 & 0x3f]))
-                return
-        encode_size(f, size, 160, 0x60)
-        f.write(blob)
-        return
+    if size < 0x40:
+        size_blob = bytes([0x80 | size])
+    elif size < 0x2000:
+        size_blob = bytes([0xc0 | (size >> 8), (size >> 0) & 0xff])
+    elif size < 0x100000:
+        size_blob = bytes([0xe0 | (size >> 16), (size >> 8) & 0xff, (size >> 0) & 0xff])
+    elif size < 0x8000000:
+        size_blob = bytes([
+            0xf0 | (size >> 24), (size >> 16) & 0xff,
+            (size >> 8) & 0xff, (size >> 0) & 0xff])
+    elif size < 0x400000000:
+        size_blob = bytes([
+            0xf8 | (size >> 32), (size >> 24) & 0xff,
+            (size >> 16) & 0xff, (size >> 8) & 0xff, (size >> 0) & 0xff])
+    else:
+        raise ValueError("sexp too long %s" % sexp)
 
-    if isinstance(as_atom, Var):
-        encode_size(f, as_atom.index, 32, 0x40)
-        return
-
-    assert 0
+    yield size_blob
+    yield as_atom
 
 
-def decode_size(f):
-    steps = 0
-    b = f.read(1)
-    if len(b) == 0:
-        raise ValueError("unexpected end of stream")
-    v = b[0]
-    if v == 0x60:
-        steps = 1
-        shift_count = 0
-        while True:
-            b = f.read(1)
-            if len(b) == 0:
-                raise ValueError("unexpected end of stream")
-            v = b[0]
-            if v >= 0x20:
-                break
-            steps += (v << shift_count)
-            shift_count += 5
-
-    return steps, v
+def sexp_to_stream(sexp, f):
+    for b in sexp_to_byte_iterator(sexp):
+        f.write(b)
 
 
 def sexp_from_stream(f, to_sexp):
-    steps, v = decode_size(f)
-    if v == 0:
-        return to_sexp(b'')
-
-    if v < 0x20:
-        return to_sexp(bytes([v]))
-
-    if v < 0x40:
-        size = v - 0x20 + steps * 0x20
-        items = [sexp_from_stream(f, to_sexp) for _ in range(size)]
-        return to_sexp(items)
-
-    if v < 0x60:
-        index = v - 0x40 + steps * 0x20
-        return to_sexp(Var(index))
-
-    size = v - 0x60 + steps * 160
+    b = f.read(1)[0]
+    if b == NIL_MARKER:
+        return to_sexp(None)
+    if b == CONS_BOX_MARKER:
+        v1 = sexp_from_stream(f, to_sexp)
+        v2 = sexp_from_stream(f, to_sexp)
+        return to_sexp((v1, v2))
+    if b == 0x80:
+        return b''
+    if b <= MAX_SINGLE_BYTE:
+        return bytes([b])
+    bit_count = 0
+    bit_mask = 0x80
+    while b & bit_mask:
+        bit_count += 1
+        b &= (0xff ^ bit_mask)
+        bit_mask >>= 1
+    size_blob = bytes([b])
+    if bit_count > 1:
+        size_blob += f.read(bit_count-1)
+    size = int.from_bytes(size_blob, "big")
     blob = f.read(size)
-    if len(blob) < size:
-        raise ValueError("unexpected end of stream")
     return to_sexp(blob)
