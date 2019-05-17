@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(f (q (1 2 3)))'
+brun '(f (q (1 2 3)))'
 1

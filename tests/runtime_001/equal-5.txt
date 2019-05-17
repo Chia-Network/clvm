@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(= (q ()) (q 0))'
+brun '(= (q ()) (q 0))'
 FAIL: = on list (() 0)

@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 "(= (q 2) (q 3))"
+brun "(= (q 2) (q 3))"
 ()

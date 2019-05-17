@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(e (q (a)))'
+brun '(e (q (a)))'
 FAIL: eval requires 2 parameters (e (q (a)))

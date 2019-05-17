@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(i (q 100) (q 200) (q 300))'
+brun '(i (q 100) (q 200) (q 300))'
 200

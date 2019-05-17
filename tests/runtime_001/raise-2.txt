@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(x (q 2000))'
+brun '(x (q 2000))'
 FAIL: clvm raise (2000)

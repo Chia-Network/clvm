@@ -1,2 +1,2 @@
-reduce -s schemas.runtime_001 '(f (q ()))'
+brun '(f (q ()))'
 FAIL: first of non-cons ()
