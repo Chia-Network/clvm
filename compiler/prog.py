@@ -138,6 +138,16 @@ def macro_expand(definition, arg_lookup):
     return definition
 
 
+def find_used_operators(sexp):
+    ops = set()
+    if sexp.listp():
+        for _ in sexp.as_iter():
+            ops.update(find_used_operators(_))
+    elif not sexp.nullp():
+        ops = set([sexp.as_atom()])
+    return ops
+
+
 def op_prog_op(sexp):
     function_rewriters = {}
     local_function_rewriters = {}
@@ -146,7 +156,8 @@ def op_prog_op(sexp):
         parse_declaration(declaration, local_function_rewriters, function_imps)
     # build the function table and put that in x0
     base_node = Node().first()
-    function_name_lookup = sorted(function_imps.keys())
+    used_functions = find_used_operators(sexp)
+    function_name_lookup = sorted(_ for _ in function_imps.keys() if _ in used_functions)
     function_index_lookup = {v: base_node.list_index(k) for k, v in enumerate(function_name_lookup)}
     function_table = []
     function_rewriters.update(local_function_rewriters)
