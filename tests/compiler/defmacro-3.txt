@@ -1,2 +1,2 @@
-run '(prog (quote ((defmacro test () (if (args) 5000 6000 )))) (quote (test 10)))'
-(e (q (q 5000)) (c (q ()) (a)))
+run '(prog ((defmacro test () (if (args) 5000 6000 ))) (test 10))'
+(eval (function 5000) (cons () (args)))

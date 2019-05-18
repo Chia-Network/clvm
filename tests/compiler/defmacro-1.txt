@@ -1,2 +1,2 @@
-run '(prog (quote ((defmacro add (n1 n2) (+ n1 n2)))) (quote (add 50 60)))'
-(e (q (q 110)) (c (q ()) (a)))
+run '(prog ((defmacro add (n1 n2) (+ n1 n2))) (add 50 60))'
+(eval (function 110) (cons () (args)))

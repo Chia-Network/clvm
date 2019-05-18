@@ -1,2 +1,2 @@
-run '(prog (quote ((defmacro list () (eval (if (args) (quote (eval (if (args) (quote (cons cons (cons (first (args)) (cons (cons list (rest (args))) ())))) ()) (args))) ()) (args))))) (quote (list 20 30 40)))'
-(e (q (c (q 20) (c (q 30) (c (q 40) (q ()))))) (c (q ()) (a)))
+run '(prog ((defmacro list () (eval (if (args) (quote (eval (if (args) (quote (cons cons (cons (first (args)) (cons (cons list (rest (args))) ())))) ()) (args))) ()) (args)))) (list 20 30 40))'
+(eval (function (cons 20 (cons 30 (cons 40 ())))) (cons () (args)))
