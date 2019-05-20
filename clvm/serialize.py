@@ -61,7 +61,10 @@ def sexp_to_stream(sexp, f):
 
 
 def sexp_from_stream(f, to_sexp):
-    b = f.read(1)[0]
+    blob = f.read(1)
+    if len(blob) == 0:
+        raise ValueError("bad encoding")
+    b = blob[0]
     if b == NIL_MARKER:
         return to_sexp(None)
     if b == CONS_BOX_MARKER:
@@ -69,9 +72,9 @@ def sexp_from_stream(f, to_sexp):
         v2 = sexp_from_stream(f, to_sexp)
         return to_sexp((v1, v2))
     if b == 0x80:
-        return b''
+        return to_sexp(b'')
     if b <= MAX_SINGLE_BYTE:
-        return bytes([b])
+        return to_sexp(bytes([b]))
     bit_count = 0
     bit_mask = 0x80
     while b & bit_mask:
@@ -80,7 +83,12 @@ def sexp_from_stream(f, to_sexp):
         bit_mask >>= 1
     size_blob = bytes([b])
     if bit_count > 1:
-        size_blob += f.read(bit_count-1)
+        b = f.read(bit_count-1)
+        if len(b) != bit_count - 1:
+            raise ValueError("bad encoding")
+        size_blob += b
     size = int.from_bytes(size_blob, "big")
     blob = f.read(size)
+    if len(blob) != size:
+        raise ValueError("bad encoding")
     return to_sexp(blob)
