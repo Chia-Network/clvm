@@ -1,2 +1,2 @@
 rewrite '(bool 0)'
-(eval (if_op (quote 0) (function_op (quote 1)) (function_op (quote ()))) (args))
+(call (if_op (quote 0) (function_op (quote 1)) (function_op (quote ()))) (args))

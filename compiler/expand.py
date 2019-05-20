@@ -9,7 +9,7 @@ BUILT_IN_KEYWORDS = [
         "(eval (if_op (args) (quote (cons cons (cons x0 (cons (cons list (rest (args))) ())))) ()) "
         "(args))"),
     ("if",
-        "(list eval (list if_op (first (args)) "
+        "(list call (list if_op (first (args)) "
         "(list function (first (rest (args)))) (list function (first (rest (rest (args)))))) (list args))"),
     ("compile",
         "(list compile_op (list quote x0))"),

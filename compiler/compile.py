@@ -51,6 +51,11 @@ def static_eval(sexp):
     raise EvalError("non static value", sexp)
 
 
+def compile_eval(op_compile_op, sexp):
+    new_sexp = sexp.to([static_eval(sexp.first())])
+    return sexp.to(["q", op_compile_op(new_sexp)])
+
+
 def compile_function_op(op_compile_op, sexp):
     new_sexp = sexp.to([static_eval(sexp.first())])
     return sexp.to(["q", op_compile_op(new_sexp)])
@@ -66,7 +71,7 @@ def make_compile_rewriters():
         "rest": "r",
         "args": "a",
         "equal": "=",
-        "eval": "e",
+        "call": "e",
         "if_op": "i",
         "listp": "l",
         "sha256": "sha256",
@@ -74,6 +79,7 @@ def make_compile_rewriters():
     }
     remapped = {k: make_compile_remap(k, v) for k, v in REMAP_LIST.items()}
     remapped["function_op"] = compile_function_op
+    remapped["eval"] = compile_eval
     return remapped
 
 

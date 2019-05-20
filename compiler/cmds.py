@@ -64,13 +64,22 @@ def op_if_op(args):
 
 
 def op_function_op(args):
-    return args.first()
+    return args.to(["compile", args.first()])
+
+
+def op_call(args):
+    if args.listp() and not args.nullp():
+        arg0 = args.first()
+        if arg0.listp() and not args.nullp():
+            if arg0.first().as_atom() == "compile":
+                return do_eval(arg0.rest().first(), args.rest().first())
+    raise EvalError("call only works on compiled code", args)
 
 
 KEYWORDS = (
     ". quote eval args if cons first rest listp raise eq sha256 "
     "+ - * . wrap unwrap point_add pubkey_for_exp equal "
-    "and list expand expand_op compile compile_op prog prog_op if_op function ".split())
+    "and list expand expand_op compile compile_op prog prog_op if_op function call ".split())
 
 KEYWORD_MAP = {k: k for k in KEYWORDS}
 
@@ -88,6 +97,7 @@ operators["compile_op"] = op_compile_op
 operators["expand_op"] = op_expand_op
 operators["function_op"] = op_function_op
 operators["prog_op"] = op_prog_op
+operators["call"] = op_call
 
 
 eval_list_f = make_eval_f(operators, "quote", "eval", "args")

@@ -1,2 +1,2 @@
 rewrite '(if 0 x0 200)'
-(eval (if_op (quote 0) (function_op (quote x0)) (function_op (quote 200))) (args))
+(call (if_op (quote 0) (function_op (quote x0)) (function_op (quote 200))) (args))

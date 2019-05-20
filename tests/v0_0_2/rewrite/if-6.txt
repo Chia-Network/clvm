@@ -1,2 +1,2 @@
 rewrite '(if x38 100 200)'
-(eval (if_op (first (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (args)))))))))))))))))))))))))))))))))))))))) (function_op (quote 100)) (function_op (quote 200))) (args))
+(call (if_op (first (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (rest (args)))))))))))))))))))))))))))))))))))))))) (function_op (quote 100)) (function_op (quote 200))) (args))
