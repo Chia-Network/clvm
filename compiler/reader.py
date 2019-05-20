@@ -15,7 +15,7 @@ class mixin:
     @classmethod
     def to_atom(class_, v):
         if isinstance(v, bytes):
-            v = v.decode(v, "utf8")
+            v = "0x%s" % binascii.hexlify(v).decode("utf8")
         if isinstance(v, int):
             return str(v)
         return v

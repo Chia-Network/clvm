@@ -25,6 +25,9 @@ class mixin:
     def as_int(self):
         return int_from_bytes(self.as_atom())
 
+    def as_bytes(self):
+        return self.as_atom()
+
     def as_bin(self):
         f = io.BytesIO()
         sexp_to_stream(self, f)

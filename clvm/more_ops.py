@@ -61,7 +61,7 @@ def op_multiply(args):
 
 def op_unwrap(items):
     try:
-        return sexp_from_stream(io.BytesIO(items.first().as_atom()), items.to)
+        return sexp_from_stream(io.BytesIO(items.first().as_bytes()), items.to)
     except (IndexError, ValueError):
         raise EvalError("bad stream", items)
 
@@ -87,7 +87,7 @@ def op_point_add(items):
     p = bls12_381_generator.infinity()
     for _ in items.as_iter():
         try:
-            p += bls12_381_from_bytes(_.as_atom())
+            p += bls12_381_from_bytes(_.as_bytes())
         except Exception as ex:
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
     return items.to(bls12_381_to_bytes(p))
