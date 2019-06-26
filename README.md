@@ -10,30 +10,31 @@ Set up your virtual environments:
     $ . ./activate
     $ pip install -e .
 
-Check out the command-line tools help info:
+The language has two components: the higher level language and the compiled lower level language which runs on the clvm.
+To compile the higher level language into the lower level language use:
 
-    $ opc -h
-    $ opd -h
-    $ reduce -h
+    $ run '(compile (+ 2 3))'
+    (+ (q 2) (q 3))
 
-Try the command-line tools to create and reduce scripts.
+To execute this code:
 
-    $ opc '(equal 10 10)'
-    23080a0a
-    $ opd 23080a0a
-    (equal 10 10)
-    $ opc '(equal x0 (+ x1 x2))'
-    230840230b4142
-    $ opd 230840230b4142
-    (equal x0 (+ x1 x2))
-    $ opc '(18 10 8)'
-    23120a08
-    $ reduce 230840230b4142 23120a08
-    1
-    $ reduce `opc '(equal x0 (+ x1 x2))'` `opc '(18 10 8)'`
-    1
-    $ reduce `opc '(equal x0 (+ x1 x2))'` `opc '(18 10 7)'`
-    0
+    $ reduce -s schemas.runtime_001 '(+ (q 2) (q 3))'
+    5
+
+Schemas are used to specify the macros which will be compiled into the core language. Users will eventually be able to specify their own custom schemas which will act as header files and allow them to use less common macros.
+
+You can read more about the core language [here](./docs/clvm.org)
+
+Here are some more examples of arguments being passed in during evaluation.
+
+    $ run '(compile (+ x0 3))'
+    (+ (f (a)) (q 3))
+    $ reduce -s schemas.runtime_001 '(+ (f (a)) (q 3))' '(90)'
+    93
+
+    $ reduce -s schemas.runtime_001 '(+ (e (f (a)) (q ())) (q 3))' '((+ (q 3) (q 3)))'
+    9
+
 
 
 From python
