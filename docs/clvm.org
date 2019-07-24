@@ -74,7 +74,7 @@ which compiles to
 
 ~(e (i (= (f (a)) (point_add (f (r (r (r (a))))) (pubkey_for_exp (sha256 (f (r (r (r (a))))) (wrap (f (r (a)))))))) (q (e (f (r (a))) (f (r (r (a)))))) (q (x))) (a))~
 
-We solve it by setting x1 to S, x2 to a solution for S (which will probably also specifiy conditions, especially if S does not), and x3 to P. Voila!
+We solve it by setting x1 to S, x2 to a solution for S (which will probably also specify conditions, especially if S does not), and x3 to P. Voila!
 
 ** full standard taproot transaction
 

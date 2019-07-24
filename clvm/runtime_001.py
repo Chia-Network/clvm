@@ -1,7 +1,5 @@
 import io
 
-from opacity.Var import Var
-
 from . import core_ops, more_ops
 
 from .casts import (
@@ -37,7 +35,7 @@ class mixin:
         return bls12_381_from_bytes(self.as_atom())
 
 
-to_sexp_f = subclass_sexp(mixin, (bytes, Var))
+to_sexp_f = subclass_sexp(mixin, (bytes,))
 
 
 KEYWORDS = ". q e a i c f r l x = sha256 + - * . wrap unwrap point_add pubkey_for_exp".split()
