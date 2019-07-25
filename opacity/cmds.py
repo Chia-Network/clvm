@@ -125,8 +125,19 @@ def reduce(args=sys.argv):
 
 
 def do_reduction(args, mod, sexp, solution):
+    eval_f = mod.eval_f
+    the_log = []
+
+    if args.verbose:
+        def eval_f(eval_f, sexp, args):
+            row = [(sexp, args), sexp.null()]
+            the_log.append(row)
+            r = mod.eval_f(eval_f, sexp, args)
+            row[-1] = r
+            return r
+
     try:
-        reductions = mod.transform(sexp.cons(solution))
+        reductions = eval_f(eval_f, sexp, solution)
         result = mod.to_tokens(reductions)
         output = writer.write_tokens(result)
     except EvalError as e:
@@ -142,11 +153,10 @@ def do_reduction(args, mod, sexp, solution):
             print(output)
 
         # TODO solve the debugging problem
-        the_log = []
         if args.debug:
-            trace_to_html(the_log, mod.keyword_from_int)
+            trace_to_html(the_log, mod.disassemble)
         elif args.verbose:
-            trace_to_text(the_log, mod.keyword_from_int)
+            trace_to_text(the_log, mod.disassemble)
 
 
 def rewrite(args=sys.argv):

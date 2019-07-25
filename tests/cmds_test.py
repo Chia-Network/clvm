@@ -98,6 +98,8 @@ inject("puzzles")
 
 inject("compiler")
 
+inject("brun")
+
 
 def main():
     unittest.main()

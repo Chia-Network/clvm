@@ -1,5 +1,3 @@
-from .writer import write_tokens as disassemble
-
 
 PRELUDE = '''<html>
 <head>
@@ -24,32 +22,32 @@ PRELUDE = '''<html>
 TRAILER = "</div></body></html>"
 
 
-def dump_sexp(s):
+def dump_sexp(s, disassemble):
     return '<span id="%s">%s</span>' % (id(s), disassemble(s))
 
 
-def dump_invocation(form, rewrit_form, env, result):
+def dump_invocation(form, rewrit_form, env, result, disassemble):
     print('<hr><div class="invocation" id="%s">' % id(form))
     print('<span class="form"><a name="id_%s">%s</a></span>' % (
-        id(form), dump_sexp(form)))
+        id(form), dump_sexp(form, disassemble)))
     print('<ul>')
     if form != rewrit_form:
         print('<li>Rewritten as:<span class="form"><a name="id_%s">%s</a></span></li>' % (
-            id(rewrit_form), dump_sexp(rewrit_form)))
+            id(rewrit_form), dump_sexp(rewrit_form, disassemble)))
     for _, e in enumerate(env):
-        print('<li>x%d: <a href="#id_%s">%s</a></li>' % (_, id(e), dump_sexp(e)))
+        print('<li>x%d: <a href="#id_%s">%s</a></li>' % (_, id(e), dump_sexp(e, disassemble)))
     print('</ul>')
-    print('<span class="form">%s</span>' % dump_sexp(result))
+    print('<span class="form">%s</span>' % dump_sexp(result, disassemble))
     if form.listp() and len(form) > 1:
         print('<ul>')
         for _, arg in enumerate(form[1:]):
             print('<li>arg %d: <a href="#id_%s">%s</a></li>' % (
-                _, id(arg), dump_sexp(arg)))
+                _, id(arg), dump_sexp(arg, disassemble)))
         print('</ul>')
     print("</div>")
 
 
-def trace_to_html(invocations):
+def trace_to_html(invocations, disassemble):
     invocations = reversed(invocations)
 
     print(PRELUDE)
@@ -58,7 +56,7 @@ def trace_to_html(invocations):
     id_list = []
 
     for form, rewrit_form, env, rv in invocations:
-        dump_invocation(form, rewrit_form, env, rv)
+        dump_invocation(form, rewrit_form, env, rv, disassemble)
         the_id = id(form)
         if the_id not in id_set:
             id_set.add(the_id)
@@ -72,9 +70,9 @@ def trace_to_html(invocations):
     print(TRAILER)
 
 
-def trace_to_text(trace):
+def trace_to_text(trace, disassemble):
     for (form, env), rv in trace:
-        env_str = ", ".join(disassemble(_) for _ in env)
+        env_str = ", ".join(disassemble(_) for _ in env.as_iter())
         rewrit_form = form
         if form != rewrit_form:
             print("%s -> %s [%s] => %s" % (
@@ -84,6 +82,7 @@ def trace_to_text(trace):
         else:
             print("%s [%s] => %s" % (
                 disassemble(form), env_str, disassemble(rv)))
+        print("")
 
 
 def make_tracing_f(inner_f):
