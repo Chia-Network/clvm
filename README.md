@@ -18,7 +18,7 @@ To compile the higher level language into the lower level language use:
 
 To execute this code:
 
-    $ reduce -s schemas.runtime_001 '(+ (q 2) (q 3))'
+    $ brun '(+ (q 2) (q 3))'
     5
 
 Schemas are used to specify the macros which will be compiled into the core language. Users will eventually be able to specify their own custom schemas which will act as header files and allow them to use less common macros.
@@ -29,10 +29,10 @@ Here are some more examples of arguments being passed in during evaluation.
 
     $ run '(compile (+ x0 3))'
     (+ (f (a)) (q 3))
-    $ reduce -s schemas.runtime_001 '(+ (f (a)) (q 3))' '(90)'
+    $ brun '(+ (f (a)) (q 3))' '(90)'
     93
 
-    $ reduce -s schemas.runtime_001 '(+ (e (f (a)) (q ())) (q 3))' '((+ (q 3) (q 3)))'
+    $ brun '(+ (e (f (a)) (q ())) (q 3))' '((+ (q 3) (q 3)))'
     9
 
 
