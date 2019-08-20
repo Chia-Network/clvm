@@ -2,31 +2,18 @@
 
 from setuptools import setup
 
-from opacity.version import version
+from clvm.version import version
 
 setup(
-    name="opacity",
+    name="clvm",
     version=version,
     packages=[
         "clvm",
-        "opacity",
-        "schemas",
     ],
     author="Chia Network, Inc.",
 
-    entry_points={
-        'console_scripts':
-            [
-                'opc = opacity.cmds:opc',
-                'opd = opacity.cmds:opd',
-                'reduce = opacity.cmds:reduce',
-                'rewrite = opacity.cmds:rewrite',
-                'run = compiler.cmds:run',
-                'brun = opacity.cmds:brun',
-            ]
-        },
     author_email="kiss@chia.net",
-    url="https://github.com/Chia-Network",
+    url="https://github.com/Chia-Network/clvm",
     license="https://opensource.org/licenses/Apache-2.0",
     description="Script compiler.",
     classifiers=[
