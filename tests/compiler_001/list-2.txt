@@ -1,2 +1,0 @@
-run '(compile_op (list + 1 2 (+ 1 2)))'
-(+ (q 1) (q 2) (q 3))

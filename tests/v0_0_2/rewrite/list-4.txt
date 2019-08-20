@@ -1,2 +1,0 @@
-rewrite '(list x0 100 200 (list 300 400 500))'
-(cons (first (args)) (cons (quote 100) (cons (quote 200) (cons (cons (quote 300) (cons (quote 400) (cons (quote 500) (quote ())))) (quote ())))))

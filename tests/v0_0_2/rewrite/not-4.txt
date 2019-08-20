@@ -1,2 +1,0 @@
-rewrite '(not (not x0))'
-(call (if_op (call (if_op (first (args)) (function_op (quote ())) (function_op (quote 1))) (args)) (function_op (quote ())) (function_op (quote 1))) (args))

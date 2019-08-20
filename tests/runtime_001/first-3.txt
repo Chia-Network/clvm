@@ -1,2 +1,0 @@
-brun '(f (q ()))'
-FAIL: first of non-cons ()

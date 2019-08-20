@@ -1,2 +1,0 @@
-rewrite '(quasiquote (100 200 300 400 500))'
-(cons (quote 100) (cons (function_op (quote 200)) (cons (function_op (quote 300)) (cons (function_op (quote 400)) (cons (function_op (quote 500)) (quote ()))))))

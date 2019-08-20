@@ -1,2 +1,0 @@
-run '(prog ((defmacro list () (eval (if (args) (quote (eval (if (args) (quote (cons cons (cons (first (args)) (cons (cons list (rest (args))) ())))) ()) (args))) ()) (args)))) (list))'
-(eval (function ()) (cons () (args)))

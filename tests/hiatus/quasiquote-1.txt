@@ -1,2 +1,0 @@
-reduce -s schemas.v0_0_2 '(quasiquote (+ 1 2 (unquote (+ 1 2))))'
-(+ 1 2 3)

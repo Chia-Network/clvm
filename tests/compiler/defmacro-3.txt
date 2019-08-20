@@ -1,2 +1,0 @@
-run '(prog ((defmacro test () (if (args) 5000 6000 ))) (test 10))'
-(eval (function 5000) (cons () (args)))

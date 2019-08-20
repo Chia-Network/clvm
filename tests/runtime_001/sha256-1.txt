@@ -1,2 +1,0 @@
-brun '(sha256 (f (a)))' '("hello.there.my.dear.friend")'
-0x5272821c151fdd49f19cc58cf8833da5781c7478a36d500e8dc2364be39f8216

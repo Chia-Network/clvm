@@ -1,2 +1,0 @@
-brun '(e (q (a)))'
-FAIL: eval requires 2 parameters (e (q (a)))

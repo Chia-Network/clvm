@@ -1,2 +1,0 @@
-rewrite '(if 0 100 x50)'
-(call (if_op (quote 0) (function_op (quote 100)) (function_op (quote x50))) (args))

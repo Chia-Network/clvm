@@ -1,2 +1,0 @@
-run '(prog ((defmacro add (n1 n2) (+ n1 n2))) (add 50 60))'
-(eval (function 110) (cons () (args)))

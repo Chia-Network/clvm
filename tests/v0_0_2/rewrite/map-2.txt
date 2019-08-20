@@ -1,2 +1,0 @@
-rewrite '(map x0 (list 100 200 300))'
-(eval (function_op (quote (eval x0 (args)))) (cons (function_op (quote (if x2 (cons (eval x1 (list (first x2))) (eval x0 (list x0 x1 (rest x2)))) ()))) (cons (first (args)) (cons (cons (quote 100) (cons (quote 200) (cons (quote 300) (quote ())))) (quote ())))))

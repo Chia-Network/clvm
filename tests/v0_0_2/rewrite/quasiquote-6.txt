@@ -1,2 +1,0 @@
-rewrite '(quasiquote (+ x0 (unquote (sha256 x0))))'
-(cons (quote +) (cons (function_op (quote x0)) (cons (sha256 (first (args))) (quote ()))))

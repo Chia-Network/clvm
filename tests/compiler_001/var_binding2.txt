@@ -1,2 +1,0 @@
-run x3 '("junk" "junk" "junk" "foobarbaz" "junk" "junk")'
-"foobarbaz"

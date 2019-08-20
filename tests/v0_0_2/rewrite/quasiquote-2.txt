@@ -1,2 +1,0 @@
-rewrite '(quasiquote x0)'
-(quote x0)

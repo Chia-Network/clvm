@@ -1,2 +1,0 @@
-run '(quote (quote (+ 1 2 (unquote (+ 1 2)) (unquote (unquote (+ 1 2))))))'
-(quote (+ 1 2 (unquote (+ 1 2)) (unquote (unquote (+ 1 2)))))

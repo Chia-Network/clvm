@@ -1,2 +1,0 @@
-rewrite '(bool x0)'
-(call (if_op (first (args)) (function_op (quote 1)) (function_op (quote ()))) (args))

@@ -1,2 +1,0 @@
-run '(prog ((defun add (n1 n2) (+ n1 n2))) (add 50 60))'
-(eval (function (eval (first (first (args))) (cons (first (args)) (cons 50 (cons 60 ()))))) (cons (cons (function (+ (first (rest (args))) (first (rest (rest (args)))))) ()) (args)))

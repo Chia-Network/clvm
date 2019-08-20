@@ -1,2 +1,0 @@
-brun '(= (q 10))'
-FAIL: first of non-cons ()

@@ -1,2 +1,0 @@
-run '(compile (if x5 (if x1 500 600) 200))'
-(e (i (f (r (r (r (r (r (a))))))) (q (e (i (f (r (a))) (q (q 500)) (q (q 600))) (a))) (q (q 200))) (a))

@@ -1,2 +1,0 @@
-rewrite x0
-(first (args))
