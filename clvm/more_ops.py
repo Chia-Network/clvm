@@ -92,11 +92,12 @@ def op_point_add(items):
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
     return items.to(bls12_381_to_bytes(p))
 
+
 def op_uint64(items):
     for arg in items.as_iter():
         try:
             r = uint64_from_bytes(arg.as_atom())
             return items.to(r)
-        except Exception as ex:
+        except Exception:
             raise EvalError("bad uint64 cast of %s" % arg, arg)
     return EvalError("bad uint64 params")
