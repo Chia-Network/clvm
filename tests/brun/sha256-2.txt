@@ -1,0 +1,2 @@
+brun '(sha256 "hel" "lo.there.my.dear.friend")'
+FAIL: not a list "hel"

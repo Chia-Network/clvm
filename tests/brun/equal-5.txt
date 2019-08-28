@@ -1,0 +1,2 @@
+brun '(= (q ()) (q 0))'
+FAIL: = on list (() 0)

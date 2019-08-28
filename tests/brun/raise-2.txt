@@ -1,0 +1,2 @@
+brun '(x (q 2000))'
+FAIL: clvm raise (2000)
