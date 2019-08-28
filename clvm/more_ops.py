@@ -2,7 +2,7 @@ import hashlib
 import io
 
 from .EvalError import EvalError
-from .casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes
+from .casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes, uint64_from_bytes
 from .serialize import sexp_from_stream, sexp_to_stream
 
 
@@ -91,3 +91,12 @@ def op_point_add(items):
         except Exception as ex:
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
     return items.to(bls12_381_to_bytes(p))
+
+def op_uint64(items):
+    for arg in items.as_iter():
+        try:
+            r = uint64_from_bytes(arg.as_atom())
+            return items.to(r)
+        except Exception as ex:
+            raise EvalError("bad uint64 cast of %s" % arg, arg)
+    return EvalError("bad uint64 params")
