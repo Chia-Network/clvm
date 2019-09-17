@@ -1,2 +1,2 @@
 brun '(e (q 0) (q 1) (q 2))'
-FAIL: eval requires 2 parameters (e (q 0) (q 1) (q 2))
+FAIL: eval requires 2 parameters (e (q ()) (q 1) (q 2))

@@ -35,7 +35,7 @@ class mixin:
         return bls12_381_from_bytes(self.as_atom())
 
 
-to_sexp_f = subclass_sexp(mixin, (bytes,))
+to_sexp_f = subclass_sexp(mixin, (bytes,), false=b'')
 
 
 KEYWORDS = ". q e a i c f r l x = sha256 + - * . wrap unwrap point_add pubkey_for_exp uint64".split()
