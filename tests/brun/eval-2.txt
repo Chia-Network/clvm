@@ -1,2 +1,2 @@
-brun '(e (q (a)))'
-FAIL: eval requires 2 parameters (e (q (a)))
+brun '((c (q (a))))'
+FAIL: first of non-cons ()

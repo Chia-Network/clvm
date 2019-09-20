@@ -14,6 +14,10 @@ def make_eval_f(operator_lookup, quote_kw, eval_kw, env_kw):
 
         first_item = form.first()
 
+        if first_item.listp():
+            new_form = eval_f(eval_f, first_item, env)
+            return eval_f(eval_f, new_form.first(), new_form.rest())
+
         f_index = first_item.as_atom()
         if f_index is None:
             raise EvalError("non-byte atom in first element of list", form)
