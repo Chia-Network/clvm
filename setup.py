@@ -9,6 +9,7 @@ setup(
     version=version,
     packages=[
         "clvm",
+        "clvm.ecdsa",
     ],
     author="Chia Network, Inc.",
 
