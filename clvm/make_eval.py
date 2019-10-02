@@ -1,9 +1,13 @@
 # make the "eval" function for a vm with the given operators
 
+import os
+
 from .EvalError import EvalError
 
 
 def make_eval_f(operator_lookup, quote_kw, eval_kw, env_kw):
+
+    CLVM_DISALLOW_E_OP = os.environ.get('CLVM_DISALLOW_E_OP')
 
     def eval_core(eval_f, form, env):
         if not form.listp():
@@ -35,6 +39,11 @@ def make_eval_f(operator_lookup, quote_kw, eval_kw, env_kw):
         # keyword EVAL
 
         if f_index == eval_kw:
+            if CLVM_DISALLOW_E_OP:
+                if CLVM_DISALLOW_E_OP == "breakpoint":
+                    print(form)
+                    breakpoint()
+                raise EvalError("e operator no longer supported", form)
             if args.rest().nullp() or not args.rest().rest().nullp():
                 raise EvalError("eval requires 2 parameters", form)
             return eval_f(eval_f, args.first(), args.rest().first())
