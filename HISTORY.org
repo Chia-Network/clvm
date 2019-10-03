@@ -44,6 +44,47 @@ For more information on environment variables, take a look at
 [[https://www.networkworld.com/article/3215965/all-you-need-to-know-about-unix-environment-variables.html][this article]] (or hit the internet).
 
 
+** Remove custom "null" type.
+
+In v0.1, the ~()~ null value was represented by a unique atom that was
+different from every other atom. In v0.2 and beyond, the ~()~ value
+is represented by an empty binary string, and so has the same representation
+as ~0~. This also affects ~i~, which now views ~0~ as false.
+
+*** Example
+
+**** v0.1
+
+#+BEGIN_SRC bash
+$ brun '(q 0)'
+0
+$ brun '(q ())'
+()
+$ brun '(i (q ()) (q 500) (q 600))'
+600
+$ brun '(i (q 0) (q 500) (q 600))'
+500
+$ brun '(i (q 1) (q 500) (q 600))'
+500
+#+END_SRC
+
+
+**** v0.2
+
+#+BEGIN_SRC bash
+$ brun '(q 0)'
+()
+$ brun '(q ())'
+()
+$ brun '(i (q ()) (q 500) (q 600))'
+600
+$ brun '(i (q 0) (q 500) (q 600))'
+600
+$ brun '(i (q 1) (q 500) (q 600))'
+500
+#+END_SRC
+
+
 * v0.1
 
 Initial release.
