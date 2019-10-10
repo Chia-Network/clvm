@@ -12,14 +12,10 @@
 # 0xf7-0xfb is 5 bytes ((perform logical and of first byte with 0x3))
 
 MAX_SINGLE_BYTE = 0x7f
-NIL_MARKER = 0xfe
 CONS_BOX_MARKER = 0xff
 
 
 def sexp_to_byte_iterator(sexp):
-    if sexp.nullp():
-        yield bytes([NIL_MARKER])
-        return
     if sexp.listp():
         yield bytes([CONS_BOX_MARKER])
         yield from sexp_to_byte_iterator(sexp.first())
@@ -65,8 +61,6 @@ def sexp_from_stream(f, to_sexp):
     if len(blob) == 0:
         raise ValueError("bad encoding")
     b = blob[0]
-    if b == NIL_MARKER:
-        return to_sexp(None)
     if b == CONS_BOX_MARKER:
         v1 = sexp_from_stream(f, to_sexp)
         v2 = sexp_from_stream(f, to_sexp)
