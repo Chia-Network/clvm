@@ -1,0 +1,2 @@
+brun '(sha256tree (q (200 (hello there 300) 100)))'
+0x1bc06a1c8f342dbaa92ed2072858303f1117c1e1e1376224ab1299b17173cf2c

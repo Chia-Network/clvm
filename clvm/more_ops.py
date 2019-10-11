@@ -3,13 +3,22 @@ import io
 
 from .EvalError import EvalError
 from .casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes, uint64_from_bytes
-from .serialize import sexp_from_stream, sexp_to_stream
+from .serialize import sexp_from_stream, sexp_to_byte_iterator, sexp_to_stream
 
 
 def op_sha256(args):
     h = hashlib.sha256()
     for _ in args.as_iter():
         h.update(_.as_atom())
+    return args.to(h.digest())
+
+
+def op_sha256tree(args):
+    if args.nullp() or not args.rest().nullp():
+        raise EvalError("op_sha256tree expects exactly one argument", args)
+    h = hashlib.sha256()
+    for _ in sexp_to_byte_iterator(args.first()):
+        h.update(_)
     return args.to(h.digest())
 
 

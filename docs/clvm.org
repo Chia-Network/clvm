@@ -40,8 +40,7 @@ The language is small, and similar to lisp, except most operators are one letter
     - ~uint64~ :: ~(uint64 a0)~ takes a number and returns it in the Python int64 format - used for recreating hashes
 *** streaming operators
     - sha256 :: ~(sha256 A)~ returns the sha256 hash (as a 32-byte blob) of the bytes A
-    - wrap :: ~(wrap A)~ streams A to a bytes blob
-    - unwrap :: ~(unwrap A)~ unstreams the bytes blob A to a generic S-expressionblob) of the bytes A
+    - sha256tree :: ~(sha256tree A)~ returns the sha256 hash (as a 32-byte blob) of the sexp A streamed in the standard way
 *** ecdsa operators
     - point_add :: ~(point_add a0 a1 ...)~ takes an arbitrary number of bls12_381 points and adds them
     - pubkey_for_exp :: ~(pubkey_for_exp A)~ turns the integer A into a bls12_381 point
@@ -55,11 +54,11 @@ We reserve x0 for the public key and leave x1 unused (it's reserved for the tapr
 
 The uncompiled version of this program looks like this:
 
-~(cons (list aggsig x0 (sha256 (wrap x2))) (eval x2 x3))~
+~(cons (list aggsig x0 (sha256tree x2)) (eval x2 x3))~
 
 and it compiles to clvm that looks like
 
-~(c (c (q aggsig) (c (f (a)) (c (sha256 (wrap (f (r (r (a)))))) (q ())))) (e (f (r (r (a)))) (f (r (r (r (a)))))))~
+~(c (c (q aggsig) (c (f (a)) (c (sha256tree (f (r (r (a))))) (q ())))) (e (f (r (r (a)))) (f (r (r (r (a)))))))~
 
 When run, it roughly means "return condition (aggsig PUBKEY hash[x2]) along with whatever conditions are created by running x2 with solution x3".
 
@@ -69,11 +68,11 @@ A taproot puzzle has a base hidden public key P and a hidden program S. A new pu
 
 To execute the taproot branch, we reveal S and P, allowing us to prove that S is correct. Then we solve S with x1 (ie. x1 is a solution to S), yielding the conditions. So this branch looks something like
 
-~(assert (equal x0 (point_add x3 (pubkey_for_exp (sha256 x3 (wrap x1))))) (eval x1 x2))~
+~(assert (equal x0 (point_add x3 (pubkey_for_exp (sha256tree (c x3 x1))))) (eval x1 x2))~
 
 which compiles to
 
-~(e (i (= (f (a)) (point_add (f (r (r (r (a))))) (pubkey_for_exp (sha256 (f (r (r (r (a))))) (wrap (f (r (a)))))))) (q (e (f (r (a))) (f (r (r (a)))))) (q (x))) (a))~
+~(e (i (= (f (a)) (point_add (f (r (r (r (a))))) (pubkey_for_exp (sha256tree (c (f (r (r (r (a))))) (f (r (a)))))))) (q (e (f (r (a))) (f (r (r (a)))))) (q (x))) (a))~
 
 We solve it by setting x1 to S, x2 to a solution for S (which will probably also specify conditions, especially if S does not), and x3 to P. Voila!
 
@@ -81,11 +80,11 @@ We solve it by setting x1 to S, x2 to a solution for S (which will probably also
 
 We put the two above together, along with an "if" statement checking if x1 is set to nil or a revealed program to determine whether we take the taproot case. This yields the following:
 
-~(if x1 (assert (equal x0 (point_add x3 (pubkey_for_exp (sha256 x3 (wrap x1))))) (eval x1 x2)) (cons (list aggsig x0 (sha256 (wrap x2))) (eval x2 x3)))~
+~(if x1 (assert (equal x0 (point_add x3 (pubkey_for_exp (sha256tree (c x3 x1))))) (eval x1 x2)) (cons (list aggsig x0 (sha256tree x2)) (eval x2 x3)))~
 
 However, x0 still needs to be set. We wrap the whole thing in a ~(quote (eval))~ that sets x0 to a constant and remaps the old x0, x1, x2 variables to x1, x2, x3.
 
-~(eval (quote (if x1 (assert (equal x0 (point_add x3 (pubkey_for_exp (sha256 x3 (wrap x1))))) (eval x1 x2)) (cons (list aggsig x0 (sha256 (wrap x2))) (eval x2 x3)))) (cons PUBLIC_KEY_P1 (list x0 x1 x2)))~
+~(eval (quote (if x1 (assert (equal x0 (point_add x3 (pubkey_for_exp (sha256tree (c x3 x1))))) (eval x1 x2)) (cons (list aggsig x0 (sha256tree x2)) (eval x2 x3)))) (cons PUBLIC_KEY_P1 (list x0 x1 x2)))~
 
 This includes the public key in only one place, and gives us a three-parameter solution:
 
