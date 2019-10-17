@@ -35,8 +35,8 @@ $ CLVM_DISALLOW_E_OP=breakpoint brun '(e (q (+ (q 500))) (q ()))'
 > /Users/kiss/projects/chia/clvm/make_eval.py(46)eval_core()
 -> raise EvalError("e operator no longer supported", form)
 
-$ CLVM_DISALLOW_E_OP=breakpoint brun '((c (q (+ (q 500))) (q ())))
-500'
+$ CLVM_DISALLOW_E_OP=breakpoint brun '((c (q (+ (q 500))) (q ())))'
+500
 #+END_SRC
 
 
