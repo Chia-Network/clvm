@@ -1,4 +1,4 @@
-name: Python application
+name: Tests
 
 on: [push]
 
@@ -19,7 +19,12 @@ jobs:
         ln -s env/bin/activate
         . activate
     - name: Install dependencies
+      env:
+        CLVM_TOOLS_DEPLOY_KEY: ${{ secrets.CLVM_TOOLS_DEPLOY_KEY }}
+        GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
       run: |
+        eval "$(ssh-agent -s)"
+        ssh-add - <<< "${CLVM_TOOLS_DEPLOY_KEY}"
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt 
     - name: Test with pytest
