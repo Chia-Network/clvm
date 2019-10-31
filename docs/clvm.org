@@ -27,7 +27,6 @@ The language is small, and similar to lisp, except most operators are one letter
     - l :: *listp* ~(l X)~ takes exactly one operand and returns ~()~ if it's an atom or ~1~ if it's a list
 *** control flow
     - i :: *if* ~(i A B C)~ takes exactly three operands ~A~, ~B~, ~C~. If ~A~ is ~()~ (which means "false), return ~C~. Otherwise, return ~B~
-    - e :: *eval* ~(e A B)~ takes exactly two operands ~A~ and ~B~. Sets the ~args~ environment context to B and eval A with that context
     - a :: *args* ~(a)~ zero argument. Returns the environment set by the most recent *eval* call
     - x :: *raise* ~(x X Y...)~ takes an arbitrary number of arguments (even zero). Immediately fail, with the argument list passed up into the (python) exception
     - = :: *equal* ~(= A B)~ returns 1 iff ~A~ and ~B~ are both atoms and both equal. Otherwise ~()~
