@@ -29,7 +29,7 @@ def bls12_381_from_bytes(blob):
     x = int.from_bytes(ba, byteorder="big", signed=False)
     try:
         points = bls12_381_generator.points_for_x(x)
-        return points[1 if hi_bit else 0]
+        return points[0 if hi_bit else 1]
     except ValueError:
         return bls12_381_generator.infinity()
 
@@ -39,7 +39,7 @@ def bls12_381_to_bytes(point):
     if x is None:
         return b''
     as_bytes = bytearray(x.to_bytes(length=BLS12_381_POINT_BYTE_COUNT, byteorder="big", signed=False))
-    if y & 1:
+    if y & 1 == 0:
         as_bytes[0] |= 0x80
     return bytes(as_bytes)
 
