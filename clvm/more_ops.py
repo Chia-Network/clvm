@@ -68,21 +68,6 @@ def op_multiply(args):
     return args.to(v)
 
 
-def op_unwrap(items):
-    try:
-        return sexp_from_stream(io.BytesIO(items.first().as_bytes()), items.to)
-    except (IndexError, ValueError):
-        raise EvalError("bad stream", items)
-
-
-def op_wrap(items):
-    if items.nullp() or not items.rest().nullp():
-        raise EvalError("wrap expects exactly one argument", items)
-    f = io.BytesIO()
-    sexp_to_stream(items.first(), f)
-    return items.to(f.getvalue())
-
-
 def op_pubkey_for_exp(items):
     if items.nullp() or not items.rest().nullp():
         raise EvalError("op_pubkey_for_exp expects exactly one argument", items)
