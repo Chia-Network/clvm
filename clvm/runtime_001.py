@@ -5,7 +5,7 @@ from . import core_ops, more_ops
 from .casts import (
     int_from_bytes, int_to_bytes, bls12_381_from_bytes, bls12_381_to_bytes, bls12_381_generator
 )
-from .make_eval import make_eval_f
+from .make_eval import make_eval_f, make_eval_cost
 from .op_utils import operators_for_module
 from .serialize import sexp_to_stream
 from .subclass_sexp import subclass_sexp
@@ -67,3 +67,6 @@ OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRIT
 
 eval_f = make_eval_f(
     OPERATOR_LOOKUP, KEYWORD_TO_ATOM["q"], KEYWORD_TO_ATOM["e"], KEYWORD_TO_ATOM["a"])
+
+eval_cost = make_eval_cost(
+    OPERATOR_LOOKUP, KEYWORD_TO_ATOM["q"], KEYWORD_TO_ATOM["a"])
