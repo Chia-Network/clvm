@@ -70,3 +70,21 @@ eval_f = make_eval_f(
 
 eval_cost = make_eval_cost(
     OPERATOR_LOOKUP, KEYWORD_TO_ATOM["q"], KEYWORD_TO_ATOM["a"])
+
+
+def run_program(program, args, max_cost=None, pre_eval_f=None, post_eval_f=None):
+
+    def wrapped_eval(eval_cost, sexp, args, current_cost, max_cost):
+        if pre_eval_f:
+            pre_eval_f(sexp, args, current_cost, max_cost)
+        current_cost, r = eval(eval, program, args, max_cost=max_cost)
+        if post_eval_f:
+            post_eval_f(sexp, args, current_cost, max_cost, r)
+        return current_cost, r
+
+    if pre_eval_f or post_eval_f:
+        eval = wrapped_eval
+    else:
+        eval = eval_cost
+
+    return eval(eval, program, args, max_cost=max_cost)
