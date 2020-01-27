@@ -2,10 +2,14 @@ import io
 
 from . import core_ops, more_ops
 
+from .Eval import Eval
 from .casts import (
-    int_from_bytes, int_to_bytes, bls12_381_from_bytes, bls12_381_to_bytes, bls12_381_generator
+    int_from_bytes,
+    int_to_bytes,
+    bls12_381_from_bytes,
+    bls12_381_to_bytes,
+    bls12_381_generator,
 )
-from .make_eval import make_eval_f, make_eval_cost
 from .op_utils import operators_for_module
 from .serialize import sexp_to_stream
 from .subclass_sexp import subclass_sexp
@@ -35,12 +39,13 @@ class mixin:
         return bls12_381_from_bytes(self.as_atom())
 
 
-to_sexp_f = subclass_sexp(mixin, (bytes,), false=b'')
+to_sexp_f = subclass_sexp(mixin, (bytes,), false=b"")
 
 
 KEYWORDS = (
     ". q e a i c f r l x = sha256 + - * . "
-    "wrap unwrap point_add pubkey_for_exp uint64 sha256tree >").split()
+    "wrap unwrap point_add pubkey_for_exp uint64 sha256tree >"
+).split()
 
 KEYWORD_FROM_ATOM = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}
 KEYWORD_TO_ATOM = {v: k for k, v in KEYWORD_FROM_ATOM.items()}
@@ -65,30 +70,40 @@ OPERATOR_LOOKUP = operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE)
 OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRITE))
 
 
-eval_f = make_eval_f(
-    OPERATOR_LOOKUP, KEYWORD_TO_ATOM["q"], KEYWORD_TO_ATOM["e"], KEYWORD_TO_ATOM["a"])
+def run_program(
+    program,
+    args,
+    quote_kw=KEYWORD_TO_ATOM["q"],
+    args_kw=KEYWORD_TO_ATOM["a"],
+    operator_lookup=None,
+    max_cost=None,
+    pre_eval_f=None,
+    post_eval_f=None,
+):
 
-eval_cost = make_eval_cost(
-    OPERATOR_LOOKUP, KEYWORD_TO_ATOM["q"], KEYWORD_TO_ATOM["a"])
+    if operator_lookup is None:
+        operator_lookup = OPERATOR_LOOKUP
 
-
-def run_program(program, args, max_cost=None, pre_eval_f=None, post_eval_f=None):
-
-    def wrapped_eval(eval_cost, sexp, args, current_cost, max_cost):
-        if pre_eval_f:
-            new_sexp = pre_eval_f(sexp, args, current_cost, max_cost)
-            if new_sexp:
-                sexp = new_sexp
-        current_cost, r = eval(eval, program, args, max_cost=max_cost)
-        if post_eval_f:
-            new_r = post_eval_f(sexp, args, current_cost, max_cost, r)
-            if new_r:
-                r = new_r
-        return current_cost, r
-
+    eval_class = Eval
     if pre_eval_f or post_eval_f:
-        eval = wrapped_eval
-    else:
-        eval = eval_cost
 
-    return eval(eval, program, args, max_cost=max_cost)
+        class WrappedEval(Eval):
+            def eval(self, sexp, env, current_cost, max_cost):
+                context = None
+                if pre_eval_f:
+                    context = pre_eval_f(sexp, env, current_cost, max_cost)
+                try:
+                    r = super().eval(sexp, env, current_cost, max_cost)
+                except Exception as ex:
+                    r = (0, sexp.to(("FAIL: %s" % str(ex)).encode("utf8")))
+                    raise
+                finally:
+                    if post_eval_f:
+                        post_eval_f(context, r)
+                return r
+
+        eval_class = WrappedEval
+
+    eval = eval_class(operator_lookup, quote_kw, args_kw)
+
+    return eval(program, args, max_cost=max_cost)
