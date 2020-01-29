@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: macOS-latest
 
     steps:
@@ -26,8 +25,27 @@ jobs:
         eval "$(ssh-agent -s)"
         ssh-add - <<< "${CHIA_MACHINE_SSH_KEY}"
         python -m pip install --upgrade pip
-        pip install -e .
-        pip install -r requirements-dev.txt 
+        pip install .
+        pip install -r requirements-dev.txt
     - name: Test with pytest
       run: |
         py.test tests
+
+  build36:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      env:
+        CHIA_MACHINE_SSH_KEY: ${{ secrets.CHIA_MACHINE_SSH_KEY }}
+        GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+      run: |
+        eval "$(ssh-agent -s)"
+        ssh-add - <<< "${CHIA_MACHINE_SSH_KEY}"
+        pip3 install setuptools
+        pip3 install .
+        pip3 install -r requirements-dev.txt
+    - name: Test with pytest
+      run: |
+        ~/.local/bin/py.test tests
