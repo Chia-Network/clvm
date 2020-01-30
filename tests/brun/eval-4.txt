@@ -1,2 +1,2 @@
 brun '((c (q 0) (q 1) (q 2)))'
-FAIL: not a list ()
+1

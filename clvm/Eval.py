@@ -1,5 +1,7 @@
 # make the "eval" function for a vm with the given operators
 
+from . import casts
+
 from .EvalError import EvalError
 
 QUOTE_COST = 1
@@ -20,9 +22,21 @@ class Eval:
     def __call__(self, sexp, env, max_cost=None):
         return self.eval(sexp, env, current_cost=0, max_cost=max_cost)
 
+    def eval_atom(self, sexp, env):
+        node_index = casts.int_from_bytes(sexp.as_atom()) + 1
+        cost = 1
+        while node_index > 1:
+            if node_index & 1:
+                env = env.rest()
+            else:
+                env = env.first()
+            node_index >>= 1
+            cost += 1
+        return cost, env
+
     def eval(self, sexp, env, current_cost, max_cost):
         if not sexp.listp():
-            raise EvalError("not a list", sexp)
+            return self.eval_atom(sexp, env)
 
         if sexp.nullp():
             raise EvalError("eval cannot handle empty list", sexp)
