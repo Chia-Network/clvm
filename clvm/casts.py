@@ -44,7 +44,3 @@ def bls12_381_to_bytes(point):
     if y + y > bls12_381_generator.p():
         as_bytes[0] |= 0x80
     return bytes(as_bytes)
-
-
-def uint64_from_bytes(blob):
-    return int_from_bytes(blob).to_bytes(8, "big")

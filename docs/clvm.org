@@ -36,7 +36,6 @@ The language is small, and similar to lisp, except most operators are one letter
     - ~+~ :: ~(+ a0 a1...)~ takes an arbitrary number of integer operands and sums them
     - ~-~ :: ~(- a0 a1...)~ takes an arbitrary number of integer operands and adds a0 to the negative of the rest
     - ~*~ :: ~(* a0 a1...)~ takes an arbitrary number of integer operands and returns the product
-    - ~uint64~ :: ~(uint64 a0)~ takes a number and returns it in the Python int64 format - used for recreating hashes
 *** streaming operators
     - sha256 :: ~(sha256 A)~ returns the sha256 hash (as a 32-byte blob) of the bytes A
     - sha256tree :: ~(sha256tree A)~ returns the sha256 hash (as a 32-byte blob) of the sexp A streamed in the standard way
