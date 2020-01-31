@@ -13,13 +13,20 @@ def op_sha256(args):
     return args.to(h.digest())
 
 
+def sha256tree(v):
+    if v.listp():
+        left = sha256tree(v.first())
+        right = sha256tree(v.rest())
+        s = b"\2" + left + right
+    else:
+        s = b"\1" + v.as_atom()
+    return hashlib.sha256(s).digest()
+
+
 def op_sha256tree(args):
     if args.nullp() or not args.rest().nullp():
         raise EvalError("op_sha256tree expects exactly one argument", args)
-    h = hashlib.sha256()
-    for _ in sexp_to_byte_iterator(args.first()):
-        h.update(_)
-    return args.to(h.digest())
+    return args.to(sha256tree(args.first()))
 
 
 MASK_128 = ((1 << 128) - 1)
