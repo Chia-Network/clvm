@@ -23,7 +23,7 @@ class Eval:
         return self.eval(sexp, env, current_cost=0, max_cost=max_cost)
 
     def eval_atom(self, sexp, env):
-        node_index = casts.int_from_bytes(sexp.as_atom()) + 1
+        node_index = casts.int_from_bytes(sexp.as_atom())
         cost = 1
         while node_index > 1:
             if node_index & 1:
