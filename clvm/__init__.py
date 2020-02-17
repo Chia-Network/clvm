@@ -7,4 +7,7 @@ from .runtime_001 import (  # noqa
     KEYWORD_FROM_ATOM,
 )
 
-__version__ = version = get_version()
+try:
+    __version__ = get_version()
+except LookupError:
+    __version__ = "unknown"
