@@ -34,11 +34,3 @@ def op_eq(args):
     if a0.listp() or a1.listp():
         raise EvalError("= on list", args)
     return args.true if a0.as_atom() == a1.as_atom() else args.false
-
-
-def op_gr(args):
-    a0 = args.first()
-    a1 = args.rest().first()
-    if a0.listp() or a1.listp():
-        raise EvalError("> on list", args)
-    return args.true if a0.as_atom() > a1.as_atom() else args.false

@@ -75,6 +75,14 @@ def op_multiply(args):
     return args.to(v)
 
 
+def op_gr(args):
+    a0 = args.first()
+    a1 = args.rest().first()
+    if a0.listp() or a1.listp():
+        raise EvalError("> on list", args)
+    return args.true if a0.as_int() > a1.as_int() else args.false
+
+
 def op_pubkey_for_exp(items):
     if items.nullp() or not items.rest().nullp():
         raise EvalError("op_pubkey_for_exp expects exactly one argument", items)
