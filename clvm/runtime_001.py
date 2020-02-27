@@ -44,7 +44,7 @@ to_sexp_f = subclass_sexp(mixin, (bytes,), false=b"")
 
 KEYWORDS = (
     ". q e a i c f r l x = sha256 + - * . "
-    ". . point_add pubkey_for_exp . sha256tree >"
+    ". . point_add pubkey_for_exp . sha256tree > >s"
 ).split()
 
 KEYWORD_FROM_ATOM = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}
@@ -63,6 +63,7 @@ OP_REWRITE = {
     "x": "raise",
     "=": "eq",
     ">": "gr",
+    ">s": "gr_bytes",
 }
 
 

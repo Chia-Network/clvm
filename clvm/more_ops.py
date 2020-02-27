@@ -1,9 +1,7 @@
 import hashlib
-import io
 
 from .EvalError import EvalError
 from .casts import bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes
-from .serialize import sexp_from_stream, sexp_to_byte_iterator, sexp_to_stream
 
 
 def op_sha256(args):
@@ -81,6 +79,14 @@ def op_gr(args):
     if a0.listp() or a1.listp():
         raise EvalError("> on list", args)
     return args.true if a0.as_int() > a1.as_int() else args.false
+
+
+def op_gr_bytes(args):
+    a0 = args.first()
+    a1 = args.rest().first()
+    if a0.listp() or a1.listp():
+        raise EvalError("> on list", args)
+    return args.true if a0.as_atom() > a1.as_atom() else args.false
 
 
 def op_pubkey_for_exp(items):
