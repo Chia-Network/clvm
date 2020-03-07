@@ -1,4 +1,4 @@
-from setuptools_scm import get_version
+from pkg_resources import get_distribution, DistributionNotFound
 
 from .runtime_001 import (  # noqa
     run_program,
@@ -8,6 +8,7 @@ from .runtime_001 import (  # noqa
 )
 
 try:
-    __version__ = get_version()
-except LookupError:
-    __version__ = "unknown"
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+     # package is not installed
+     __version__ = "unknown"
