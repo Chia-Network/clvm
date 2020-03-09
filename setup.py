@@ -10,9 +10,6 @@ setup(
     url="https://github.com/Chia-Network/clvm",
     license="https://opensource.org/licenses/Apache-2.0",
     description="[Contract Language | Chialisp] Virtual Machine",
-    install_requires=["setuptools_scm"],
-    setup_requires=["setuptools_scm"],
-    use_scm_version={"fallback_version": "unknown"},
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",
