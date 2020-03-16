@@ -1,2 +1,2 @@
-brun '(r (q ()))'
+brun -c '(r (q ()))'
 FAIL: rest of non-cons ()

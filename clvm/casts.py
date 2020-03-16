@@ -3,8 +3,10 @@ from .ecdsa.bls12_381 import bls12_381_generator
 
 def int_from_bytes(blob):
     size = len(blob)
-    if size == 0 or size > 32:
+    if size == 0:
         return 0
+    if size > 32:
+        raise ValueError("blob too long to cast to int")
     return int.from_bytes(blob, "big", signed=True)
 
 
@@ -15,6 +17,13 @@ def int_to_bytes(v):
     if v == 0:
         return b''
     return v.to_bytes(byte_count, "big", signed=True)
+
+
+def limbs_for_int(v):
+    """
+    Return the number of bytes required to represent this integer.
+    """
+    return (v.bit_length() + 7) >> 3
 
 
 BLS12_381_POINT_BYTE_COUNT = (bls12_381_generator[0].bit_length() + 7) // 8

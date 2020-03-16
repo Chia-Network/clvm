@@ -1,2 +1,3 @@
-brun '(sha256tree (q (200 300 100)))'
+brun -c '(sha256tree (q (200 300 100)))'
+cost = 70020
 0x19cd08b047c3f1b7d995b94e66762adc18ac143f9eebf762ea319fba07999828

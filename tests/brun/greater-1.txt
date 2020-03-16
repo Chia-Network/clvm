@@ -1,2 +1,2 @@
-brun '(> (q 10))'
+brun -c '(> (q 10))'
 FAIL: first of non-cons ()

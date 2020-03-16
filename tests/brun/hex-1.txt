@@ -1,2 +1,3 @@
-brun '(q 0x00)'
+brun -c '(q 0x00)'
+cost = 15
 0x00

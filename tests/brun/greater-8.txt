@@ -1,2 +1,3 @@
-brun "(> (q 0x5a) (q 0x493e0))"
+brun -c "(> (q 0x5a) (q 0x493e0))"
+cost = 300016
 ()

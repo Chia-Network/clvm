@@ -1,2 +1,3 @@
-brun '(>s (q 0x00) (q 0x01))'
+brun -c '(>s (q 0x00) (q 0x01))'
+cost = 17
 ()
