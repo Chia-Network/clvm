@@ -3,7 +3,6 @@ from .EvalError import EvalError
 
 QUOTE_COST = 1
 ARGS_COST = 1
-DEFAULT_APPLY_COST = 1
 SHIFT_COST_PER_LIMB = 1
 
 
@@ -101,10 +100,7 @@ def run_program(
 
         f = operator_lookup.get(operator.as_atom())
         if f:
-            r = f(operand_list)
-            additional_cost = DEFAULT_APPLY_COST
-            if isinstance(r, (tuple,)):
-                additional_cost, r = r
+            additional_cost, r = f(operand_list)
             value_stack.append(r)
             return additional_cost
 
