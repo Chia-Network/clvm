@@ -2,7 +2,6 @@ import io
 
 from . import core_ops, more_ops
 
-from .Eval import Eval
 from .casts import (
     int_from_bytes,
     int_to_bytes,
@@ -11,6 +10,7 @@ from .casts import (
     bls12_381_generator,
 )
 from .op_utils import operators_for_module
+from .run_program import make_run_program
 from .serialize import sexp_to_stream
 from .subclass_sexp import subclass_sexp
 
@@ -71,40 +71,5 @@ OPERATOR_LOOKUP = operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE)
 OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRITE))
 
 
-def run_program(
-    program,
-    args,
-    quote_kw=KEYWORD_TO_ATOM["q"],
-    args_kw=KEYWORD_TO_ATOM["a"],
-    operator_lookup=None,
-    max_cost=None,
-    pre_eval_f=None,
-    post_eval_f=None,
-):
-
-    if operator_lookup is None:
-        operator_lookup = OPERATOR_LOOKUP
-
-    eval_class = Eval
-    if pre_eval_f or post_eval_f:
-
-        class WrappedEval(Eval):
-            def eval(self, sexp, env, current_cost, max_cost):
-                context = None
-                if pre_eval_f:
-                    context = pre_eval_f(sexp, env, current_cost, max_cost)
-                try:
-                    r = super().eval(sexp, env, current_cost, max_cost)
-                except Exception as ex:
-                    r = (0, sexp.to(("FAIL: %s" % str(ex)).encode("utf8")))
-                    raise
-                finally:
-                    if post_eval_f:
-                        post_eval_f(context, r)
-                return r
-
-        eval_class = WrappedEval
-
-    eval = eval_class(operator_lookup, quote_kw, args_kw)
-
-    return eval(program, args, max_cost=max_cost)
+run_program = make_run_program(
+    OPERATOR_LOOKUP, quote_kw=KEYWORD_TO_ATOM["q"], args_kw=KEYWORD_TO_ATOM["a"])
