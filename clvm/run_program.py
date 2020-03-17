@@ -99,12 +99,13 @@ def run_program(
             raise EvalError("internal error", operator)
 
         f = operator_lookup.get(operator.as_atom())
-        if f:
-            additional_cost, r = f(operand_list)
-            value_stack.append(r)
-            return additional_cost
+        if f is None:
+            raise EvalError("unimplemented operator", operator)
 
-        raise EvalError("unimplemented operator", operator)
+        additional_cost, r = f(operand_list)
+        value_stack.append(r)
+        return additional_cost
+
 
     op_stack = [eval_op]
     value_stack = [program.cons(args)]
