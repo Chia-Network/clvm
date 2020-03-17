@@ -51,6 +51,22 @@ def make_run_program(operator_lookup, quote_kw, args_kw):
             pair = value_stack.pop()
             sexp = pair.first()
             args = pair.rest()
+
+            if pre_eval_f:
+                context = pre_eval_f(sexp, args, 0, 0)
+                if callable(context):
+                    def invoke_context_op(op_stack, value_stack):
+                        v = value_stack[-1]
+                        context(v)
+                        return 0
+                    op_stack.append(invoke_context_op)
+                if post_eval_f:
+                    def invoke_post_eval_f_op(op_stack, value_stack):
+                        v = value_stack[-1]
+                        post_eval_f(context, (0, v))
+                        return 0
+                    op_stack.append(invoke_post_eval_f_op)
+
             # put a bunch of ops on op_stack
 
             if not sexp.listp():
