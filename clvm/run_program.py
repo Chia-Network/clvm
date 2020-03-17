@@ -1,8 +1,10 @@
+from .casts import limbs_for_int
 from .EvalError import EvalError
 
 QUOTE_COST = 1
 ARGS_COST = 1
 DEFAULT_APPLY_COST = 1
+SHIFT_COST_PER_LIMB = 1
 
 
 def run_program(
@@ -26,8 +28,8 @@ def run_program(
                 env = env.rest()
             else:
                 env = env.first()
+            cost += SHIFT_COST_PER_LIMB * limbs_for_int(node_index)
             node_index >>= 1
-            cost += 1
         value_stack.append(env)
         return cost
 
