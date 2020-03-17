@@ -84,11 +84,13 @@ def run_program(
 
         op_stack.append(apply_op)
         value_stack.append(operator)
-        for _ in operand_list.as_iter():
+        while not operand_list.nullp():
+            _ = operand_list.first()
             value_stack.append(_.cons(args))
             op_stack.append(cons_op)
             op_stack.append(eval_op)
             op_stack.append(swap_op)
+            operand_list = operand_list.rest()
         value_stack.append(operator.null())
         return 1
 
