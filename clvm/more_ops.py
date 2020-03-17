@@ -40,11 +40,6 @@ def sha256tree_with_cost(v):
     return cost, hashlib.sha256(s).digest()
 
 
-def sha256tree(v):
-    cost, r = sha256tree_with_cost(v)
-    return r
-
-
 def op_sha256tree(args):
     if args.nullp() or not args.rest().nullp():
         raise EvalError("op_sha256tree expects exactly one argument", args)
