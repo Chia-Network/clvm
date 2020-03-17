@@ -10,7 +10,7 @@ from .casts import (
     bls12_381_generator,
 )
 from .op_utils import operators_for_module
-from .run_program import make_run_program
+from .run_program import run_program as default_run_program
 from .serialize import sexp_to_stream
 from .subclass_sexp import subclass_sexp
 
@@ -71,5 +71,32 @@ OPERATOR_LOOKUP = operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE)
 OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRITE))
 
 
-run_program = make_run_program(
-    OPERATOR_LOOKUP, quote_kw=KEYWORD_TO_ATOM["q"], args_kw=KEYWORD_TO_ATOM["a"])
+def run_program(
+    program,
+    args,
+    quote_kw=KEYWORD_TO_ATOM["q"],
+    args_kw=KEYWORD_TO_ATOM["a"],
+    operator_lookup=OPERATOR_LOOKUP,
+    max_cost=None,
+    pre_eval_f=None,
+    post_eval_f=None,
+):
+    def my_pre_eval_op(op_stack, value_stack):
+        v = value_stack[-1]
+        context = pre_eval_f(v.first(), v.rest(), 0, 0)
+        if callable(context):
+            def invoke_context_op(op_stack, value_stack):
+                context(value_stack[-1])
+                return 0
+            op_stack.append(invoke_context_op)
+        if post_eval_f:
+            def invoke_post_eval_f_op(op_stack, value_stack):
+                post_eval_f(context, (0, value_stack[-1]))
+                return 0
+            op_stack.append(invoke_post_eval_f_op)
+    if pre_eval_f is None:
+        pre_eval_op = None
+    else:
+        pre_eval_op = my_pre_eval_op
+
+    return default_run_program(program, args, quote_kw, args_kw, operator_lookup, max_cost, pre_eval_op)
