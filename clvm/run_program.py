@@ -99,10 +99,7 @@ def run_program(
 
         f = operator_lookup.get(operator.as_atom())
         if f:
-            if getattr(f, "needs_eval", 0):
-                r = f(operand_list, run_program)
-            else:
-                r = f(operand_list)
+            r = f(operand_list)
             additional_cost = DEFAULT_APPLY_COST
             if isinstance(r, (tuple,)):
                 additional_cost, r = r
