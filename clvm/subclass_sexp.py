@@ -87,10 +87,10 @@ class BaseSExp:
 
     def as_iter(self):
         assert self.is_legit_list()
-        if self.nullp():
-            return
-        yield self.first()
-        yield from self.rest().as_iter()
+        v = self
+        while not v.nullp():
+            yield v.first()
+            v = v.rest()
 
     def __eq__(self, other):
         try:
