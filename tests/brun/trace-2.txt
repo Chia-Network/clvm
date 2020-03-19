@@ -1,5 +1,7 @@
 brun -c -v '(x)'
-((c (f (a)) (r (a)))) [((x))] => "FAIL: clvm raise ()"
+FAIL: clvm raise ()
+
+((c (f (a)) (r (a)))) [((x))] => (didn't finish)
 
 (c (f (a)) (r (a))) [((x))] => ((x))
 
@@ -11,5 +13,5 @@ brun -c -v '(x)'
 
 (a) [((x))] => ((x))
 
-(x) [()] => "FAIL: clvm raise ()"
+(x) [()] => (didn't finish)
 

@@ -79,21 +79,15 @@ def run_program(
     operator_lookup=OPERATOR_LOOKUP,
     max_cost=None,
     pre_eval_f=None,
-    post_eval_f=None,
 ):
     def my_pre_eval_op(op_stack, value_stack):
         v = value_stack[-1]
-        context = pre_eval_f(v.first(), v.rest(), 0, 0)
+        context = pre_eval_f(v.first(), v.rest())
         if callable(context):
             def invoke_context_op(op_stack, value_stack):
                 context(value_stack[-1])
                 return 0
             op_stack.append(invoke_context_op)
-        if post_eval_f:
-            def invoke_post_eval_f_op(op_stack, value_stack):
-                post_eval_f(context, (0, value_stack[-1]))
-                return 0
-            op_stack.append(invoke_post_eval_f_op)
     if pre_eval_f is None:
         pre_eval_op = None
     else:
