@@ -11,6 +11,7 @@ from .casts import (
 )
 from .make_eval_rs import make_run_program
 from .op_utils import operators_for_module
+from .run_program import run_program as default_run_program
 from .serialize import sexp_to_stream
 from .subclass_sexp import subclass_sexp
 
@@ -76,15 +77,10 @@ def run_program(
     args,
     quote_kw=KEYWORD_TO_ATOM["q"],
     args_kw=KEYWORD_TO_ATOM["a"],
-    operator_lookup=None,
+    operator_lookup=OPERATOR_LOOKUP,
     max_cost=None,
     pre_eval_f=None,
-    post_eval_f=None,
 ):
-
-    if operator_lookup is None:
-        operator_lookup = OPERATOR_LOOKUP
-
     run_program = make_run_program(operator_lookup, quote_kw, args_kw)
 
     r, cycles = run_program(program, args, pre_eval_f=pre_eval_f, max_cost=max_cost)

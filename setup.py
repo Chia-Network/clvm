@@ -4,6 +4,9 @@ import sys
 
 from setuptools import setup
 
+with open("README.md", "rt") as fh:
+    long_description = fh.read()
+
 try:
     from setuptools_rust import RustExtension
 except ImportError:
@@ -19,7 +22,7 @@ except ImportError:
 
 setup(
     name="clvm",
-    packages=["clvm", "clvm.ecdsa",],
+    packages=["clvm", "clvm.ecdsa", ],
     author="Chia Network, Inc.",
     author_email="hello@chia.net",
     url="https://github.com/Chia-Network/clvm",
@@ -28,6 +31,8 @@ setup(
     install_requires=["setuptools_scm"],
     setup_requires=["setuptools_scm", "setuptools-rust>=0.10.1", "wheel"],
     use_scm_version={"fallback_version": "unknown"},
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",

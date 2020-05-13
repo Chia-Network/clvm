@@ -1,2 +1,2 @@
-brun "(= 3 3)"
+brun -c "(= 3 3)"
 FAIL: rest of non-cons ()

@@ -1,3 +1,3 @@
 pytest
 setuptools-rust==0.10.6
--e git+git@github.com:Chia-Network/clvm_tools.git@07fa0ae1fb7b3fe609fbcbd6f80c9206c5eeb561#egg=clvm_tools
+-e git+https://git@github.com/Chia-Network/clvm_tools.git@7ed381613411b723c816758e1fe36d0d121c56b0#egg=clvm_tools

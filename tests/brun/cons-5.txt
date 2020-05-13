@@ -1,2 +1,2 @@
-brun '(c (q 100))'
+brun -c '(c (q 100))'
 FAIL: first of non-cons ()

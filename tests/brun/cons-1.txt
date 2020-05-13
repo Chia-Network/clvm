@@ -1,2 +1,2 @@
-brun '(c)'
+brun -c '(c)'
 FAIL: first of non-cons ()
