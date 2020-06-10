@@ -1,0 +1,2 @@
+brun -c '(substr (q ("abcdefghijkl")) 2 5)' '(0 4)'
+FAIL: substr on list ("abcdefghijkl")

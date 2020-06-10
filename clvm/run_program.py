@@ -108,7 +108,6 @@ def run_program(
         value_stack.append(r)
         return additional_cost
 
-
     op_stack = [eval_op]
     value_stack = [program.cons(args)]
     cost = 0

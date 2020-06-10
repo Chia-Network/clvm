@@ -11,6 +11,7 @@ from .costs import (
     MIN_COST,
     ADD_COST_PER_LIMB,
     MUL_COST_PER_LIMB,
+    DIVMOD_COST_PER_LIMB,
     SHA256_COST,
     PUBKEY_FOR_EXP_COST,
     POINT_ADD_COST,
@@ -99,6 +100,19 @@ def op_multiply(args):
     return cost, args.to(v)
 
 
+def op_divmod(args):
+    cost = MIN_COST
+    a0 = args.first()
+    a1 = args.rest().first()
+    if a0.listp() or a1.listp():
+        raise EvalError("> on list", args)
+    i0 = a0.as_int()
+    i1 = a1.as_int()
+    cost += DIVMOD_COST_PER_LIMB * (limbs_for_int(i0) + limbs_for_int(i1))
+    q, r = divmod(i0, i1)
+    return cost, args.to((q, r))
+
+
 def op_gr(args):
     a0 = args.first()
     a1 = args.rest().first()
@@ -142,3 +156,31 @@ def op_point_add(items):
         except Exception as ex:
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
     return cost, items.to(bls12_381_to_bytes(p))
+
+
+def op_strlen(args):
+    a0 = args.first()
+    if a0.listp():
+        raise EvalError("len on list", a0)
+    size = len(a0.as_atom())
+    cost = size
+    return cost, args.to(size)
+
+
+def op_substr(args):
+    a0 = args.first()
+    if a0.listp():
+        raise EvalError("substr on list", a0)
+    s0 = a0.as_atom()
+    r = args.rest()
+    a1 = r.first()
+    a2 = r.rest().first()
+    if a1.listp() or a2.listp():
+        raise EvalError("substr requires int args", args)
+    i1 = a1.as_int()
+    i2 = a2.as_int()
+    if i2 > len(s0) or i2 < i1 or i2 < 0 or i1 < 0:
+        raise EvalError("invalid indices for substr", args)
+    s = s0[i1:i2]
+    cost = 1
+    return cost, args.to(s)
