@@ -1,16 +1,44 @@
+import io
+
+from .CoreSExp import CoreSExp
 from .EvalError import EvalError
 
+from .casts import (
+    int_from_bytes,
+    int_to_bytes,
+    bls12_381_from_bytes,
+    bls12_381_to_bytes,
+    bls12_381_generator,
+)
+from .serialize import sexp_to_stream
 
-class BaseSExp:
-    ATOM_TYPES = (bytes, )
 
+class SExp(CoreSExp):
     @classmethod
     def to_castable(class_, v):
         return v
 
     @classmethod
     def to_atom(class_, v):
+        if isinstance(v, int):
+            v = int_to_bytes(v)
+        if isinstance(v, bls12_381_generator.__class__):
+            v = bls12_381_to_bytes(v)
         return v
+
+    def as_int(self):
+        return int_from_bytes(self.as_atom())
+
+    def as_bytes(self):
+        return self.as_atom()
+
+    def as_bin(self):
+        f = io.BytesIO()
+        sexp_to_stream(self, f)
+        return f.getvalue()
+
+    def as_bls12_381(self):
+        return bls12_381_from_bytes(self.as_atom())
 
     @classmethod
     def to(class_, v):
@@ -19,8 +47,10 @@ class BaseSExp:
         if isinstance(v, class_):
             return v
 
-        if isinstance(v, BaseSExp):
-            return class_.to(v.v)
+        if isinstance(v, CoreSExp):
+            if v.listp():
+                return class_.to(v.as_pair())
+            return class_.to(v.as_atom())
 
         if v is None:
             return class_.null()
@@ -42,36 +72,17 @@ class BaseSExp:
 
         raise ValueError("can't cast to %s: %s" % (class_, v))
 
-    def __init__(self, v):
-        assert (
-            (v is None) or
-            (isinstance(v, tuple) and len(v) == 2) or
-            isinstance(v, self.ATOM_TYPES)
-        )
-        self.v = v
-
-    def listp(self):
-        return isinstance(self.v, (None.__class__, tuple))
-
-    def nullp(self):
-        return self == self.__null__
-
-    def cons(self, right):
-        return self.__class__((self, right))
-
     def first(self):
-        if isinstance(self.v, tuple):
-            return self.v[0]
+        pair = self.as_pair()
+        if pair:
+            return pair[0]
         raise EvalError("first of non-cons", self)
 
     def rest(self):
-        if isinstance(self.v, tuple):
-            return self.v[1]
+        pair = self.as_pair()
+        if pair:
+            return pair[1]
         raise EvalError("rest of non-cons", self)
-
-    def as_atom(self):
-        assert not(self.listp())
-        return self.v
 
     @classmethod
     def null(class_):
@@ -112,13 +123,9 @@ class BaseSExp:
         return "%s(%s)" % (self.__class__.__name__, str(self))
 
 
-def subclass_sexp(mixin_class=object, atom_types=BaseSExp.ATOM_TYPES, true=b'\1', false=None):
+SExp.false = SExp.__null__ = SExp.to(b"")
+SExp.true = SExp.to(b"\1")
 
-    class SExp(mixin_class, BaseSExp):
-        ATOM_TYPES = atom_types
 
-    SExp.__null__ = SExp(false)
-    SExp.false = SExp.__null__
-    SExp.true = SExp(true)
-
+def subclass_sexp(*args, **kwargs):
     return SExp.to
