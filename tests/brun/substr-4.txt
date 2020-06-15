@@ -1,0 +1,2 @@
+brun -c '(substr (q "abcdefghijkl") 2 5)' '(0 13)'
+FAIL: invalid indices for substr ("abcdefghijkl" () 13)

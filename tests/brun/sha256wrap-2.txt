@@ -1,3 +1,3 @@
 brun -c '(sha256tree (q (200 (hello there 300) 100)))'
-cost = 183
+cost = 185
 0xb79dd4c82b268e2550f270f5b261e5aecb2a2d2b1c370b6ce75c71e081f102cd
