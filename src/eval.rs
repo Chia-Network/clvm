@@ -138,7 +138,7 @@ pub fn default_eval(
                             }
                         };
                     } else if opcode == op_args {
-                        return { Ok(Reduction(env.clone(), current_cost + 1)) };
+                        return Ok(Reduction(env.clone(), current_cost + 1));
                     }
                 }
                 let Reduction(params, new_cost) = eval_params(
