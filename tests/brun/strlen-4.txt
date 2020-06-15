@@ -1,3 +1,3 @@
 brun -c '(strlen 1)' '"the quick brown fox jumps over the lazy dogs"'
-cost = 83
+cost = 85
 44

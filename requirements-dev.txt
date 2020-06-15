@@ -1,2 +1,2 @@
 pytest
--e git+https://git@github.com/Chia-Network/clvm_tools.git@7ed381613411b723c816758e1fe36d0d121c56b0#egg=clvm_tools
+-e git+https://git@github.com/Chia-Network/clvm_tools.git@171886b03ad37834205fb97c4dd9496e424838b0#egg=clvm_tools
