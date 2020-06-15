@@ -86,7 +86,6 @@ class BaseSExp:
         return False
 
     def as_iter(self):
-        assert self.is_legit_list()
         v = self
         while not v.nullp():
             yield v.first()
