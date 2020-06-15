@@ -4,6 +4,7 @@ mod eval;
 mod f_table;
 mod more_ops;
 mod number;
+mod pysexp;
 mod serialize;
 mod sexp;
 

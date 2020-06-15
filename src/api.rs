@@ -1,6 +1,7 @@
 use super::eval::Reduction;
 use super::eval::{run_program, EvalContext, EvalErr, FApply, PostEval, PreEval};
 use super::f_table::make_f_lookup;
+use super::pysexp::PySExp;
 use super::serialize::{node_from_stream, node_to_stream};
 use super::sexp::Node;
 use pyo3::prelude::*;
@@ -123,5 +124,6 @@ fn do_eval(
 #[pymodule]
 fn clvmr(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(do_eval))?;
+    m.add_class::<PySExp>()?;
     Ok(())
 }
