@@ -105,7 +105,7 @@ def op_divmod(args):
     a0 = args.first()
     a1 = args.rest().first()
     if a0.listp() or a1.listp():
-        raise EvalError("> on list", args)
+        raise EvalError("divmod on list", args)
     i0 = a0.as_int()
     i1 = a1.as_int()
     cost += DIVMOD_COST_PER_LIMB * (limbs_for_int(i0) + limbs_for_int(i1))
@@ -128,7 +128,7 @@ def op_gr_bytes(args):
     a0 = args.first()
     a1 = args.rest().first()
     if a0.listp() or a1.listp():
-        raise EvalError("> on list", args)
+        raise EvalError(">s on list", args)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
     cost = max(len(b0), len(b1))
