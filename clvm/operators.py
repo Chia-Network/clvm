@@ -6,7 +6,7 @@ from .op_utils import operators_for_module
 
 KEYWORDS = (
     ". q e a i c f r l x = sha256 + - * divmod "
-    "substr strlen point_add pubkey_for_exp . sha256tree > >s"
+    "substr strlen point_add pubkey_for_exp concat sha256tree > >s"
 ).split()
 
 KEYWORD_FROM_ATOM = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}

@@ -1,4 +1,5 @@
 import hashlib
+import io
 
 from .EvalError import EvalError
 from .casts import (
@@ -15,6 +16,7 @@ from .costs import (
     SHA256_COST,
     PUBKEY_FOR_EXP_COST,
     POINT_ADD_COST,
+    CONCAT_COST_PER_BYTE,
 )
 
 
@@ -184,3 +186,15 @@ def op_substr(args):
     s = s0[i1:i2]
     cost = 1
     return cost, args.to(s)
+
+
+def op_concat(args):
+    cost = 1
+    s = io.BytesIO()
+    for arg in args.as_iter():
+        if arg.listp():
+            raise EvalError("concat on list", arg)
+        s.write(arg.as_atom())
+    r = s.getvalue()
+    cost += len(r) * CONCAT_COST_PER_BYTE
+    return cost, args.to(r)

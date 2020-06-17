@@ -1,0 +1,2 @@
+brun -c '(concat (q foo) (q (bar)))'
+FAIL: concat on list ("bar")
