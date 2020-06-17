@@ -1,2 +1,2 @@
 brun -c '(divmod 2 5)' '((200 80001) 73)'
-FAIL: > on list ((200 0x013881) 73)
+FAIL: divmod on list ((200 0x013881) 73)

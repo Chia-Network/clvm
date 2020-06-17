@@ -1,6 +1,6 @@
 import io
 
-from .CoreSExp import CoreSExp
+from .BaseSExp import BaseSExp
 from .EvalError import EvalError
 
 from .casts import (
@@ -13,7 +13,7 @@ from .casts import (
 from .serialize import sexp_to_stream
 
 
-class SExp(CoreSExp):
+class SExp(BaseSExp):
     @classmethod
     def to_castable(class_, v):
         return v
@@ -47,7 +47,7 @@ class SExp(CoreSExp):
         if isinstance(v, class_):
             return v
 
-        if isinstance(v, CoreSExp):
+        if isinstance(v, BaseSExp):
             if v.listp():
                 return class_.to(v.as_pair())
             return class_.to(v.as_atom())

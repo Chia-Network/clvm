@@ -6,6 +6,20 @@ ARGS_COST = 1
 SHIFT_COST_PER_LIMB = 1
 
 
+def to_pre_eval_op(pre_eval_f):
+    def my_pre_eval_op(op_stack, value_stack):
+        v = value_stack[-1]
+        context = pre_eval_f(v.first(), v.rest())
+        if callable(context):
+
+            def invoke_context_op(op_stack, value_stack):
+                context(value_stack[-1])
+                return 0
+
+            op_stack.append(invoke_context_op)
+    return my_pre_eval_op
+
+
 def run_program(
     program,
     args,
@@ -14,7 +28,10 @@ def run_program(
     operator_lookup,
     max_cost=None,
     pre_eval_op=None,
+    pre_eval_f=None,
 ):
+    if pre_eval_f:
+        pre_eval_op = to_pre_eval_op(pre_eval_f)
 
     def eval_atom_op(op_stack, value_stack):
         pair = value_stack.pop()
