@@ -1,4 +1,4 @@
-class CoreSExp:
+class BaseSExp:
     ATOM_TYPES = (bytes,)
 
     def __init__(self, v):
@@ -30,5 +30,5 @@ class CoreSExp:
         return self.__class__((self, right))
 
 
-CoreSExp.false = CoreSExp.__null__ = CoreSExp(b"")
-CoreSExp.true = CoreSExp(b"\1")
+BaseSExp.false = BaseSExp.__null__ = BaseSExp(b"")
+BaseSExp.true = BaseSExp(b"\1")
