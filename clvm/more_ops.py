@@ -198,3 +198,10 @@ def op_concat(args):
     r = s.getvalue()
     cost += len(r) * CONCAT_COST_PER_BYTE
     return cost, args.to(r)
+
+
+def op_softfork(args):
+    cost = args.first().as_int()
+    if cost < 1:
+        raise EvalError("cost must be > 0", args)
+    return cost, args.to(0)

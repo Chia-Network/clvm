@@ -1,0 +1,3 @@
+brun -c '(softfork (q 51) (q (+ 60 50)))'
+cost = 92
+()
