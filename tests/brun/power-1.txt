@@ -1,0 +1,4 @@
+# run '(mod (X N) (defun power (X N) (if (= N 0) 1 (* X (power X (- N 1))))) (power X N))'
+brun -c '((c (q ((c 2 (c 2 (c 5 (c 11 (q ()))))))) (c (q ((c (i (= 11 (q ())) (q (q 1)) (q (* 5 ((c 2 (c 2 (c 5 (c (- 11 (q 1)) (q ()))))))))) 1))) 1)))' '(5033 1000)'
+cost = 489684
+0x008254059bd5c006042c4605f33ca98b41
