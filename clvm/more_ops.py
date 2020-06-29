@@ -50,16 +50,6 @@ def op_sha256tree(args):
     return cost, args.to(r)
 
 
-MASK_128 = ((1 << 128) - 1)
-
-
-def truncate_int(v):
-    v1 = abs(v) & MASK_128
-    if v < 0:
-        v1 = -v1
-    return v1
-
-
 def op_add(args):
     total = 0
     cost = MIN_COST
@@ -68,7 +58,6 @@ def op_add(args):
         if r is None:
             raise EvalError("+ takes integer arguments", args)
         total += r
-        total = truncate_int(total)
         cost += limbs_for_int(r) * ADD_COST_PER_LIMB
     return cost, args.to(total)
 
@@ -84,7 +73,6 @@ def op_subtract(args):
         if r is None:
             raise EvalError("- takes integer arguments", args)
         total += sign * r
-        total = truncate_int(total)
         sign = -1
         cost += limbs_for_int(r) * ADD_COST_PER_LIMB
     return cost, args.to(total)
@@ -98,7 +86,7 @@ def op_multiply(args):
         if r is None:
             raise EvalError("* takes integer arguments", args)
         cost += MUL_COST_PER_LIMB * limbs_for_int(r) * limbs_for_int(v)
-        v = truncate_int(v * r)
+        v = v * r
     return cost, args.to(v)
 
 
