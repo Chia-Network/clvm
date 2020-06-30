@@ -17,6 +17,7 @@ from .costs import (
     PUBKEY_FOR_EXP_COST,
     POINT_ADD_COST,
     CONCAT_COST_PER_BYTE,
+    LOGOP_COST_PER_BYTE,
 )
 
 
@@ -182,6 +183,76 @@ def op_concat(args):
         s.write(arg.as_atom())
     r = s.getvalue()
     cost += len(r) * CONCAT_COST_PER_BYTE
+    return cost, args.to(r)
+
+
+def op_ash(args):
+    cost = MIN_COST
+    i0, i1 = args_as_int_list("ash", args, 2)
+    if i1 >= 0:
+        r = i0 << i1
+    else:
+        r = i0 >> -i1
+    cost += limbs_for_int(i0) * LOGOP_COST_PER_BYTE
+    cost += limbs_for_int(r) * LOGOP_COST_PER_BYTE
+    return cost, args.to(r)
+
+
+def op_lsh(args):
+    cost = MIN_COST
+    i0, i1 = args_as_int_list("ash", args, 2)
+    # we actually want i0 to be an *unsigned* int
+    a0 = args.first().as_atom()
+    i0 = int.from_bytes(a0, "big", signed=False)
+    if i1 >= 0:
+        r = i0 << i1
+    else:
+        r = i0 >> -i1
+    cost += limbs_for_int(i0) * LOGOP_COST_PER_BYTE
+    cost += limbs_for_int(r) * LOGOP_COST_PER_BYTE
+    return cost, args.to(r)
+
+
+def binop_reduction(op_name, cost, initial_value, args, op_f):
+    total = initial_value
+    for r in args_as_ints(op_name, args):
+        total, this_cost = op_f(total, r)
+        cost += this_cost
+    return cost, args.to(total)
+
+
+def op_logand(args):
+    def binop(a, b):
+        a &= b
+        cost = limbs_for_int(a) * LOGOP_COST_PER_BYTE
+        return a, cost
+
+    return binop_reduction("logand", MIN_COST, -1, args, binop)
+
+
+def op_logior(args):
+    def binop(a, b):
+        a |= b
+        cost = limbs_for_int(a) * LOGOP_COST_PER_BYTE
+        return a, cost
+
+    return binop_reduction("logior", MIN_COST, 0, args, binop)
+
+
+def op_logxor(args):
+    def binop(a, b):
+        a ^= b
+        cost = limbs_for_int(a) * LOGOP_COST_PER_BYTE
+        return a, cost
+
+    return binop_reduction("logxor", MIN_COST, 0, args, binop)
+
+
+def op_lognot(args):
+    i0, = args_as_int_list("lognot", args, 1)
+    r = ~i0
+    limbs = limbs_for_int(r)
+    cost = limbs * LOGOP_COST_PER_BYTE
     return cost, args.to(r)
 
 

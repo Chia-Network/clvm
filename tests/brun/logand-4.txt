@@ -1,0 +1,3 @@
+brun -c '(logand)'
+cost = 49
+-1

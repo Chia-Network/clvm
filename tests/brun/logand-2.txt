@@ -1,0 +1,3 @@
+brun -c '(logand (q 13) (q 12))'
+cost = 55
+12

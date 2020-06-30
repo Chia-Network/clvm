@@ -1,0 +1,3 @@
+brun -c '(lognot (q 734671943749191))'
+cost = 54
+0xfd63d1dbc431b8
