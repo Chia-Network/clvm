@@ -50,13 +50,28 @@ def op_sha256tree(args):
     return cost, args.to(r)
 
 
+def args_as_ints(op_name, args):
+    for arg in args.as_iter():
+        if not arg.listp():
+            r = arg.as_int()
+            if r is not None:
+                yield r
+                continue
+        raise EvalError("%s requires int args" % op_name, args)
+
+
+def args_as_int_list(op_name, args, count):
+    int_list = list(args_as_ints(op_name, args))
+    if len(int_list) != count:
+        plural = "s" if count != 1 else ""
+        raise EvalError("%s requires %d arg%s" % (op_name, count, plural), args)
+    return int_list
+
+
 def op_add(args):
     total = 0
     cost = MIN_COST
-    for arg in args.as_iter():
-        r = arg.as_int()
-        if r is None:
-            raise EvalError("+ takes integer arguments", args)
+    for r in args_as_ints("+", args):
         total += r
         cost += limbs_for_int(r) * ADD_COST_PER_LIMB
     return cost, args.to(total)
@@ -68,10 +83,7 @@ def op_subtract(args):
         return args.to(0)
     sign = 1
     total = 0
-    for arg in args.as_iter():
-        r = arg.as_int()
-        if r is None:
-            raise EvalError("- takes integer arguments", args)
+    for r in args_as_ints("-", args):
         total += sign * r
         sign = -1
         cost += limbs_for_int(r) * ADD_COST_PER_LIMB
@@ -81,10 +93,7 @@ def op_subtract(args):
 def op_multiply(args):
     cost = MIN_COST
     v = 1
-    for arg in args.as_iter():
-        r = arg.as_int()
-        if r is None:
-            raise EvalError("* takes integer arguments", args)
+    for r in args_as_ints("*", args):
         cost += MUL_COST_PER_LIMB * limbs_for_int(r) * limbs_for_int(v)
         v = v * r
     return cost, args.to(v)
@@ -92,31 +101,23 @@ def op_multiply(args):
 
 def op_divmod(args):
     cost = MIN_COST
-    a0 = args.first()
-    a1 = args.rest().first()
-    if a0.listp() or a1.listp():
-        raise EvalError("divmod on list", args)
-    i0 = a0.as_int()
-    i1 = a1.as_int()
+    i0, i1 = args_as_int_list("divmod", args, 2)
     cost += DIVMOD_COST_PER_LIMB * (limbs_for_int(i0) + limbs_for_int(i1))
     q, r = divmod(i0, i1)
     return cost, args.to((q, r))
 
 
 def op_gr(args):
-    a0 = args.first()
-    a1 = args.rest().first()
-    if a0.listp() or a1.listp():
-        raise EvalError("> on list", args)
-    i0 = a0.as_int()
-    i1 = a1.as_int()
+    i0, i1 = args_as_int_list(">", args, 2)
     cost = ADD_COST_PER_LIMB * max(i0, i1)
     return cost, args.true if i0 > i1 else args.false
 
 
 def op_gr_bytes(args):
-    a0 = args.first()
-    a1 = args.rest().first()
+    arg_list = list(args.as_iter())
+    if len(arg_list) != 2:
+        raise EvalError(">s requires 2 args", args)
+    a0, a1 = arg_list
     if a0.listp() or a1.listp():
         raise EvalError(">s on list", args)
     b0 = a0.as_atom()
@@ -125,15 +126,15 @@ def op_gr_bytes(args):
     return cost, args.true if b0 > b1 else args.false
 
 
-def op_pubkey_for_exp(items):
-    if items.nullp() or not items.rest().nullp():
-        raise EvalError("op_pubkey_for_exp expects exactly one argument", items)
+def op_pubkey_for_exp(args):
+    i0, = args_as_int_list("pubkey_for_exp", args, 1)
+
     try:
         cost = PUBKEY_FOR_EXP_COST
-        r = items.to(bls12_381_to_bytes(bls12_381_generator * items.first().as_int()))
+        r = args.to(bls12_381_to_bytes(bls12_381_generator * i0))
         return cost, r
     except Exception as ex:
-        raise EvalError("problem in op_pubkey_for_exp: %s" % ex, items)
+        raise EvalError("problem in op_pubkey_for_exp: %s" % ex, args)
 
 
 def op_point_add(items):
@@ -161,14 +162,10 @@ def op_substr(args):
     a0 = args.first()
     if a0.listp():
         raise EvalError("substr on list", a0)
+
+    i1, i2 = args_as_int_list("substr", args.rest(), 2)
+
     s0 = a0.as_atom()
-    r = args.rest()
-    a1 = r.first()
-    a2 = r.rest().first()
-    if a1.listp() or a2.listp():
-        raise EvalError("substr requires int args", args)
-    i1 = a1.as_int()
-    i2 = a2.as_int()
     if i2 > len(s0) or i2 < i1 or i2 < 0 or i1 < 0:
         raise EvalError("invalid indices for substr", args)
     s = s0[i1:i2]

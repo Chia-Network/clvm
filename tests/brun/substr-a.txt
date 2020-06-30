@@ -1,2 +1,2 @@
 brun -c '(substr (q "abcdefghijkl") 2 5)' '((0) 4)'
-FAIL: substr requires int args ("abcdefghijkl" (()) 4)
+FAIL: substr requires int args ((()) 4)
