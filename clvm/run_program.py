@@ -2,7 +2,6 @@ from .casts import limbs_for_int
 from .EvalError import EvalError
 
 QUOTE_COST = 1
-ARGS_COST = 1
 SHIFT_COST_PER_LIMB = 1
 
 
@@ -24,7 +23,6 @@ def run_program(
     program,
     args,
     quote_kw,
-    args_kw,
     operator_lookup,
     max_cost=None,
     pre_eval_op=None,
@@ -92,12 +90,6 @@ def run_program(
                 raise EvalError("quote requires exactly 1 parameter", sexp)
             value_stack.append(operand_list.first())
             return QUOTE_COST
-
-        if op == args_kw:
-            if sexp.nullp() or not sexp.rest().nullp():
-                raise EvalError("env requires no parameters", sexp)
-            value_stack.append(args)
-            return ARGS_COST
 
         op_stack.append(apply_op)
         value_stack.append(operator)
