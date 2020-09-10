@@ -6,7 +6,7 @@ See docs/clvm.org for more info.
 Testing
 =======
 
-    $ pip install -r requirements-dev.txt
+    $ pip install -e '.[dev]'
     $ py.test tests
 
 
