@@ -1,2 +1,0 @@
-pytest
--e git+https://git@github.com/Chia-Network/clvm_tools.git@5ebd71056715887293679d2b4f01e83e7d530d0b#egg=clvm_tools
