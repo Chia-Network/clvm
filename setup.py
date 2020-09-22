@@ -5,13 +5,18 @@ from setuptools import setup
 with open("README.md", "rt") as fh:
     long_description = fh.read()
 
+dependencies = [
+    "blspy>=0.2.3",
+]
+
 dev_dependencies = [
-    "clvm_tools==0.1.5",
+    "clvm_tools>=0.1.6",
+    "pytest",
 ]
 
 setup(
     name="clvm",
-    packages=["clvm", "clvm.ecdsa",],
+    packages=["clvm",],
     author="Chia Network, Inc.",
     author_email="hello@chia.net",
     url="https://github.com/Chia-Network/clvm",
@@ -19,6 +24,7 @@ setup(
     description="[Contract Language | Chialisp] Virtual Machine",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    install_requires=dependencies,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",

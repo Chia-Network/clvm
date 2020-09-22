@@ -1,14 +1,13 @@
 import io
 
+from blspy import G1Element
+
 from .BaseSExp import BaseSExp
 from .EvalError import EvalError
 
 from .casts import (
     int_from_bytes,
     int_to_bytes,
-    bls12_381_from_bytes,
-    bls12_381_to_bytes,
-    bls12_381_generator,
 )
 from .serialize import sexp_to_stream
 
@@ -22,8 +21,8 @@ class SExp(BaseSExp):
     def to_atom(class_, v):
         if isinstance(v, int):
             v = int_to_bytes(v)
-        if isinstance(v, bls12_381_generator.__class__):
-            v = bls12_381_to_bytes(v)
+        if isinstance(v, G1Element):
+            v = bytes(v)
         return v
 
     def as_int(self):
@@ -36,9 +35,6 @@ class SExp(BaseSExp):
         f = io.BytesIO()
         sexp_to_stream(self, f)
         return f.getvalue()
-
-    def as_bls12_381(self):
-        return bls12_381_from_bytes(self.as_atom())
 
     @classmethod
     def to(class_, v):

@@ -1,12 +1,10 @@
 import hashlib
 import io
 
-from .EvalError import EvalError
-from .casts import (
-    bls12_381_generator, bls12_381_to_bytes, bls12_381_from_bytes,
-    limbs_for_int
-)
+from blspy import G1Element
 
+from .EvalError import EvalError
+from .casts import limbs_for_int
 
 from .costs import (
     MIN_COST,
@@ -19,6 +17,8 @@ from .costs import (
     CONCAT_COST_PER_BYTE,
     LOGOP_COST_PER_BYTE,
 )
+
+G1_INFINITY = G1Element.generator() * 0
 
 
 def op_sha256(args):
@@ -128,11 +128,11 @@ def op_gr_bytes(args):
 
 
 def op_pubkey_for_exp(args):
-    i0, = args_as_int_list("pubkey_for_exp", args, 1)
+    (i0,) = args_as_int_list("pubkey_for_exp", args, 1)
 
     try:
         cost = PUBKEY_FOR_EXP_COST
-        r = args.to(bls12_381_to_bytes(bls12_381_generator * i0))
+        r = args.to(bytes(G1Element.generator() * i0))
         return cost, r
     except Exception as ex:
         raise EvalError("problem in op_pubkey_for_exp: %s" % ex, args)
@@ -140,14 +140,14 @@ def op_pubkey_for_exp(args):
 
 def op_point_add(items):
     cost = MIN_COST
-    p = bls12_381_generator.infinity()
+    p = G1_INFINITY
     for _ in items.as_iter():
         try:
-            p += bls12_381_from_bytes(_.as_bytes())
+            p += G1Element.from_bytes(_.as_bytes())
             cost += POINT_ADD_COST
         except Exception as ex:
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
-    return cost, items.to(bls12_381_to_bytes(p))
+    return cost, items.to(p)
 
 
 def op_strlen(args):
@@ -249,7 +249,7 @@ def op_logxor(args):
 
 
 def op_lognot(args):
-    i0, = args_as_int_list("lognot", args, 1)
+    (i0,) = args_as_int_list("lognot", args, 1)
     r = ~i0
     limbs = limbs_for_int(r)
     cost = limbs * LOGOP_COST_PER_BYTE
