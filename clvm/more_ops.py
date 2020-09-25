@@ -18,8 +18,6 @@ from .costs import (
     LOGOP_COST_PER_BYTE,
 )
 
-G1_INFINITY = G1Element.generator() * 0
-
 
 def op_sha256(args):
     cost = SHA256_COST
@@ -140,7 +138,8 @@ def op_pubkey_for_exp(args):
 
 def op_point_add(items):
     cost = MIN_COST
-    p = G1_INFINITY
+    p = G1Element.generator() * 0
+
     for _ in items.as_iter():
         try:
             p += G1Element.from_bytes(_.as_bytes())
