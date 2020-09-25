@@ -127,7 +127,7 @@ def op_gr_bytes(args):
 
 def op_pubkey_for_exp(args):
     (i0,) = args_as_int_list("pubkey_for_exp", args, 1)
-
+    i0 %= 0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001
     try:
         cost = PUBKEY_FOR_EXP_COST
         r = args.to(bytes(G1Element.generator() * i0))
