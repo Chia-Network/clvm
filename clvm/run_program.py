@@ -16,6 +16,7 @@ def to_pre_eval_op(pre_eval_f):
                 return 0
 
             op_stack.append(invoke_context_op)
+
     return my_pre_eval_op
 
 

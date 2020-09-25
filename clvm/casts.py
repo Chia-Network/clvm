@@ -8,7 +8,7 @@ def int_from_bytes(blob):
 def int_to_bytes(v):
     byte_count = (v.bit_length() + 8) >> 3
     if v == 0:
-        return b''
+        return b""
     return v.to_bytes(byte_count, "big", signed=True)
 
 

@@ -101,7 +101,7 @@ class SExp(BaseSExp):
         if isinstance(self.v, self.ATOM_TYPES):
             return self.v
         if self.is_legit_list():
-            return list(_.as_python()for _ in self.as_iter())
+            return list(_.as_python() for _ in self.as_iter())
         return tuple((self.first().as_python(), self.rest().as_python()))
 
     def __str__(self):
