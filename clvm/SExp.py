@@ -98,11 +98,16 @@ class SExp(BaseSExp):
         return other.v == self.v
 
     def as_python(self):
-        if isinstance(self.v, self.ATOM_TYPES):
-            return self.v
-        if self.is_legit_list():
-            return list(_.as_python() for _ in self.as_iter())
-        return tuple((self.first().as_python(), self.rest().as_python()))
+        if self.listp():
+            f, r = self.as_pair()
+            if r.nullp():
+                return [f.as_python()]
+            if r.listp():
+                partial_list = [f.as_python()]
+                partial_list.extend(r.as_python())
+                return partial_list
+            return (f.as_python(), r.as_python())
+        return self.as_atom()
 
     def __str__(self):
         return str(self.as_python())
