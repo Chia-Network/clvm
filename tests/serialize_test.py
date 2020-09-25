@@ -21,7 +21,7 @@ class SerializeTest(unittest.TestCase):
         self.assertEqual(v, v1)
 
     def test_empty_string(self):
-        self.check_serde(b'')
+        self.check_serde(b"")
 
     def test_single_bytes(self):
         for _ in range(256):
@@ -36,7 +36,7 @@ class SerializeTest(unittest.TestCase):
     def test_cons_box(self):
         self.check_serde((None, None))
         self.check_serde((None, [1, 2, 30, 40, 600, (None, 18)]))
-        self.check_serde((100, (TEXT, (30, (50, (90, (TEXT, TEXT+TEXT)))))))
+        self.check_serde((100, (TEXT, (30, (50, (90, (TEXT, TEXT + TEXT)))))))
 
     def test_long_blobs(self):
         text = TEXT * 300

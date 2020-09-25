@@ -27,4 +27,6 @@ class AsPythonTest(unittest.TestCase):
         self.check_as_python((b"", b"1"))
         self.check_as_python([b"2", (b"", b"1")])
         self.check_as_python([b"", b"2", (b"", b"1")])
-        self.check_as_python([b"", b"1", b"2", [b"30", b"40", b"90"], b"600", (b"", b"18")])
+        self.check_as_python(
+            [b"", b"1", b"2", [b"30", b"40", b"90"], b"600", (b"", b"18")]
+        )

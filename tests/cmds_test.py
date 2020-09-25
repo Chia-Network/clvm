@@ -19,7 +19,7 @@ def get_test_cases(path):
     paths = []
     for dirpath, dirnames, filenames in os.walk(TESTS_PATH):
         for fn in filenames:
-            if fn.endswith(".txt") and fn[0] != '.':
+            if fn.endswith(".txt") and fn[0] != ".":
                 paths.append(os.path.join(dirpath, fn))
     paths.sort()
     test_cases = []
@@ -30,7 +30,7 @@ def get_test_cases(path):
             comments = []
             while 1:
                 line = f.readline().rstrip()
-                if len(line) < 1 or line[0] != '#':
+                if len(line) < 1 or line[0] != "#":
                     if line[-1:] == "\\":
                         cmd_lines.append(line[:-1])
                         continue
@@ -38,8 +38,7 @@ def get_test_cases(path):
                     break
                 comments.append(line + "\n")
             expected_output = f.read()
-            test_name = os.path.relpath(
-                p, PREFIX).replace(".", "_").replace("/", "_")
+            test_name = os.path.relpath(p, PREFIX).replace(".", "_").replace("/", "_")
             test_cases.append((test_name, cmd_lines, expected_output, comments, p))
     return test_cases
 
@@ -58,8 +57,9 @@ class TestCmds(unittest.TestCase):
         sys.stderr = stderr_buffer
 
         args = shlex.split(cmd_line)
-        v = pkg_resources.load_entry_point('clvm_tools', 'console_scripts',
-                                           args[0])(args)
+        v = pkg_resources.load_entry_point("clvm_tools", "console_scripts", args[0])(
+            args
+        )
 
         sys.stdout = old_stdout
         sys.stderr = old_stderr
@@ -68,9 +68,8 @@ class TestCmds(unittest.TestCase):
 
 
 def make_f(cmd_lines, expected_output, comments, path):
-
     def f(self):
-        cmd = ''.join(cmd_lines)
+        cmd = "".join(cmd_lines)
         for c in cmd.split(";"):
             r, actual_output, actual_stderr = self.invoke_tool(c)
         if actual_output != expected_output:
@@ -79,7 +78,7 @@ def make_f(cmd_lines, expected_output, comments, path):
             print(expected_output)
             if REPAIR:
                 f = open(path, "w")
-                f.write(''.join(comments))
+                f.write("".join(comments))
                 for line in cmd_lines[:-1]:
                     f.write(line)
                     f.write("\\\n")
@@ -88,6 +87,7 @@ def make_f(cmd_lines, expected_output, comments, path):
                 f.write(actual_output)
                 f.close()
         self.assertEqual(expected_output, actual_output)
+
     return f
 
 

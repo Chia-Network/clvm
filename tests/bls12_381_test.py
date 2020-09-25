@@ -7,7 +7,6 @@ bls12_381_generator = G1Element.generator()
 
 
 class BLS12_381_Test(unittest.TestCase):
-
     def test_stream(self):
         for _ in range(1, 64):
             p = bls12_381_generator * _
