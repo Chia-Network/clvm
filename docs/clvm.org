@@ -27,18 +27,19 @@ The language is small, and similar to lisp, except most operators are one letter
     - l :: *listp* ~(l X)~ takes exactly one operand and returns ~()~ if it's an atom or ~1~ if it's a list
 *** control flow
     - i :: *if* ~(i A B C)~ takes exactly three operands ~A~, ~B~, ~C~. If ~A~ is ~()~ (which means "false), return ~C~. Otherwise, return ~B~
-    - a :: *args* ~(a)~ zero argument. Returns the environment set by the most recent *eval* call
     - x :: *raise* ~(x X Y...)~ takes an arbitrary number of arguments (even zero). Immediately fail, with the argument list passed up into the (python) exception
-    - = :: *equal* ~(= A B)~ returns 1 iff ~A~ and ~B~ are both atoms and both equal. Otherwise ~()~
+    - = :: *equal* ~(= A B)~ returns 1 if ~A~ and ~B~ are both atoms and both equal. Otherwise ~()~
+    - > :: *greater than* ~(> A B)~ returns 1 if ~A~ and ~B~ are both atoms and A is greater than B, interpreting both as signed ints. Otherwise ~()~
+    - >s :: *greater than bytes* ~(>s A B)~ returns 1 if ~A~ and ~B~ are both atoms and A is greater than B, interpreting both as bytes. Otherwise ~()~
 *** constants
     - q :: *quote* ~(q X)~ takes exactly one operand which is *not* evaluated and returns it
 *** integer operators
     - ~+~ :: ~(+ a0 a1...)~ takes an arbitrary number of integer operands and sums them
     - ~-~ :: ~(- a0 a1...)~ takes an arbitrary number of integer operands and adds a0 to the negative of the rest
     - ~*~ :: ~(* a0 a1...)~ takes an arbitrary number of integer operands and returns the product
+    - ~divmod~ :: ~(divmod A B)~ takes two integers and returns a list of the floored quotient and the mod
 *** streaming operators
     - sha256 :: ~(sha256 A)~ returns the sha256 hash (as a 32-byte blob) of the bytes A
-    - sha256tree :: ~(sha256tree A)~ returns the sha256 hash (as a 32-byte blob) of the sexp A streamed in the standard way
 *** ecdsa operators
     - point_add :: ~(point_add a0 a1 ...)~ takes an arbitrary number of bls12_381 points and adds them
     - pubkey_for_exp :: ~(pubkey_for_exp A)~ turns the integer A into a bls12_381 point
