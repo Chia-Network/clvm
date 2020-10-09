@@ -9,6 +9,7 @@ KEYWORDS = (
     "substr strlen point_add pubkey_for_exp concat sha256tree > >s "
     "logand logior logxor lognot ash lsh "
     "softfork "
+    "print "
 ).split()
 
 KEYWORD_FROM_ATOM = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}

@@ -24,6 +24,7 @@ def run_program(
     program,
     args,
     quote_kw,
+    print_kw,
     operator_lookup,
     max_cost=None,
     pre_eval_op=None,
@@ -86,6 +87,19 @@ def run_program(
 
         op = operator.as_atom()
         operand_list = sexp.rest()
+
+        if op == print_kw:
+            print("sexp:", sexp)
+            print("args:", args)
+            print("argb:", args.as_bin())
+            print("vals:", value_stack)
+            print("--")
+
+        if op == print_kw:
+            op_stack.append(eval_op)
+            value_stack.append(operand_list.first().cons(args))
+            return 1
+
         if op == quote_kw:
             if operand_list.nullp() or not operand_list.rest().nullp():
                 raise EvalError("quote requires exactly 1 parameter", sexp)
@@ -94,6 +108,7 @@ def run_program(
 
         op_stack.append(apply_op)
         value_stack.append(operator)
+
         while not operand_list.nullp():
             _ = operand_list.first()
             value_stack.append(_.cons(args))
