@@ -3,10 +3,10 @@ mod core_ops;
 mod eval;
 mod f_table;
 mod more_ops;
+mod node;
 mod number;
 mod pysexp;
 mod serialize;
-mod sexp;
 
 #[cfg(test)]
 mod tests;

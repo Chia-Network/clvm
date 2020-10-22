@@ -1,4 +1,4 @@
-use super::sexp::Node;
+use super::node::Node;
 
 use uint::U256;
 pub type Number = U256;

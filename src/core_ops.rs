@@ -1,5 +1,5 @@
 use super::eval::{EvalErr, Reduction};
-use super::sexp::Node;
+use super::node::Node;
 
 impl Node {
     pub fn first(&self) -> Result<Node, EvalErr> {

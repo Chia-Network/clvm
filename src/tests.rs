@@ -3,10 +3,10 @@ use hex;
 use super::eval::run_program;
 use super::eval::{EvalContext, EvalErr, FApply, Reduction};
 use super::f_table::make_f_lookup;
+use super::node::Node;
 use super::number::Number;
 use super::serialize::node_from_stream;
 use super::serialize::node_to_stream;
-use super::sexp::Node;
 use std::io::Cursor;
 use std::io::{Seek, SeekFrom, Write};
 

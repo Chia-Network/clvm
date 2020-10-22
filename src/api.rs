@@ -3,7 +3,7 @@ use super::eval::{run_program, EvalContext, EvalErr, FApply, PostEval, PreEval};
 use super::f_table::make_f_lookup;
 use super::pysexp::PySExp;
 use super::serialize::{node_from_stream, node_to_stream};
-use super::sexp::Node;
+use super::node::Node;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::wrap_pyfunction;
