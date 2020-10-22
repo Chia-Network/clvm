@@ -11,8 +11,8 @@
 # 0xf0-0xf7 is 4 bytes ((perform logical and of first byte with 0x7))
 # 0xf7-0xfb is 5 bytes ((perform logical and of first byte with 0x3))
 
-MAX_SINGLE_BYTE = 0x7f
-CONS_BOX_MARKER = 0xff
+MAX_SINGLE_BYTE = 0x7F
+CONS_BOX_MARKER = 0xFF
 
 
 def sexp_to_byte_iterator(sexp):
@@ -24,7 +24,7 @@ def sexp_to_byte_iterator(sexp):
     as_atom = sexp.as_atom()
     size = len(as_atom)
     if size == 0:
-        yield b'\x80'
+        yield b"\x80"
         return
     if size == 1:
         if 0 < as_atom[0] <= MAX_SINGLE_BYTE:
@@ -33,17 +33,28 @@ def sexp_to_byte_iterator(sexp):
     if size < 0x40:
         size_blob = bytes([0x80 | size])
     elif size < 0x2000:
-        size_blob = bytes([0xc0 | (size >> 8), (size >> 0) & 0xff])
+        size_blob = bytes([0xC0 | (size >> 8), (size >> 0) & 0xFF])
     elif size < 0x100000:
-        size_blob = bytes([0xe0 | (size >> 16), (size >> 8) & 0xff, (size >> 0) & 0xff])
+        size_blob = bytes([0xE0 | (size >> 16), (size >> 8) & 0xFF, (size >> 0) & 0xFF])
     elif size < 0x8000000:
-        size_blob = bytes([
-            0xf0 | (size >> 24), (size >> 16) & 0xff,
-            (size >> 8) & 0xff, (size >> 0) & 0xff])
+        size_blob = bytes(
+            [
+                0xF0 | (size >> 24),
+                (size >> 16) & 0xFF,
+                (size >> 8) & 0xFF,
+                (size >> 0) & 0xFF,
+            ]
+        )
     elif size < 0x400000000:
-        size_blob = bytes([
-            0xf8 | (size >> 32), (size >> 24) & 0xff,
-            (size >> 16) & 0xff, (size >> 8) & 0xff, (size >> 0) & 0xff])
+        size_blob = bytes(
+            [
+                0xF8 | (size >> 32),
+                (size >> 24) & 0xFF,
+                (size >> 16) & 0xFF,
+                (size >> 8) & 0xFF,
+                (size >> 0) & 0xFF,
+            ]
+        )
     else:
         raise ValueError("sexp too long %s" % sexp)
 
@@ -66,18 +77,18 @@ def sexp_from_stream(f, to_sexp):
         v2 = sexp_from_stream(f, to_sexp)
         return to_sexp((v1, v2))
     if b == 0x80:
-        return to_sexp(b'')
+        return to_sexp(b"")
     if b <= MAX_SINGLE_BYTE:
         return to_sexp(bytes([b]))
     bit_count = 0
     bit_mask = 0x80
     while b & bit_mask:
         bit_count += 1
-        b &= (0xff ^ bit_mask)
+        b &= 0xFF ^ bit_mask
         bit_mask >>= 1
     size_blob = bytes([b])
     if bit_count > 1:
-        b = f.read(bit_count-1)
+        b = f.read(bit_count - 1)
         if len(b) != bit_count - 1:
             raise ValueError("bad encoding")
         size_blob += b

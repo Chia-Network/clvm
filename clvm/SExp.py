@@ -1,14 +1,13 @@
 import io
 
+from blspy import G1Element
+
 from .BaseSExp import BaseSExp
 from .EvalError import EvalError
 
 from .casts import (
     int_from_bytes,
     int_to_bytes,
-    bls12_381_from_bytes,
-    bls12_381_to_bytes,
-    bls12_381_generator,
 )
 from .serialize import sexp_to_stream
 
@@ -22,8 +21,8 @@ class SExp(BaseSExp):
     def to_atom(class_, v):
         if isinstance(v, int):
             v = int_to_bytes(v)
-        if isinstance(v, bls12_381_generator.__class__):
-            v = bls12_381_to_bytes(v)
+        if isinstance(v, G1Element):
+            v = bytes(v)
         return v
 
     def as_int(self):
@@ -36,9 +35,6 @@ class SExp(BaseSExp):
         f = io.BytesIO()
         sexp_to_stream(self, f)
         return f.getvalue()
-
-    def as_bls12_381(self):
-        return bls12_381_from_bytes(self.as_atom())
 
     @classmethod
     def to(class_, v):
@@ -88,14 +84,6 @@ class SExp(BaseSExp):
     def null(class_):
         return class_.__null__
 
-    def is_legit_list(self):
-        # return False if it's a cons box that doesn't have a null
-        if self.nullp():
-            return True
-        if self.listp():
-            return self.rest().is_legit_list()
-        return False
-
     def as_iter(self):
         v = self
         while not v.nullp():
@@ -107,29 +95,19 @@ class SExp(BaseSExp):
             other = self.to(other)
         except ValueError:
             return False
-        if self.listp() != other.listp():
-            return False
-        if self.listp():
-            pair = self.as_pair()
-            if other.listp():
-                other_pair = other.as_pair()
-                return pair[0] == other_pair[0] and pair[1] == other_pair[1]
-            return False
-        return self.as_atom() == other.as_atom()
+        return other.v == self.v
 
     def as_python(self):
-        if not self.listp():
-            return self.as_atom()
-
-        left, right = self.as_pair()
-        r = [left.as_python()]
-        while right.listp():
-            left, right = right.as_pair()
-            r.append(left.as_python())
-            if right.nullp():
-                return r
-        r[-1] = (r[-1], right.as_python())
-        return r
+        if self.listp():
+            f, r = self.as_pair()
+            if r.nullp():
+                return [f.as_python()]
+            if r.listp():
+                partial_list = [f.as_python()]
+                partial_list.extend(r.as_python())
+                return partial_list
+            return (f.as_python(), r.as_python())
+        return self.as_atom()
 
     def __str__(self):
         return str(self.as_python())

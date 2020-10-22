@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', 'pypy3' ]
+        python-version: [ '3.7', '3.8' ]
     name: Python ${{ matrix.python-version }} sample
     steps:
       - uses: actions/checkout@v2
@@ -15,6 +15,9 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
+        with:
+          fetch-depth: 0
+          # we need fetch-depth 0 so setuptools_scm can resolve tags
       - name: Setup python
         uses: actions/setup-python@v1
         with:
@@ -23,9 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install setuptools
-          python -m pip install .
-          python -m pip install -r requirements-dev.txt
+          python -m pip install .[dev]
       - name: Test with pytest
         run: |
           py.test tests
