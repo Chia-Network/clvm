@@ -1,13 +1,22 @@
+"""
+This is the minimal `SExp` type that defines how and where its contents are
+stored in the heap. The methods here are the only ones required for `run_program`.
+A native implementation of `run_program` should implement this base class.
+"""
+
+
 class BaseSExp:
     ATOM_TYPES = (bytes,)
 
-    def __init__(self, v):
+    def __new__(class_, v):
         assert (
             (v is None)
             or (isinstance(v, tuple) and len(v) == 2)
-            or isinstance(v, self.ATOM_TYPES)
+            or isinstance(v, class_.ATOM_TYPES)
         )
+        self = super(BaseSExp, class_).__new__(class_)
         self.v = v
+        return self
 
     def listp(self):
         return isinstance(self.v, (None.__class__, tuple))
@@ -25,9 +34,6 @@ class BaseSExp:
         if self.listp():
             return None
         return self.v
-
-    def cons(self, right):
-        return self.__class__((self, right))
 
 
 BaseSExp.false = BaseSExp.__null__ = BaseSExp(b"")

@@ -1,7 +1,7 @@
 import io
 import unittest
 
-from clvm import to_sexp_f
+from clvm import to_sexp_f, SExp
 from clvm.serialize import sexp_from_stream
 
 
@@ -9,8 +9,16 @@ TEXT = b"the quick brown fox jumps over the lazy dogs"
 
 
 class SerializeTest(unittest.TestCase):
+    def check_types(self, v):
+        assert isinstance(v, SExp)
+        pair = v.as_pair()
+        if pair is not None:
+            self.check_types(pair[0])
+            self.check_types(pair[1])
+
     def check_serde(self, s):
         v = to_sexp_f(s)
+        self.check_types(v)
         b = v.as_bin()
         v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)
         if v != v1:
@@ -26,6 +34,9 @@ class SerializeTest(unittest.TestCase):
     def test_single_bytes(self):
         for _ in range(256):
             self.check_serde(bytes([_]))
+
+    def test_singleton_list(self):
+        self.check_serde([5])
 
     def test_short_lists(self):
         self.check_serde([])

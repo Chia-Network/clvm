@@ -2,7 +2,11 @@ import io
 
 from blspy import G1Element
 
-from .BaseSExp import BaseSExp
+try:
+    from clvm_rust import PySExp as BaseSExp
+except ImportError:
+    from .BaseSExp import BaseSExp
+
 from .EvalError import EvalError
 
 from .casts import (
@@ -13,6 +17,8 @@ from .serialize import sexp_to_stream
 
 
 class SExp(BaseSExp):
+    ATOM_TYPES = (bytes,)
+
     @classmethod
     def to_castable(class_, v):
         return v
@@ -36,6 +42,12 @@ class SExp(BaseSExp):
         sexp_to_stream(self, f)
         return f.getvalue()
 
+    def as_pair(self):
+        pair = super(SExp, self).as_pair()
+        if pair is None:
+            return pair
+        return (SExp.to(pair[0]), SExp.to(pair[1]))
+
     @classmethod
     def to(class_, v):
         v = class_.to_castable(v)
@@ -45,7 +57,7 @@ class SExp(BaseSExp):
 
         if isinstance(v, BaseSExp):
             if v.listp():
-                return class_.to(v.as_pair())
+                return class_(v.as_pair())
             return class_.to(v.as_atom())
 
         if v is None:
@@ -53,7 +65,9 @@ class SExp(BaseSExp):
 
         if isinstance(v, tuple):
             assert len(v) == 2
-            return class_((class_.to(v[0]), class_.to(v[1])))
+            left = class_.to(v[0])
+            right = class_.to(v[1])
+            return class_((left, right))
 
         v = class_.to_atom(v)
 
@@ -80,6 +94,9 @@ class SExp(BaseSExp):
             return pair[1]
         raise EvalError("rest of non-cons", self)
 
+    def cons(self, right):
+        return self.__class__((self, right))
+
     @classmethod
     def null(class_):
         return class_.__null__
@@ -95,7 +112,12 @@ class SExp(BaseSExp):
             other = self.to(other)
         except ValueError:
             return False
-        return other.v == self.v
+        if self.listp():
+            if other.listp():
+                return self.as_pair() == other.as_pair()
+            else:
+                return False
+        return self.as_atom() == other.as_atom()
 
     def as_python(self):
         if self.listp():
@@ -116,9 +138,5 @@ class SExp(BaseSExp):
         return "%s(%s)" % (self.__class__.__name__, str(self))
 
 
-SExp.false = SExp.__null__ = SExp.to(b"")
+SExp.false = SExp.__null__ = SExp(b"")
 SExp.true = SExp.to(b"\1")
-
-
-def subclass_sexp(*args, **kwargs):
-    return SExp.to

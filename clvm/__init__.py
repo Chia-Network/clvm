@@ -3,7 +3,7 @@ from .operators import (  # noqa
     KEYWORD_TO_ATOM,
     KEYWORD_FROM_ATOM,
 )
-from .run_program import run_program  # noqa
+from .make_eval_rs import run_program  # noqa
 from .version import __version__  # noqa
 
 to_sexp_f = SExp.to  # noqa
