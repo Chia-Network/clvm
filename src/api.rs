@@ -33,7 +33,7 @@ fn node_to_bytes(node: &Node) -> std::io::Result<Vec<u8>> {
 }
 
 fn wrap_py_post_eval(py: Python<'static>, py_post_eval: PyObject) -> PostEval {
-    if py_post_eval.is_none() {
+    if py_post_eval.is_none(py) {
         None
     } else {
         Some(Box::new(move |sexp| -> () {
@@ -90,7 +90,7 @@ fn do_eval(
     let py_apply: Box<dyn FApply> = Box::new(PyWrapApply { py, apply_f });
 
     let pre_eval: PreEval = {
-        if py_pre_eval.is_none() {
+        if py_pre_eval.is_none(py) {
             None
         } else {
             Some(Box::new(
