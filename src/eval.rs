@@ -36,13 +36,17 @@ impl Node {
     pub fn node_err(&self, msg: &str) -> Result<Node, EvalErr> {
         Err(EvalErr(self.clone(), msg.into()))
     }
+
+    pub fn u32_err(&self, msg: &str) -> Result<u32, EvalErr> {
+        Err(EvalErr(self.clone(), msg.into()))
+    }
 }
 
 pub type FEval =
     Box<dyn Fn(&EvalContext, &Node, &Node, u32, u32, u8, u8) -> Result<Reduction, EvalErr>>;
 
 pub type PreEval = Option<Box<dyn Fn(&Node, &Node, u32, u32) -> Result<PostEval, EvalErr>>>;
-pub type PostEval = Option<Box<dyn Fn(&Node) -> ()>>;
+pub type PostEval = Option<Box<dyn Fn(&Node)>>;
 
 pub fn default_eval_atom(
     _eval_context: &EvalContext,
@@ -206,9 +210,9 @@ pub struct SequentialApplies {
 }
 
 pub fn make_sequential_applies<'a>(apply_f_list: Vec<Box<dyn FApply>>) -> SequentialApplies {
-    return SequentialApplies {
+    SequentialApplies {
         apply_list: apply_f_list,
-    };
+    }
 }
 
 impl FApply for SequentialApplies {
@@ -295,9 +299,9 @@ pub fn make_default_eval_context(
     let apply_f: Box<dyn FApply> = Box::new(make_sequential_applies(vec![f1, apply_fallback]));
 
     EvalContext {
-        eval_f: eval_f,
+        eval_f,
         eval_atom: Box::new(eval_atom_as_tree),
-        apply_f: apply_f,
+        apply_f,
     }
 }
 

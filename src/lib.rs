@@ -6,6 +6,7 @@ mod more_ops;
 mod node;
 mod number;
 mod pysexp;
+mod run_program;
 mod serialize;
 
 #[cfg(test)]

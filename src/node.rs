@@ -4,13 +4,13 @@ use std::sync::Arc;
 pub type Atom = Box<[u8]>;
 
 #[derive(Debug, PartialEq)]
-enum SExp {
+pub enum SExp {
     Atom(Atom),
     Pair(Node, Node),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Node(Arc<SExp>);
+pub struct Node(pub Arc<SExp>);
 
 impl Node {
     pub fn null() -> Self {
@@ -64,10 +64,7 @@ impl Node {
 
     pub fn is_pair(&self) -> bool {
         let sexp: &SExp = &self.0;
-        match sexp {
-            SExp::Pair(_a, _b) => true,
-            _ => false,
-        }
+        matches!(sexp, SExp::Pair(_a, _b))
     }
 
     pub fn nullp(&self) -> bool {
@@ -75,6 +72,10 @@ impl Node {
             Some(blob) => blob.is_empty(),
             None => false,
         }
+    }
+
+    pub fn sexp(&self) -> &SExp {
+        &self.0
     }
 
     fn fmt_list(&self, f: &mut Formatter, is_first: bool) -> fmt::Result {

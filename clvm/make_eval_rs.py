@@ -30,7 +30,6 @@ def run_program(
     pre_eval_op=None,
     pre_eval_f=None,
 ):
-
     def internal_operator(operator_blob, args_blob):
         operator = sexp_from_blob(operator_blob, SExp.to)
         args = sexp_from_blob(args_blob, SExp.to)
@@ -41,7 +40,8 @@ def run_program(
     form_blob = sexp_to_blob(form)
     env_blob = sexp_to_blob(env)
     error, r_blob, cycles = do_eval(
-        form_blob, env_blob, internal_operator, pre_eval_f, quote_kw[0], args_kw[0])
+        form_blob, env_blob, internal_operator, pre_eval_f, quote_kw[0], args_kw[0]
+    )
     r = sexp_from_blob(bytes(r_blob), SExp.to)
     if error:
         raise EvalError(error, r)

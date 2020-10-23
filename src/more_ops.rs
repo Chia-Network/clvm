@@ -6,27 +6,6 @@ use sha2::{Digest, Sha256};
 use std::io::Cursor;
 use std::io::{Seek, SeekFrom, Write};
 
-pub fn op_wrap(args: &Node) -> Result<Reduction, EvalErr> {
-    let mut buffer = Cursor::new(Vec::new());
-    if node_to_stream(&args.first()?, &mut buffer).is_ok() {
-        let vec = buffer.into_inner();
-        return Ok(Node::blob_u8(&vec).into());
-    }
-    panic!("op_wrap panic")
-}
-
-pub fn op_unwrap(args: &Node) -> Result<Reduction, EvalErr> {
-    let mut buffer = Cursor::new(Vec::new());
-    if let Some(b) = args.first()?.as_blob() {
-        if buffer.write_all(&b).is_ok() && buffer.seek(SeekFrom::Start(0)).is_ok() {
-            if let Ok(node) = node_from_stream(&mut buffer) {
-                return Ok(node.into());
-            }
-        }
-    }
-    args.err("bad stream")
-}
-
 pub fn op_sha256(args: &Node) -> Result<Reduction, EvalErr> {
     let mut hasher = Sha256::new();
     for arg in args.clone() {
