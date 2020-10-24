@@ -1,7 +1,9 @@
 use super::node::{Node, SExp};
 use super::number::Number;
+use super::operators::default_operator_lookup;
+use super::types::OperatorLookup;
 
-use super::eval::{EvalErr, OperatorF, Reduction};
+use super::types::{EvalErr, OperatorF, Reduction};
 
 /*
 #[derive(Debug, Clone)]
@@ -12,8 +14,6 @@ pub struct Reduction(pub Node, pub u32);
 pub type OperatorF = fn(&Node) -> Result<Reduction, EvalErr>;
 
 */
-
-pub type OperatorLookup = fn(&[u8]) -> Option<OperatorF>;
 
 // `run_program` has two stacks: the operand stack (of `Node` objects) and the
 // operator stack (of RPOperators)
@@ -51,14 +51,22 @@ pub fn traverse_path(path_node: &Node, args: &Node) -> Result<Reduction, EvalErr
     let mut cost = 1;
     let mut arg_list: &Node = args;
     loop {
-        if node_index < one {
+        println!("node_index = {:?}", node_index);
+        println!("arg_list = {:?}", arg_list);
+        if node_index <= one {
             break;
         }
         match arg_list.sexp() {
             SExp::Atom(_) => {
+                println!("GOT AN ATOM");
                 return Err(EvalErr(arg_list.clone(), "path into atom".into()));
             }
             SExp::Pair(left, right) => {
+                if node_index & one == one {
+                    println!("RIGHT")
+                } else {
+                    println!("LEFT")
+                };
                 arg_list = if node_index & one == one { right } else { left };
             }
         };
@@ -220,5 +228,5 @@ pub fn run_program(
         }
     }
 
-    Ok(Reduction(program.clone(), 50))
+    Ok(Reduction(rpc.pop()?, cost))
 }

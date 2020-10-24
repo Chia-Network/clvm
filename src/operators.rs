@@ -1,6 +1,8 @@
 use super::core_ops::{op_cons, op_eq, op_first, op_if, op_listp, op_raise, op_rest};
 use super::more_ops::{op_add, op_gr, op_multiply, op_sha256, op_sha256_tree, op_subtract};
-use super::types::{FLookup, OperatorF};
+use super::node::Node;
+use super::number::Number;
+use super::types::OperatorF;
 
 static OPCODE_LOOKUP: [(u8, OperatorF); 13] = [
     (4, op_if),
@@ -18,10 +20,6 @@ static OPCODE_LOOKUP: [(u8, OperatorF); 13] = [
     (22, op_gr),
 ];
 
-pub fn make_f_lookup() -> FLookup {
-    let mut f_lookup: FLookup = [None; 256];
-    for (op, f) in &OPCODE_LOOKUP {
-        f_lookup[*op as usize] = Some(*f);
-    }
-    f_lookup
+pub fn default_operator_lookup(op: &[u8]) -> Option<OperatorF> {
+    None
 }

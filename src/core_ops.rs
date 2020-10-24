@@ -1,5 +1,5 @@
-use super::eval::{EvalErr, Reduction};
 use super::node::Node;
+use super::types::{EvalErr, Reduction};
 
 impl Node {
     pub fn first(&self) -> Result<Node, EvalErr> {

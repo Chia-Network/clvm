@@ -1,9 +1,11 @@
-use super::eval::Reduction;
-use super::eval::{run_program, EvalContext, EvalErr, FApply, PostEval, PreEval};
+use super::eval::{PostEval, PreEval};
 use super::f_table::make_f_lookup;
 use super::node::Node;
+use super::operators::default_operator_lookup;
 use super::pysexp::PySExp;
+use super::run_program::run_program;
 use super::serialize::{node_from_stream, node_to_stream};
+use super::types::{EvalContext, EvalErr, FApply, Reduction};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::wrap_pyfunction;
@@ -127,10 +129,30 @@ fn do_eval(
     Ok(("".into(), node_to_bytes(&sexp)?, cycles))
 }
 
+#[pyfunction]
+fn test_run_program(program: &PySExp, args: &PySExp) -> PyResult<(String, PySExp, u32)> {
+    let quote_kw: u8 = 1;
+    let max_cost = 1 << 31;
+
+    let r: Result<Reduction, EvalErr> = run_program(
+        &program.node,
+        &args.node,
+        quote_kw,
+        max_cost,
+        default_operator_lookup,
+    );
+    match r {
+        Ok(reduction) => Ok(("worked".into(), reduction.0.into(), reduction.1)),
+        Err(eval_err) => Ok((eval_err.1, eval_err.0.into(), 1)),
+    }
+}
+
 /// This module is a python module implemented in Rust.
 #[pymodule]
 fn clvm_rust(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(do_eval, m)?).unwrap();
+    m.add_function(wrap_pyfunction!(test_run_program, m)?)
+        .unwrap();
     m.add_class::<PySExp>()?;
     Ok(())
 }

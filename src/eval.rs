@@ -1,20 +1,6 @@
 use super::node::Node;
 use super::number::Number;
-
-pub struct EvalContext {
-    pub eval_f: FEval,
-    pub eval_atom: FEval,
-    pub apply_f: Box<dyn FApply>,
-}
-
-#[derive(Debug, Clone)]
-pub struct EvalErr(pub Node, pub String);
-
-pub struct Reduction(pub Node, pub u32);
-
-pub type OperatorF = fn(&Node) -> Result<Reduction, EvalErr>;
-
-pub type FLookup = [Option<OperatorF>; 256];
+use super::types::{EvalContext, EvalErr, FApply, FEval, FLookup, OperatorF, Reduction};
 
 impl From<std::io::Error> for EvalErr {
     fn from(err: std::io::Error) -> Self {
@@ -41,9 +27,6 @@ impl Node {
         Err(EvalErr(self.clone(), msg.into()))
     }
 }
-
-pub type FEval =
-    Box<dyn Fn(&EvalContext, &Node, &Node, u32, u32, u8, u8) -> Result<Reduction, EvalErr>>;
 
 pub type PreEval = Option<Box<dyn Fn(&Node, &Node, u32, u32) -> Result<PostEval, EvalErr>>>;
 pub type PostEval = Option<Box<dyn Fn(&Node)>>;
@@ -194,15 +177,6 @@ fn eval_params(
         }
     }
     Ok(Reduction(Node::from_list(vec), new_cost))
-}
-
-pub trait FApply {
-    fn apply(
-        &self,
-        eval_context: &EvalContext,
-        operator: &Node,
-        args: &Node,
-    ) -> Option<Result<Reduction, EvalErr>>;
 }
 
 pub struct SequentialApplies {

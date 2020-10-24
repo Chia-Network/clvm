@@ -5,7 +5,7 @@ use pyo3::types::{PyBytes, PyTuple, PyType};
 
 #[pyclass(subclass)]
 pub struct PySExp {
-    node: Node,
+    pub node: Node,
 }
 
 fn extract_atom(obj: &PyAny) -> PyResult<Node> {
@@ -74,3 +74,12 @@ impl From<Node> for PySExp {
         PySExp { node: item }
     }
 }
+
+/*
+impl From<&<'a> PySExp> for &<'a> Node {
+    fn from(self) -> &Node {
+        &self.node
+    }
+}
+
+*/
