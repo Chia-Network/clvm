@@ -1,11 +1,9 @@
-use super::eval::{PostEval, PreEval};
-use super::f_table::make_f_lookup;
 use super::node::Node;
 use super::operators::default_operator_lookup;
 use super::pysexp::PySExp;
 use super::run_program::run_program;
 use super::serialize::{node_from_stream, node_to_stream};
-use super::types::{EvalContext, EvalErr, FApply, Reduction};
+use super::types::{EvalContext, EvalErr, FApply, OperatorF, OperatorLookup, Reduction};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::wrap_pyfunction;
@@ -32,16 +30,6 @@ fn node_to_bytes(node: &Node) -> std::io::Result<Vec<u8>> {
     node_to_stream(node, &mut buffer)?;
     let vec = buffer.into_inner();
     Ok(vec)
-}
-
-fn wrap_py_post_eval(py: Python<'static>, py_post_eval: PyObject) -> PostEval {
-    if py_post_eval.is_none(py) {
-        None
-    } else {
-        Some(Box::new(move |sexp| {
-            let _r = py_post_eval.call1(py, (node_to_bytes(&sexp).unwrap(),));
-        }))
-    }
 }
 
 struct PyWrapApply {
@@ -88,8 +76,8 @@ fn do_eval(
     op_args: u8,
 ) -> PyResult<(String, Vec<u8>, u32)> {
     let sexp = node_from_bytes(form_u8.as_bytes())?;
-    let env = node_from_bytes(env_u8.as_bytes())?;
-    let f_table = make_f_lookup();
+    //let env = node_from_bytes(env_u8.as_bytes())?;
+    //let f_table = make_f_lookup();
 
     //let py_apply: Box<dyn FApply> = Box::new(PyWrapApply {apply_f});
 
@@ -140,6 +128,37 @@ fn test_run_program(program: &PySExp, args: &PySExp) -> PyResult<(String, PySExp
         quote_kw,
         max_cost,
         default_operator_lookup,
+    );
+    match r {
+        Ok(reduction) => Ok(("worked".into(), reduction.0.into(), reduction.1)),
+        Err(eval_err) => Ok((eval_err.1, eval_err.0.into(), 1)),
+    }
+}
+
+#[pyclass(subclass)]
+pub struct PyOperatorLookup {
+    pub val: OperatorLookup,
+}
+
+fn extract_op_lookup(obj: &PyAny) -> PyResult<OperatorLookup> {
+    let pol: PyRef<PyOperatorLookup> = obj.extract()?;
+    Ok(pol.val)
+}
+
+#[pyfunction]
+fn py_run_program(
+    program: &PySExp,
+    args: &PySExp,
+    quote_kw: u8,
+    max_cost: u32,
+    py_op_lookup: &PyAny,
+) -> PyResult<(String, PySExp, u32)> {
+    let r: Result<Reduction, EvalErr> = run_program(
+        &program.node,
+        &args.node,
+        quote_kw,
+        max_cost,
+        extract_op_lookup(py_op_lookup)?,
     );
     match r {
         Ok(reduction) => Ok(("worked".into(), reduction.0.into(), reduction.1)),

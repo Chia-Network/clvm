@@ -50,22 +50,14 @@ pub fn traverse_path(path_node: &Node, args: &Node) -> Result<Reduction, EvalErr
     let mut cost = 1;
     let mut arg_list: &Node = args;
     loop {
-        println!("node_index = {:?}", node_index);
-        println!("arg_list = {:?}", arg_list);
         if node_index <= one {
             break;
         }
         match arg_list.sexp() {
             SExp::Atom(_) => {
-                println!("GOT AN ATOM");
                 return Err(EvalErr(arg_list.clone(), "path into atom".into()));
             }
             SExp::Pair(left, right) => {
-                if node_index & one == one {
-                    println!("RIGHT")
-                } else {
-                    println!("LEFT")
-                };
                 arg_list = if node_index & one == one { right } else { left };
             }
         };
@@ -112,7 +104,7 @@ pub fn eval_op(rpc: &mut RunProgramContext) -> Result<u32, EvalErr> {
                 // the program is an operator and a list of operands
                 SExp::Pair(operator_node, operand_list) => {
                     match operator_node.sexp() {
-                        SExp::Pair(inner_program, _) => {
+                        SExp::Pair(_, _) => {
                             rpc.push(Node::pair(&operator_node, &args));
                             rpc.op_stack.push(Box::new(eval_op));
                             rpc.op_stack.push(Box::new(eval_op));
@@ -175,7 +167,7 @@ pub fn apply_op(rpc: &mut RunProgramContext) -> Result<u32, EvalErr> {
     let operand_list = rpc.pop()?;
     let operator = rpc.pop()?;
     match operator.sexp() {
-        SExp::Pair(_1, _2) => Err(EvalErr(operator, "internal error".into())),
+        SExp::Pair(_, _) => Err(EvalErr(operator, "internal error".into())),
         SExp::Atom(op_as_atom) => {
             let f = (rpc.operator_lookup)(&op_as_atom);
             match f {

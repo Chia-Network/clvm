@@ -1,7 +1,7 @@
 use super::node::Node;
 
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyTuple, PyType};
+use pyo3::types::PyTuple;
 
 #[pyclass(subclass)]
 pub struct PySExp {

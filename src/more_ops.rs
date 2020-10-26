@@ -1,10 +1,7 @@
 use super::node::Node;
 use super::number::Number;
-use super::serialize::{node_from_stream, node_to_stream};
 use super::types::{EvalErr, Reduction};
 use sha2::{Digest, Sha256};
-use std::io::Cursor;
-use std::io::{Seek, SeekFrom, Write};
 
 pub fn op_sha256(args: &Node) -> Result<Reduction, EvalErr> {
     let mut hasher = Sha256::new();

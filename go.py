@@ -47,9 +47,45 @@ t = test_run_program(prog, args)
 print(t)
 n = t[1]
 print(n.as_atom())
+
 print()
+
 tree = Node((args, args))
 t = test_run_program(prog, tree)
 print(t)
 n = t[1]
 print(n.as_atom())
+
+print()
+
+from clvm import SExp
+
+
+def try_it(code, args="0"):
+
+    from clvm_tools import binutils
+
+    program = SExp.to(binutils.assemble(code))
+    args = SExp.to(binutils.assemble(args))
+    err, r, cost = test_run_program(program, args)
+    print(f"ERR= {err}")
+    print(f"code = {code}")
+    print(f"cost = {cost}")
+    print(f"result = {binutils.disassemble(SExp.to(r))}")
+    print()
+
+
+try_it("(q (foo bar)))")
+try_it("(f (q (foo bar))))")
+try_it("(r (q (foo bar))))")
+try_it("(f (r (q (foo bar)))))")
+try_it("(sha256 (q foo)))")
+try_it('(c (q 100) (q (200 300 400)))')
+try_it('(+ 2 5)', '(500 600)')
+try_it('(sha256 (f 1))', '("hello.there.my.dear.friend")')
+try_it('(x (q 2000))')
+try_it('(c (q (c (f 1) (q (105 200)))) (q (100 200)))')
+try_it('((c (q (c (f 1) (q (105 200)))) (q (100 200))))')
+try_it('((c (q ((c 2 (c 2 (c 5 (q ())))))) (c (q ((c (i (= 5 (q 1)) (q (q 1)) (q (* 5 ((c 2 (c 2 (c (- 5 (q 1)) (q ())))))))) 1))) 1)))', '(50)')
+try_it('(q 2000 1))')
+try_it('(q))')
