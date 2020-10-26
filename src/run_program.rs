@@ -1,9 +1,8 @@
 use super::node::{Node, SExp};
 use super::number::Number;
-use super::operators::default_operator_lookup;
 use super::types::OperatorLookup;
 
-use super::types::{EvalErr, OperatorF, Reduction};
+use super::types::{EvalErr, Reduction};
 
 /*
 #[derive(Debug, Clone)]
@@ -70,7 +69,7 @@ pub fn traverse_path(path_node: &Node, args: &Node) -> Result<Reduction, EvalErr
                 arg_list = if node_index & one == one { right } else { left };
             }
         };
-        cost = cost + 1; // SHIFT_COST_PER_LIMB * limbs_for_int(node_index)
+        cost += 1; // SHIFT_COST_PER_LIMB * limbs_for_int(node_index)
         node_index >>= 1;
     }
     Ok(Reduction(arg_list.clone(), cost))
@@ -105,7 +104,7 @@ pub fn eval_op(rpc: &mut RunProgramContext) -> Result<u32, EvalErr> {
             // put a bunch of ops on op_stack
             match program.sexp() {
                 // the program is just a bitfield path through the args tree
-                SExp::Atom(as_atom) => {
+                SExp::Atom(_) => {
                     let r: Reduction = traverse_path(&program, &args)?;
                     rpc.push(r.0);
                     Ok(r.1)
@@ -114,7 +113,7 @@ pub fn eval_op(rpc: &mut RunProgramContext) -> Result<u32, EvalErr> {
                 SExp::Pair(operator_node, operand_list) => {
                     match operator_node.sexp() {
                         SExp::Pair(inner_program, _) => {
-                            rpc.push(Node::pair(&inner_program, &args));
+                            rpc.push(Node::pair(&operator_node, &args));
                             rpc.op_stack.push(Box::new(eval_op));
                             rpc.op_stack.push(Box::new(eval_op));
                             Ok(1)
@@ -145,7 +144,7 @@ pub fn eval_op(rpc: &mut RunProgramContext) -> Result<u32, EvalErr> {
                                         break;
                                     }
                                     rpc.op_stack.push(Box::new(cons_op));
-                                    rpc.op_stack.push(Box::new(cons_op));
+                                    rpc.op_stack.push(Box::new(eval_op));
                                     rpc.op_stack.push(Box::new(swap_op));
                                     match operands.sexp() {
                                         SExp::Atom(_) => {
@@ -155,7 +154,8 @@ pub fn eval_op(rpc: &mut RunProgramContext) -> Result<u32, EvalErr> {
                                             ))
                                         }
                                         SExp::Pair(first, rest) => {
-                                            rpc.push(first.clone());
+                                            let new_pair = Node::pair(first, args);
+                                            rpc.push(new_pair);
                                             operands = rest.clone();
                                         }
                                     }
@@ -175,7 +175,7 @@ pub fn apply_op(rpc: &mut RunProgramContext) -> Result<u32, EvalErr> {
     let operand_list = rpc.pop()?;
     let operator = rpc.pop()?;
     match operator.sexp() {
-        SExp::Pair(p1, p2) => Err(EvalErr(operator, "internal error".into())),
+        SExp::Pair(_1, _2) => Err(EvalErr(operator, "internal error".into())),
         SExp::Atom(op_as_atom) => {
             let f = (rpc.operator_lookup)(&op_as_atom);
             match f {
@@ -204,10 +204,10 @@ pub fn run_program(
     let op_stack: Vec<Box<RPCOperator>> = vec![Box::new(eval_op)];
 
     let mut rpc = RunProgramContext {
-        quote_kw: quote_kw,
-        operator_lookup: operator_lookup,
+        quote_kw,
+        operator_lookup,
         val_stack: values,
-        op_stack: op_stack,
+        op_stack,
     };
 
     let mut cost: u32 = 0;
