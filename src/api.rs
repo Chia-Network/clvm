@@ -3,7 +3,9 @@ use super::operators::default_operator_lookup;
 use super::pysexp::PySExp;
 use super::run_program::run_program;
 use super::serialize::{node_from_stream, node_to_stream};
-use super::types::{EvalContext, EvalErr, FApply, OperatorF, OperatorLookup, Reduction};
+use super::types::{
+    EvalContext, EvalErr, FApply, OperatorFT, OperatorLookup, OperatorLookupT, Reduction,
+};
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::wrap_pyfunction;
@@ -65,57 +67,43 @@ impl FApply for PyWrapApply {
     }
 }
 
-#[pyfunction]
-fn do_eval(
-    //py: Python<'static>,
-    form_u8: &PyBytes,
-    env_u8: &PyBytes,
-    apply_f: PyObject,
-    py_pre_eval: PyObject,
-    op_quote: u8,
-    op_args: u8,
-) -> PyResult<(String, Vec<u8>, u32)> {
-    let sexp = node_from_bytes(form_u8.as_bytes())?;
-    //let env = node_from_bytes(env_u8.as_bytes())?;
-    //let f_table = make_f_lookup();
+//let env = node_from_bytes(env_u8.as_bytes())?;
+//let f_table = make_f_lookup();
 
-    //let py_apply: Box<dyn FApply> = Box::new(PyWrapApply {apply_f});
+//let py_apply: Box<dyn FApply> = Box::new(PyWrapApply {apply_f});
 
-    /*
-    let pre_eval: PreEval = {
-        if py_pre_eval.is_none(py) {
-            None
-        } else {
-            Some(Box::new(
-                move |sexp, args, current_cost, max_cost| -> Result<PostEval, EvalErr> {
-                    let py_post_eval: PyObject = py_pre_eval
-                        .call1(
-                            py,
-                            (
-                                node_to_bytes(&sexp)?,
-                                node_to_bytes(&args)?,
-                                current_cost,
-                                max_cost,
-                            ),
-                        )?
-                        .extract(py)?;
-                    Ok(wrap_py_post_eval(py, py_post_eval))
-                },
-            ))
-        }
-    };
-    let pre_eval = None;
-    let r = run_program(
-        &sexp, &env, 0, 100_000, &f_table, py_apply, pre_eval, op_quote, op_args,
-    );
-    match r {
-        Ok(Reduction(node, cycles)) => Ok(("".into(), node_to_bytes(&node)?, cycles)),
-        Err(EvalErr(node, err)) => Ok((err, node_to_bytes(&node)?, 0)),
+/*
+let pre_eval: PreEval = {
+    if py_pre_eval.is_none(py) {
+        None
+    } else {
+        Some(Box::new(
+            move |sexp, args, current_cost, max_cost| -> Result<PostEval, EvalErr> {
+                let py_post_eval: PyObject = py_pre_eval
+                    .call1(
+                        py,
+                        (
+                            node_to_bytes(&sexp)?,
+                            node_to_bytes(&args)?,
+                            current_cost,
+                            max_cost,
+                        ),
+                    )?
+                    .extract(py)?;
+                Ok(wrap_py_post_eval(py, py_post_eval))
+            },
+        ))
     }
-    */
-    let cycles = 100;
-    Ok(("".into(), node_to_bytes(&sexp)?, cycles))
+};
+let pre_eval = None;
+let r = run_program(
+    &sexp, &env, 0, 100_000, &f_table, py_apply, pre_eval, op_quote, op_args,
+);
+match r {
+    Ok(Reduction(node, cycles)) => Ok(("".into(), node_to_bytes(&node)?, cycles)),
+    Err(EvalErr(node, err)) => Ok((err, node_to_bytes(&node)?, 0)),
 }
+*/
 
 #[pyfunction]
 fn test_run_program(program: &PySExp, args: &PySExp) -> PyResult<(String, PySExp, u32)> {
@@ -127,7 +115,7 @@ fn test_run_program(program: &PySExp, args: &PySExp) -> PyResult<(String, PySExp
         &args.node,
         quote_kw,
         max_cost,
-        default_operator_lookup,
+        default_operator_lookup(),
     );
     match r {
         Ok(reduction) => Ok(("worked".into(), reduction.0.into(), reduction.1)),
@@ -135,31 +123,27 @@ fn test_run_program(program: &PySExp, args: &PySExp) -> PyResult<(String, PySExp
     }
 }
 
-#[pyclass(subclass)]
+#[pyclass(subclass, unsendable)]
 pub struct PyOperatorLookup {
     pub val: OperatorLookup,
 }
 
-fn extract_op_lookup(obj: &PyAny) -> PyResult<OperatorLookup> {
-    let pol: PyRef<PyOperatorLookup> = obj.extract()?;
-    Ok(pol.val)
+impl OperatorLookupT for PyOperatorLookup {
+    fn f_for_operator(&self, op: &[u8]) -> Option<&Box<dyn OperatorFT>> {
+        self.val.f_for_operator(op)
+    }
 }
 
-#[pyfunction]
+//#[pyfunction]
 fn py_run_program(
     program: &PySExp,
     args: &PySExp,
     quote_kw: u8,
     max_cost: u32,
-    py_op_lookup: &PyAny,
+    op_lookup: OperatorLookup,
 ) -> PyResult<(String, PySExp, u32)> {
-    let r: Result<Reduction, EvalErr> = run_program(
-        &program.node,
-        &args.node,
-        quote_kw,
-        max_cost,
-        extract_op_lookup(py_op_lookup)?,
-    );
+    let r: Result<Reduction, EvalErr> =
+        run_program(&program.node, &args.node, quote_kw, max_cost, op_lookup);
     match r {
         Ok(reduction) => Ok(("worked".into(), reduction.0.into(), reduction.1)),
         Err(eval_err) => Ok((eval_err.1, eval_err.0.into(), 1)),
@@ -169,9 +153,10 @@ fn py_run_program(
 /// This module is a python module implemented in Rust.
 #[pymodule]
 fn clvm_rust(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(do_eval, m)?).unwrap();
     m.add_function(wrap_pyfunction!(test_run_program, m)?)
         .unwrap();
+    //m.add_function(wrap_pyfunction!(py_run_program, m)?)
+    //  .unwrap();
     m.add_class::<PySExp>()?;
     Ok(())
 }

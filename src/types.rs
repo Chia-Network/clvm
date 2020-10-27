@@ -14,9 +14,19 @@ pub struct EvalErr(pub Node, pub String);
 #[derive(Debug)]
 pub struct Reduction(pub Node, pub u32);
 
-pub type OperatorF = fn(&Node) -> Result<Reduction, EvalErr>;
+pub type OpFn = fn(&Node) -> Result<Reduction, EvalErr>;
 
-pub type OperatorLookup = fn(&[u8]) -> Option<OperatorF>;
+pub trait OperatorFT {
+    fn apply_op(&self, node: &Node) -> Result<Reduction, EvalErr>;
+}
+
+pub type OperatorF = Box<dyn OperatorFT>;
+
+pub trait OperatorLookupT {
+    fn f_for_operator(&self, op: &[u8]) -> Option<&Box<dyn OperatorFT>>;
+}
+
+pub type OperatorLookup = Box<dyn OperatorLookupT>;
 
 pub trait FApply {
     fn apply(

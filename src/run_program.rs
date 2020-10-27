@@ -1,8 +1,8 @@
 use super::node::{Node, SExp};
 use super::number::Number;
-use super::types::OperatorLookup;
+use super::types::OperatorLookupT;
 
-use super::types::{EvalErr, Reduction};
+use super::types::{EvalErr, OperatorLookup, Reduction};
 
 /*
 #[derive(Debug, Clone)]
@@ -22,7 +22,7 @@ type RPCOperator = dyn FnOnce(&mut RunProgramContext) -> Result<u32, EvalErr>;
 
 pub struct RunProgramContext {
     quote_kw: u8,
-    operator_lookup: OperatorLookup,
+    operator_lookup: Box<dyn OperatorLookupT>,
     val_stack: Vec<Node>,
     op_stack: Vec<Box<RPCOperator>>,
 }
@@ -169,11 +169,11 @@ pub fn apply_op(rpc: &mut RunProgramContext) -> Result<u32, EvalErr> {
     match operator.sexp() {
         SExp::Pair(_, _) => Err(EvalErr(operator, "internal error".into())),
         SExp::Atom(op_as_atom) => {
-            let f = (rpc.operator_lookup)(&op_as_atom);
+            let f = rpc.operator_lookup.f_for_operator(&op_as_atom);
             match f {
                 None => Err(EvalErr(operator, "unimplemented operator".into())),
                 Some(f1) => {
-                    let r: Reduction = f1(&operand_list)?;
+                    let r: Reduction = f1.apply_op(&operand_list)?;
                     rpc.push(r.0);
                     Ok(r.1)
                 }
