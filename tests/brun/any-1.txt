@@ -1,0 +1,3 @@
+brun -c '(any (q 1))'
+cost = 41
+1

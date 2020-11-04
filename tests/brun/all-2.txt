@@ -1,0 +1,3 @@
+brun -c '(all (q 1) (q (foo)))'
+cost = 43
+1

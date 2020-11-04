@@ -1,0 +1,3 @@
+brun -c '(not (q (foo bar)))'
+cost = 41
+()

@@ -16,6 +16,7 @@ from .costs import (
     POINT_ADD_COST,
     CONCAT_COST_PER_BYTE,
     LOGOP_COST_PER_BYTE,
+    BOOL_OP_COST,
 )
 
 
@@ -66,6 +67,23 @@ def args_as_int_list(op_name, args, count):
         plural = "s" if count != 1 else ""
         raise EvalError("%s requires %d arg%s" % (op_name, count, plural), args)
     return int_list
+
+
+def args_as_bools(op_name, args):
+    for arg in args.as_iter():
+        v = arg.as_atom()
+        if v == b"":
+            yield args.false
+        else:
+            yield args.true
+
+
+def args_as_bool_list(op_name, args, count):
+    bool_list = list(args_as_bools(op_name, args))
+    if len(bool_list) != count:
+        plural = "s" if count != 1 else ""
+        raise EvalError("%s requires %d arg%s" % (op_name, count, plural), args)
+    return bool_list
 
 
 def op_add(args):
@@ -253,6 +271,38 @@ def op_lognot(args):
     r = ~i0
     limbs = limbs_for_int(r)
     cost = limbs * LOGOP_COST_PER_BYTE
+    return cost, args.to(r)
+
+
+def op_not(args):
+    (i0,) = args_as_bool_list("not", args, 1)
+    if i0.as_atom() == b"":
+        r = args.true
+    else:
+        r = args.false
+    cost = BOOL_OP_COST
+    return cost, args.to(r)
+
+
+def op_any(args):
+    items = list(args_as_bools("any", args))
+    cost = len(items)
+    r = args.false
+    for v in items:
+        if v.as_atom() != b"":
+            r = args.true
+            break
+    return cost, args.to(r)
+
+
+def op_all(args):
+    items = list(args_as_bools("all", args))
+    cost = len(items)
+    r = args.true
+    for v in items:
+        if v.as_atom() == b"":
+            r = args.false
+            break
     return cost, args.to(r)
 
 

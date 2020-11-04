@@ -8,6 +8,7 @@ KEYWORDS = (
     ". q . a i c f r l x = sha256 + - * divmod "
     "substr strlen point_add pubkey_for_exp concat sha256tree > >s "
     "logand logior logxor lognot ash lsh "
+    "not any all "
     "softfork "
 ).split()
 
