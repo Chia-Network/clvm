@@ -15,7 +15,16 @@ from .casts import (
 from .serialize import sexp_to_stream
 
 
-CastableType = typing.Union["SExp", BaseSExp, bytes, None, SExpType, G1Element]
+CastableType = typing.Union[
+    "SExp",
+    BaseSExp,
+    bytes,
+    int,
+    None,
+    SExpType,
+    G1Element,
+    typing.Tuple[typing.Any, typing.Any],
+]
 
 NULL = b""
 

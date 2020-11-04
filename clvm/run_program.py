@@ -1,18 +1,33 @@
-from .casts import limbs_for_int
+from typing import Any, Callable, List, Tuple
+
+from .casts import int_from_bytes, limbs_for_int
+from .BaseSExp import BaseSExp
 from .EvalError import EvalError
+from .SExp import SExp
 
 from .costs import (
     QUOTE_COST,
     SHIFT_COST_PER_LIMB
 )
 
+# the "Any" below should really be "OpStackType" but
+# recursive types aren't supported by mypy
+
+OpCallable = Callable[[Any, "ValStackType"], int]
+
+ValStackType = List[SExp]
+OpStackType = List[OpCallable]
+
+
 def to_pre_eval_op(pre_eval_f):
-    def my_pre_eval_op(op_stack, value_stack):
+    def my_pre_eval_op(op_stack: OpStackType, value_stack: ValStackType) -> None:
         v = value_stack[-1]
         context = pre_eval_f(v.first(), v.rest())
         if callable(context):
 
-            def invoke_context_op(op_stack, value_stack):
+            def invoke_context_op(
+                op_stack: OpStackType, value_stack: ValStackType
+            ) -> int:
                 context(value_stack[-1])
                 return 0
 
@@ -22,22 +37,22 @@ def to_pre_eval_op(pre_eval_f):
 
 
 def run_program(
-    program,
-    args,
-    quote_kw,
+    program: BaseSExp,
+    args: BaseSExp,
+    quote_kw: int,
     operator_lookup,
     max_cost=None,
     pre_eval_op=None,
     pre_eval_f=None,
-):
+) -> Tuple[int, BaseSExp]:
     if pre_eval_f:
         pre_eval_op = to_pre_eval_op(pre_eval_f)
 
-    def eval_atom_op(op_stack, value_stack):
+    def eval_atom_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
         pair = value_stack.pop()
         sexp = pair.first()
         env = pair.rest()
-        node_index = sexp.as_int()
+        node_index = int_from_bytes(sexp.atom)
         cost = 1
         while node_index > 1:
             if node_index & 1:
@@ -49,20 +64,20 @@ def run_program(
         value_stack.append(env)
         return cost
 
-    def swap_op(op_stack, value_stack):
+    def swap_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
         v2 = value_stack.pop()
         v1 = value_stack.pop()
         value_stack.append(v2)
         value_stack.append(v1)
         return 0
 
-    def cons_op(op_stack, value_stack):
+    def cons_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
         v1 = value_stack.pop()
         v2 = value_stack.pop()
         value_stack.append(v1.cons(v2))
         return 0
 
-    def eval_op(op_stack, value_stack):
+    def eval_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
         if pre_eval_op:
             pre_eval_op(op_stack, value_stack)
 
@@ -105,7 +120,7 @@ def run_program(
         value_stack.append(operator.null())
         return 1
 
-    def apply_op(op_stack, value_stack):
+    def apply_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
         operand_list = value_stack.pop()
         operator = value_stack.pop()
         if operator.as_pair():
@@ -119,9 +134,9 @@ def run_program(
         value_stack.append(r)
         return additional_cost
 
-    op_stack = [eval_op]
-    value_stack = [program.cons(args)]
-    cost = 0
+    op_stack: OpStackType = [eval_op]
+    value_stack: ValStackType = [program.cons(args)]
+    cost: int = 0
 
     while op_stack:
         f = op_stack.pop()
