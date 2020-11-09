@@ -25,6 +25,8 @@ def op_sha256(args):
     h = hashlib.sha256()
     for _ in args.as_iter():
         atom = _.as_atom()
+        if atom is None:
+            raise EvalError("sha256 got list", _)
         cost += len(atom)
         h.update(atom)
     return cost, args.to(h.digest())

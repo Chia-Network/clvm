@@ -138,5 +138,5 @@ def run_program(
         f = op_stack.pop()
         cost += f(op_stack, value_stack)
         if max_cost and cost > max_cost:
-            raise EvalError("cost exceeded", value_stack[-1])
+            raise EvalError("cost exceeded", program.to(max_cost))
     return cost, value_stack[-1]
