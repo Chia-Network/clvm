@@ -55,6 +55,8 @@ def run_program(
         node_index = int_from_bytes(sexp.atom)
         cost = 1
         while node_index > 1:
+            if env.pair is None:
+                raise EvalError("path into atom", env)
             if node_index & 1:
                 env = env.rest()
             else:
@@ -104,7 +106,7 @@ def run_program(
         operand_list = sexp.rest()
         if op == quote_kw:
             if operand_list.nullp() or not operand_list.rest().nullp():
-                raise EvalError("quote requires exactly 1 parameter", sexp)
+                raise EvalError("quote requires exactly 1 parameter", sexp.rest())
             value_stack.append(operand_list.first())
             return QUOTE_COST
 
