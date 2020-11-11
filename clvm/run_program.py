@@ -42,16 +42,16 @@ def run_program(
     quote_kw: bytes,
     operator_lookup: Callable[[bytes, BaseSExp], Tuple[int, BaseSExp]],
     max_cost=None,
-    pre_eval_op=None,
     pre_eval_f=None,
 ) -> Tuple[int, BaseSExp]:
 
     program = SExp.to(program)
     if pre_eval_f:
         pre_eval_op = to_pre_eval_op(pre_eval_f)
+    else:
+        pre_eval_op = None
 
-    def eval_atom_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
-        sexp, env = value_stack.pop().as_pair()
+    def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
         node_index = int_from_bytes(sexp.atom)
         cost = 1
         while node_index > 1:
@@ -63,8 +63,7 @@ def run_program(
                 env = env.first()
             cost += SHIFT_COST_PER_LIMB * limbs_for_int(node_index)
             node_index >>= 1
-        value_stack.append(env)
-        return cost
+        return cost, env
 
     def swap_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
         v2 = value_stack.pop()
@@ -91,9 +90,9 @@ def run_program(
 
         if sexp.as_pair() is None:
             # sexp is an atom
-            op_stack.append(eval_atom_op)
-            value_stack.append(pair)
-            return 1
+            cost, r = traverse_path(sexp, args)
+            value_stack.append(r)
+            return cost
 
         operator = sexp.first()
         if operator.as_pair():
