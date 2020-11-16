@@ -53,3 +53,11 @@ class SerializeTest(unittest.TestCase):
             text = TEXT * (count + 1)
             assert len(text) > size
             self.check_serde(text)
+
+    def test_very_deep_tree(self):
+        blob = b"a"
+        for depth in [10, 100, 1000, 10000, 100000]:
+            s = to_sexp_f(blob)
+            for _ in range(depth):
+                s = to_sexp_f((s, blob))
+            self.check_serde(s)
