@@ -30,9 +30,10 @@ def op_sha256(args):
 
 
 def sha256tree_with_cost(v):
-    if v.listp():
-        cl, left = sha256tree_with_cost(v.first())
-        cr, right = sha256tree_with_cost(v.rest())
+    pair = v.as_pair()
+    if pair:
+        cl, left = sha256tree_with_cost(pair[0])
+        cr, right = sha256tree_with_cost(pair[1])
         s = b"\2" + left + right
         cost = cl + cr + SHA256_COST
     else:
@@ -51,7 +52,7 @@ def op_sha256tree(args):
 
 def args_as_ints(op_name, args):
     for arg in args.as_iter():
-        if not arg.listp():
+        if not arg.as_pair():
             r = arg.as_int()
             if r is not None:
                 yield r
@@ -117,7 +118,7 @@ def op_gr_bytes(args):
     if len(arg_list) != 2:
         raise EvalError(">s requires 2 args", args)
     a0, a1 = arg_list
-    if a0.listp() or a1.listp():
+    if a0.as_pair() or a1.as_pair():
         raise EvalError(">s on list", args)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
@@ -142,7 +143,7 @@ def op_point_add(items):
 
     for _ in items.as_iter():
         try:
-            p += G1Element.from_bytes(_.as_bytes())
+            p += G1Element.from_bytes(_.as_atom())
             cost += POINT_ADD_COST
         except Exception as ex:
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
@@ -151,7 +152,7 @@ def op_point_add(items):
 
 def op_strlen(args):
     a0 = args.first()
-    if a0.listp():
+    if a0.as_pair():
         raise EvalError("len on list", a0)
     size = len(a0.as_atom())
     cost = size
@@ -160,7 +161,7 @@ def op_strlen(args):
 
 def op_substr(args):
     a0 = args.first()
-    if a0.listp():
+    if a0.as_pair():
         raise EvalError("substr on list", a0)
 
     i1, i2 = args_as_int_list("substr", args.rest(), 2)
@@ -177,7 +178,7 @@ def op_concat(args):
     cost = 1
     s = io.BytesIO()
     for arg in args.as_iter():
-        if arg.listp():
+        if arg.as_pair():
             raise EvalError("concat on list", arg)
         s.write(arg.as_atom())
     r = s.getvalue()

@@ -71,14 +71,14 @@ def run_program(
 
         # put a bunch of ops on op_stack
 
-        if not sexp.listp():
+        if sexp.as_pair() is None:
             # sexp is an atom
             op_stack.append(eval_atom_op)
             value_stack.append(pair)
             return 1
 
         operator = sexp.first()
-        if operator.listp():
+        if operator.as_pair():
             value_stack.append(operator.cons(args))
             op_stack.append(eval_op)
             op_stack.append(eval_op)
@@ -107,7 +107,7 @@ def run_program(
     def apply_op(op_stack, value_stack):
         operand_list = value_stack.pop()
         operator = value_stack.pop()
-        if operator.listp():
+        if operator.as_pair():
             raise EvalError("internal error", operator)
 
         f = operator_lookup.get(operator.as_atom())

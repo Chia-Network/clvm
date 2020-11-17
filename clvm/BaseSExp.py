@@ -1,34 +1,47 @@
+"""
+This is the minimal `SExp` type that defines how and where its contents are
+stored in the heap. The methods here are the only ones required for `run_program`.
+A native implementation of `run_program` should implement this base class.
+"""
+
+import typing
+
+# Set this to "1" to do a run-time type check
+# This may slow things down a bit
+
+TYPE_CHECK = 0
+
+
 class BaseSExp:
-    ATOM_TYPES = (bytes,)
 
-    def __init__(self, v):
-        assert (
-            (v is None)
-            or (isinstance(v, tuple) and len(v) == 2)
-            or isinstance(v, self.ATOM_TYPES)
-        )
-        self.v = v
+    atom: typing.Optional[bytes]
+    pair: typing.Optional[typing.Tuple["BaseSExp", "BaseSExp"]]
+    __slots__ = ["atom", "pair"]
 
-    def listp(self):
-        return isinstance(self.v, (None.__class__, tuple))
+    def __new__(class_, v: "SExpType"):
+        if isinstance(v, BaseSExp):
+            return v
+        if TYPE_CHECK:
+            type_ok = (
+                isinstance(v, tuple)
+                and len(v) == 2
+                and isinstance(v[0], BaseSExp)
+                and isinstance(v[1], BaseSExp)
+            ) or isinstance(v, bytes)
+            # uncomment next line for debugging help
+            # if not type_ok: breakpoint()
+            assert type_ok
+        self = super(BaseSExp, class_).__new__(class_)
+        if isinstance(v, tuple):
+            self.pair = v
+            self.atom = None
+        else:
+            self.atom = v
+            self.pair = None
+        return self
 
-    def nullp(self):
-        return self == self.__null__
-
-    def as_pair(self):
-        if self.listp():
-            return self.v
-        return None
-
-    def as_atom(self):
-        assert not (self.listp())
-        if self.listp():
-            return None
-        return self.v
-
-    def cons(self, right):
+    def cons(self, right: "BaseSExp"):
         return self.__class__((self, right))
 
 
-BaseSExp.false = BaseSExp.__null__ = BaseSExp(b"")
-BaseSExp.true = BaseSExp(b"\1")
+SExpType = typing.Union[bytes, typing.Tuple[BaseSExp, BaseSExp]]

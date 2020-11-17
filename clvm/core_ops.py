@@ -39,7 +39,7 @@ def op_raise(args):
 def op_eq(args):
     a0 = args.first()
     a1 = args.rest().first()
-    if a0.listp() or a1.listp():
+    if a0.as_pair() or a1.as_pair():
         raise EvalError("= on list", args)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
