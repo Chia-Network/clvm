@@ -2,6 +2,7 @@ import io
 
 from blspy import G1Element
 
+from .as_python import as_python
 from .BaseSExp import BaseSExp
 from .EvalError import EvalError
 
@@ -95,19 +96,23 @@ class SExp(BaseSExp):
             other = self.to(other)
         except ValueError:
             return False
-        return other.v == self.v
+        to_compare_stack = [(self, other)]
+        while to_compare_stack:
+            s1, s2 = to_compare_stack.pop()
+            p1 = s1.as_pair()
+            if p1:
+                p2 = s2.as_pair()
+                if p2:
+                    to_compare_stack.append((p1[0], p2[0]))
+                    to_compare_stack.append((p1[1], p2[1]))
+                else:
+                    return False
+            elif s2.as_pair() or s1.as_atom() != s2.as_atom():
+                return False
+        return True
 
     def as_python(self):
-        if self.listp():
-            f, r = self.as_pair()
-            if r.nullp():
-                return [f.as_python()]
-            if r.listp():
-                partial_list = [f.as_python()]
-                partial_list.extend(r.as_python())
-                return partial_list
-            return (f.as_python(), r.as_python())
-        return self.as_atom()
+        return as_python(self)
 
     def __str__(self):
         return str(self.as_python())

@@ -16,12 +16,19 @@ CONS_BOX_MARKER = 0xFF
 
 
 def sexp_to_byte_iterator(sexp):
-    if sexp.listp():
-        yield bytes([CONS_BOX_MARKER])
-        yield from sexp_to_byte_iterator(sexp.first())
-        yield from sexp_to_byte_iterator(sexp.rest())
-        return
-    as_atom = sexp.as_atom()
+    todo_stack = [sexp]
+    while todo_stack:
+        sexp = todo_stack.pop()
+        pair = sexp.as_pair()
+        if pair:
+            yield bytes([CONS_BOX_MARKER])
+            todo_stack.append(pair[1])
+            todo_stack.append(pair[0])
+        else:
+            yield from atom_to_byte_iterator(sexp.as_atom())
+
+
+def atom_to_byte_iterator(as_atom):
     size = len(as_atom)
     if size == 0:
         yield b"\x80"
@@ -56,7 +63,7 @@ def sexp_to_byte_iterator(sexp):
             ]
         )
     else:
-        raise ValueError("sexp too long %s" % sexp)
+        raise ValueError("sexp too long %s" % as_atom)
 
     yield size_blob
     yield as_atom
@@ -67,15 +74,36 @@ def sexp_to_stream(sexp, f):
         f.write(b)
 
 
-def sexp_from_stream(f, to_sexp):
+def _op_read_sexp(op_stack, val_stack, f, to_sexp):
     blob = f.read(1)
     if len(blob) == 0:
         raise ValueError("bad encoding")
     b = blob[0]
     if b == CONS_BOX_MARKER:
-        v1 = sexp_from_stream(f, to_sexp)
-        v2 = sexp_from_stream(f, to_sexp)
-        return to_sexp((v1, v2))
+        op_stack.append(_op_cons)
+        op_stack.append(_op_read_sexp)
+        op_stack.append(_op_read_sexp)
+        return
+    val_stack.append(_atom_from_stream(f, b, to_sexp))
+
+
+def _op_cons(op_stack, val_stack, f, to_sexp):
+    right = val_stack.pop()
+    left = val_stack.pop()
+    val_stack.append(to_sexp((left, right)))
+
+
+def sexp_from_stream(f, to_sexp):
+    op_stack = [_op_read_sexp]
+    val_stack = []
+
+    while op_stack:
+        func = op_stack.pop()
+        func(op_stack, val_stack, f, to_sexp)
+    return val_stack.pop()
+
+
+def _atom_from_stream(f, b, to_sexp):
     if b == 0x80:
         return to_sexp(b"")
     if b <= MAX_SINGLE_BYTE:
