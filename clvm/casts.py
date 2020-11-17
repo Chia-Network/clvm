@@ -9,7 +9,10 @@ def int_to_bytes(v):
     byte_count = (v.bit_length() + 8) >> 3
     if v == 0:
         return b""
-    return v.to_bytes(byte_count, "big", signed=True)
+    r = v.to_bytes(byte_count, "big", signed=True)
+    while len(r) > 1 and r[0] == (0xff if r[1] & 0x80 else 0):
+        r = r[1:]
+    return r
 
 
 def limbs_for_int(v):
