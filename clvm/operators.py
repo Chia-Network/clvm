@@ -18,7 +18,6 @@ OP_REWRITE = {
     "+": "add",
     "-": "subtract",
     "*": "multiply",
-    "/": "divide",
     "i": "if",
     "c": "cons",
     "f": "first",
