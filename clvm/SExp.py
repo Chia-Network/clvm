@@ -6,6 +6,11 @@ from blspy import G1Element
 from .as_python import as_python
 from .CLVMObject import CLVMObject, SExpType
 
+try:
+    from clvm_rs import PySExp as BaseSExp
+except ImportError:
+    from .BaseSExp import BaseSExp
+
 from .EvalError import EvalError
 
 from .casts import (

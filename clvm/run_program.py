@@ -11,6 +11,17 @@ from .costs import (
     PATH_LOOKUP_COST_PER_ZERO_BYTE
 )
 
+try:
+    from clvm_rs import py_run_program, NativeOpLookup
+except ImportError:
+    py_run_program = None
+
+py_run_program = None
+
+NATIVE_OPS = bytes(range(256))
+#NATIVE_OPS = b""   # uncomment to use all python operators
+
+
 # the "Any" below should really be "OpStackType" but
 # recursive types aren't supported by mypy
 
@@ -59,6 +70,22 @@ def run_program(
         pre_eval_op = to_pre_eval_op(pre_eval_f, program.to)
     else:
         pre_eval_op = None
+
+    original_operator_lookup = operator_lookup
+
+    if py_run_program:
+        def operator_lookup(op, sexp):
+            s = SExp.to(sexp)
+            #breakpoint()
+            cost, r = original_operator_lookup(op, s)
+            r = SExp.to(r)
+            return cost, r
+        op_lookup = NativeOpLookup(NATIVE_OPS, operator_lookup)
+
+        cost, r = py_run_program(program, args, quote_kw[0], max_cost or 0, op_lookup, pre_eval=pre_eval_f)
+        r = SExp.to(r)
+        return cost, r
+
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
         cost = PATH_LOOKUP_COST_PER_LEG
