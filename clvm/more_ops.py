@@ -109,7 +109,7 @@ def op_divmod(args):
 
 def op_gr(args):
     i0, i1 = args_as_int_list(">", args, 2)
-    cost = ADD_COST_PER_LIMB * max(i0, i1)
+    cost = ADD_COST_PER_LIMB * max(limbs_for_int(i0), limbs_for_int(i1))
     return cost, args.true if i0 > i1 else args.false
 
 
