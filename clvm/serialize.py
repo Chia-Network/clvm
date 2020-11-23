@@ -11,6 +11,9 @@
 # 0xf0-0xf7 is 4 bytes ((perform logical and of first byte with 0x7))
 # 0xf7-0xfb is 5 bytes ((perform logical and of first byte with 0x3))
 
+from .BaseSExp import BaseSExp
+
+
 MAX_SINGLE_BYTE = 0x7F
 CONS_BOX_MARKER = 0xFF
 
@@ -99,8 +102,8 @@ def sexp_from_stream(f, to_sexp):
 
     while op_stack:
         func = op_stack.pop()
-        func(op_stack, val_stack, f, to_sexp)
-    return val_stack.pop()
+        func(op_stack, val_stack, f, BaseSExp)
+    return to_sexp(val_stack.pop())
 
 
 def _atom_from_stream(f, b, to_sexp):

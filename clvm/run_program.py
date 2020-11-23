@@ -19,16 +19,16 @@ ValStackType = List[SExp]
 OpStackType = List[OpCallable]
 
 
-def to_pre_eval_op(pre_eval_f):
+def to_pre_eval_op(pre_eval_f, to_sexp_f):
     def my_pre_eval_op(op_stack: OpStackType, value_stack: ValStackType) -> None:
-        v = value_stack[-1]
+        v = to_sexp_f(value_stack[-1])
         context = pre_eval_f(v.first(), v.rest())
         if callable(context):
 
             def invoke_context_op(
                 op_stack: OpStackType, value_stack: ValStackType
             ) -> int:
-                context(value_stack[-1])
+                context(to_sexp_f(value_stack[-1]))
                 return 0
 
             op_stack.append(invoke_context_op)
@@ -47,7 +47,7 @@ def run_program(
 
     program = SExp.to(program)
     if pre_eval_f:
-        pre_eval_op = to_pre_eval_op(pre_eval_f)
+        pre_eval_op = to_pre_eval_op(pre_eval_f, program.to)
     else:
         pre_eval_op = None
 
@@ -88,14 +88,14 @@ def run_program(
 
         # put a bunch of ops on op_stack
 
-        if sexp.as_pair() is None:
+        if sexp.pair is None:
             # sexp is an atom
             cost, r = traverse_path(sexp, args)
             value_stack.append(r)
             return cost
 
         operator = sexp.first()
-        if operator.as_pair():
+        if operator.pair:
             value_stack.append(operator.cons(args))
             op_stack.append(eval_op)
             op_stack.append(eval_op)
@@ -124,7 +124,7 @@ def run_program(
     def apply_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
         operand_list = value_stack.pop()
         operator = value_stack.pop()
-        if operator.as_pair():
+        if operator.pair:
             raise EvalError("internal error", operator)
 
         additional_cost, r = operator_lookup(operator.as_atom(), operand_list)

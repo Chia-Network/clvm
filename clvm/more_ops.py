@@ -24,7 +24,7 @@ def op_sha256(args):
     cost = SHA256_COST
     h = hashlib.sha256()
     for _ in args.as_iter():
-        atom = _.as_atom()
+        atom = _.atom
         if atom is None:
             raise EvalError("sha256 got list", _)
         cost += len(atom)
@@ -33,14 +33,14 @@ def op_sha256(args):
 
 
 def sha256tree_with_cost(v):
-    pair = v.as_pair()
+    pair = v.pair
     if pair:
         cl, left = sha256tree_with_cost(pair[0])
         cr, right = sha256tree_with_cost(pair[1])
         s = b"\2" + left + right
         cost = cl + cr + SHA256_COST
     else:
-        atom = v.as_atom()
+        atom = v.atom
         s = b"\1" + atom
         cost = len(atom) + SHA256_COST
     return cost, hashlib.sha256(s).digest()
@@ -55,7 +55,7 @@ def op_sha256tree(args):
 
 def args_as_ints(op_name, args):
     for arg in args.as_iter():
-        if not arg.as_pair():
+        if not arg.pair:
             r = arg.as_int()
             if r is not None:
                 yield r
@@ -138,7 +138,7 @@ def op_gr_bytes(args):
     if len(arg_list) != 2:
         raise EvalError(">s requires 2 args", args)
     a0, a1 = arg_list
-    if a0.as_pair() or a1.as_pair():
+    if a0.pair or a1.pair:
         raise EvalError(">s on list", args)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
@@ -172,7 +172,7 @@ def op_point_add(items):
 
 def op_strlen(args):
     a0 = args.first()
-    if a0.as_pair():
+    if a0.pair:
         raise EvalError("len on list", a0)
     size = len(a0.as_atom())
     cost = size
@@ -181,7 +181,7 @@ def op_strlen(args):
 
 def op_substr(args):
     a0 = args.first()
-    if a0.as_pair():
+    if a0.pair:
         raise EvalError("substr on list", a0)
 
     i1, i2 = args_as_int_list("substr", args.rest(), 2)
@@ -198,7 +198,7 @@ def op_concat(args):
     cost = 1
     s = io.BytesIO()
     for arg in args.as_iter():
-        if arg.as_pair():
+        if arg.pair:
             raise EvalError("concat on list", arg)
         s.write(arg.as_atom())
     r = s.getvalue()

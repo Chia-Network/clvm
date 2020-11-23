@@ -34,26 +34,23 @@ class SExp(BaseSExp):
     false: "SExp"
     __null__: "SExp"
 
-    def __new__(class_, v: CastableType):
-        if isinstance(v, class_):
-            return v
-        v1 = class_._to_sexp_type(v)
-        return super(SExp, class_).__new__(class_, v1)
-
     @classmethod
     def _to_sexp_type(
         class_,
         v: CastableType,
     ) -> SExpType:
+        if isinstance(v, tuple):
+            assert len(v) == 2
+            left, right = v
+            if type(left) != BaseSExp:
+                left = BaseSExp(class_._to_sexp_type(left))
+            if type(right) != BaseSExp:
+                right = BaseSExp(class_._to_sexp_type(right))
+            return (left, right)
         if isinstance(v, BaseSExp):
             return v.pair or v.atom
         if isinstance(v, bytes):
             return v
-        if isinstance(v, tuple):
-            assert len(v) == 2
-            left = SExp(v[0])
-            right = SExp(v[1])
-            return (left, right)
 
         if isinstance(v, int):
             return int_to_bytes(v)
@@ -61,13 +58,15 @@ class SExp(BaseSExp):
             return bytes(v)
         if v is None:
             return NULL
+        if v == []:
+            return NULL
 
         if hasattr(v, "__iter__"):
             pair: SExpType = NULL
             for _ in reversed(v):
                 pair = (
-                    SExp(_),
-                    SExp(pair),
+                    class_.to(_),
+                    class_.to(pair),
                 )
             return pair
 
@@ -77,19 +76,19 @@ class SExp(BaseSExp):
         pair = self.pair
         if pair is None:
             return pair
-        return (self.__class__(pair[0]), self.__class__(pair[1]))
+        return (self.to(pair[0]), self.to(pair[1]))
 
     def as_atom(self):
         return self.atom
 
     def listp(self):
-        return self.as_pair() is not None
+        return self.pair is not None
 
     def nullp(self):
-        return self.as_atom() == b""
+        return self.atom == b""
 
     def as_int(self):
-        return int_from_bytes(self.as_atom())
+        return int_from_bytes(self.atom)
 
     def as_bin(self):
         f = io.BytesIO()
@@ -97,28 +96,35 @@ class SExp(BaseSExp):
         return f.getvalue()
 
     def validate(self):
-        pair = self.as_pair()
+        pair = self.pair
         if pair:
             assert len(pair) == 2
             pair[0].validate()
             pair[1].validate()
         else:
-            assert isinstance(self.as_atom(), bytes)
+            assert isinstance(self.atom, bytes)
 
     @classmethod
     def to(class_, v: CastableType):
-        return class_(v)
+        if isinstance(v, class_):
+            return v
+        v1 = class_._to_sexp_type(v)
+        return class_(v1)
+
+    def cons(self, right: "BaseSExp"):
+        s = super(SExp, self).cons(SExp.to(right))
+        return self.to(s)
 
     def first(self):
-        pair = self.as_pair()
+        pair = self.pair
         if pair:
-            return self.__class__(pair[0])
+            return self.to(pair[0])
         raise EvalError("first of non-cons", self)
 
     def rest(self):
-        pair = self.as_pair()
+        pair = self.pair
         if pair:
-            return self.__class__(pair[1])
+            return self.to(pair[1])
         raise EvalError("rest of non-cons", self)
 
     @classmethod
