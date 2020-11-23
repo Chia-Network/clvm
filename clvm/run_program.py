@@ -1,9 +1,10 @@
 from .casts import limbs_for_int
 from .EvalError import EvalError
 
-QUOTE_COST = 1
-SHIFT_COST_PER_LIMB = 1
-
+from .costs import (
+    QUOTE_COST,
+    SHIFT_COST_PER_LIMB
+)
 
 def to_pre_eval_op(pre_eval_f):
     def my_pre_eval_op(op_stack, value_stack):
