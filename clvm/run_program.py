@@ -39,19 +39,19 @@ def to_pre_eval_op(pre_eval_f):
 def run_program(
     program: BaseSExp,
     args: BaseSExp,
-    quote_kw: int,
-    operator_lookup,
+    quote_kw: bytes,
+    operator_lookup: Callable[[bytes, BaseSExp], Tuple[int, BaseSExp]],
     max_cost=None,
     pre_eval_op=None,
     pre_eval_f=None,
 ) -> Tuple[int, BaseSExp]:
+
+    program = SExp.to(program)
     if pre_eval_f:
         pre_eval_op = to_pre_eval_op(pre_eval_f)
 
     def eval_atom_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
-        pair = value_stack.pop()
-        sexp = pair.first()
-        env = pair.rest()
+        sexp, env = value_stack.pop().as_pair()
         node_index = int_from_bytes(sexp.atom)
         cost = 1
         while node_index > 1:
@@ -126,11 +126,7 @@ def run_program(
         if operator.as_pair():
             raise EvalError("internal error", operator)
 
-        f = operator_lookup.get(operator.as_atom())
-        if f is None:
-            raise EvalError("unimplemented operator", operator)
-
-        additional_cost, r = f(operand_list)
+        additional_cost, r = operator_lookup(operator.as_atom(), operand_list)
         value_stack.append(r)
         return additional_cost
 
