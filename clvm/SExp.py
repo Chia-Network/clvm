@@ -155,7 +155,7 @@ class SExp(BaseSExp):
         return as_python(self)
 
     def __str__(self):
-        return str(self.as_python())
+        return self.as_bin().hex()
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, str(self))
