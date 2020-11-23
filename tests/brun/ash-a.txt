@@ -1,0 +1,2 @@
+brun -c '(ash (q 500) (q 65536))'
+FAIL: shift too large 0x010000

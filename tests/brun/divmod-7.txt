@@ -1,0 +1,2 @@
+brun -c '(divmod 2 5)' '(80001 0)'
+FAIL: divmod with 0 0x013881
