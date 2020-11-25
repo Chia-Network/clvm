@@ -100,7 +100,7 @@ def op_add(args):
 def op_subtract(args):
     cost = MIN_COST
     if args.nullp():
-        return args.to(0)
+        return cost, args.to(0)
     sign = 1
     total = 0
     for r in args_as_ints("-", args):
