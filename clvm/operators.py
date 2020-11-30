@@ -2,7 +2,7 @@ from typing import Callable, Dict, Tuple
 
 from . import core_ops, more_ops
 
-from .BaseSExp import BaseSExp
+from .CLVMObject import CLVMObject
 from .EvalError import EvalError
 
 from .casts import int_to_bytes
@@ -47,16 +47,16 @@ class OperatorDict(dict):
         self.unknown_op_handler = self.unknown_op_raise
         return self
 
-    def __call__(self, op: bytes, arguments: BaseSExp) -> Tuple[int, BaseSExp]:
+    def __call__(self, op: bytes, arguments: CLVMObject) -> Tuple[int, CLVMObject]:
         f = self.get(op)
         if f is None:
             f = lambda args: self.unknown_op_handler(op, args)
         return f(arguments)
 
-    def set_unknown_op_handler(self, callback: Callable[[bytes, BaseSExp], Tuple[int, BaseSExp]]):
+    def set_unknown_op_handler(self, callback: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]]):
         self.unknown_op_handler = callback
 
-    def unknown_op_raise(self, op: bytes, arguments: BaseSExp):
+    def unknown_op_raise(self, op: bytes, arguments: CLVMObject):
         raise EvalError("unimplemented operator", arguments.to(op))
 
 

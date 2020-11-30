@@ -1,7 +1,7 @@
 from typing import Any, Callable, List, Tuple
 
 from .casts import int_from_bytes, limbs_for_int
-from .BaseSExp import BaseSExp
+from .CLVMObject import CLVMObject
 from .EvalError import EvalError
 from .SExp import SExp
 
@@ -37,13 +37,13 @@ def to_pre_eval_op(pre_eval_f, to_sexp_f):
 
 
 def run_program(
-    program: BaseSExp,
-    args: BaseSExp,
+    program: CLVMObject,
+    args: CLVMObject,
     quote_kw: bytes,
-    operator_lookup: Callable[[bytes, BaseSExp], Tuple[int, BaseSExp]],
+    operator_lookup: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]],
     max_cost=None,
     pre_eval_f=None,
-) -> Tuple[int, BaseSExp]:
+) -> Tuple[int, CLVMObject]:
 
     program = SExp.to(program)
     if pre_eval_f:

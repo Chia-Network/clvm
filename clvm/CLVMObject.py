@@ -12,26 +12,26 @@ import typing
 TYPE_CHECK = 0
 
 
-class BaseSExp:
+class CLVMObject:
 
     atom: typing.Optional[bytes]
-    pair: typing.Optional[typing.Tuple["BaseSExp", "BaseSExp"]]
+    pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
     __slots__ = ["atom", "pair"]
 
     def __new__(class_, v: "SExpType"):
-        if isinstance(v, BaseSExp):
+        if isinstance(v, CLVMObject):
             return v
         if TYPE_CHECK:
             type_ok = (
                 isinstance(v, tuple)
                 and len(v) == 2
-                and isinstance(v[0], BaseSExp)
-                and isinstance(v[1], BaseSExp)
+                and isinstance(v[0], CLVMObject)
+                and isinstance(v[1], CLVMObject)
             ) or isinstance(v, bytes)
             # uncomment next line for debugging help
             # if not type_ok: breakpoint()
             assert type_ok
-        self = super(BaseSExp, class_).__new__(class_)
+        self = super(CLVMObject, class_).__new__(class_)
         if isinstance(v, tuple):
             self.pair = v
             self.atom = None
@@ -40,8 +40,8 @@ class BaseSExp:
             self.pair = None
         return self
 
-    def cons(self, right: "BaseSExp"):
+    def cons(self, right: "CLVMObject"):
         return self.__class__((self, right))
 
 
-SExpType = typing.Union[bytes, typing.Tuple[BaseSExp, BaseSExp]]
+SExpType = typing.Union[bytes, typing.Tuple[CLVMObject, CLVMObject]]

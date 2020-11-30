@@ -4,7 +4,7 @@ import typing
 from blspy import G1Element
 
 from .as_python import as_python
-from .BaseSExp import BaseSExp, SExpType
+from .CLVMObject import CLVMObject, SExpType
 
 from .EvalError import EvalError
 
@@ -17,7 +17,7 @@ from .serialize import sexp_to_stream
 
 CastableType = typing.Union[
     "SExp",
-    BaseSExp,
+    CLVMObject,
     bytes,
     int,
     None,
@@ -29,7 +29,7 @@ CastableType = typing.Union[
 NULL = b""
 
 
-class SExp(BaseSExp):
+class SExp(CLVMObject):
     true: "SExp"
     false: "SExp"
     __null__: "SExp"
@@ -42,12 +42,12 @@ class SExp(BaseSExp):
         if isinstance(v, tuple):
             assert len(v) == 2
             left, right = v
-            if type(left) != BaseSExp:
-                left = BaseSExp(class_._to_sexp_type(left))
-            if type(right) != BaseSExp:
-                right = BaseSExp(class_._to_sexp_type(right))
+            if type(left) != CLVMObject:
+                left = CLVMObject(class_._to_sexp_type(left))
+            if type(right) != CLVMObject:
+                right = CLVMObject(class_._to_sexp_type(right))
             return (left, right)
-        if isinstance(v, BaseSExp):
+        if isinstance(v, CLVMObject):
             return v.pair or v.atom
         if isinstance(v, bytes):
             return v
@@ -111,7 +111,7 @@ class SExp(BaseSExp):
         v1 = class_._to_sexp_type(v)
         return class_(v1)
 
-    def cons(self, right: "BaseSExp"):
+    def cons(self, right: "CLVMObject"):
         s = super(SExp, self).cons(SExp.to(right))
         return self.to(s)
 

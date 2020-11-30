@@ -11,7 +11,7 @@
 # 0xf0-0xf7 is 4 bytes ((perform logical and of first byte with 0x7))
 # 0xf7-0xfb is 5 bytes ((perform logical and of first byte with 0x3))
 
-from .BaseSExp import BaseSExp
+from .CLVMObject import CLVMObject
 
 
 MAX_SINGLE_BYTE = 0x7F
@@ -102,7 +102,7 @@ def sexp_from_stream(f, to_sexp):
 
     while op_stack:
         func = op_stack.pop()
-        func(op_stack, val_stack, f, BaseSExp)
+        func(op_stack, val_stack, f, CLVMObject)
     return to_sexp(val_stack.pop())
 
 
