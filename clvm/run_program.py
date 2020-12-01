@@ -5,10 +5,7 @@ from .CLVMObject import CLVMObject
 from .EvalError import EvalError
 from .SExp import SExp
 
-from .costs import (
-    QUOTE_COST,
-    SHIFT_COST_PER_LIMB
-)
+from .costs import APPLY_COST, QUOTE_COST, SHIFT_COST_PER_LIMB
 
 # the "Any" below should really be "OpStackType" but
 # recursive types aren't supported by mypy
@@ -43,6 +40,7 @@ def run_program(
     operator_lookup: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]],
     max_cost=None,
     pre_eval_f=None,
+    apply_kw: bytes = b"\x03",
 ) -> Tuple[int, CLVMObject]:
 
     program = SExp.to(program)
@@ -129,7 +127,22 @@ def run_program(
         if operator.pair:
             raise EvalError("internal error", operator)
 
-        additional_cost, r = operator_lookup(operator.as_atom(), operand_list)
+        op = operator.as_atom()
+        if op == apply_kw:
+            if (
+                operand_list.nullp()
+                or operand_list.rest().nullp()
+                or not operand_list.rest().rest().nullp()
+            ):
+                raise EvalError("apply requires exactly 2 parameters", operand_list)
+            new_operator = operand_list.first()
+            new_operand_list = operand_list.rest().first()
+            value_stack.append(new_operator)
+            value_stack.append(new_operand_list)
+            op_stack.append(apply_op)
+            return APPLY_COST
+
+        additional_cost, r = operator_lookup(op, operand_list)
         value_stack.append(r)
         return additional_cost
 
