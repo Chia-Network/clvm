@@ -52,8 +52,10 @@ def run_program(
         pre_eval_op = None
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
-        node_index = int_from_bytes(sexp.atom)
         cost = 1
+        if sexp.nullp():
+            return cost, sexp.null()
+        node_index = int_from_bytes(sexp.atom)
         while node_index > 1:
             if env.pair is None:
                 raise EvalError("path into atom", env)
