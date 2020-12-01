@@ -10,7 +10,7 @@ from .costs import (
 
 
 def op_if(args):
-    if len(args.as_python()) != 3:
+    if args.list_len() != 3:
         raise EvalError("i takes exactly 3 arguments", args)
     r = args.rest()
     if args.first().nullp():
@@ -19,25 +19,25 @@ def op_if(args):
 
 
 def op_cons(args):
-    if len(args.as_python()) != 2:
+    if args.list_len() != 2:
         raise EvalError("c takes exactly 2 arguments", args)
     return CONS_COST, args.first().cons(args.rest().first())
 
 
 def op_first(args):
-    if len(args.as_python()) != 1:
+    if args.list_len() != 1:
         raise EvalError("f takes exactly 1 argument", args)
     return FIRST_COST, args.first().first()
 
 
 def op_rest(args):
-    if len(args.as_python()) != 1:
+    if args.list_len() != 1:
         raise EvalError("r takes exactly 1 argument", args)
     return REST_COST, args.first().rest()
 
 
 def op_listp(args):
-    if len(args.as_python()) != 3:
+    if args.list_len() != 1:
         raise EvalError("l takes exactly 1 argument", args)
     return LISTP_COST, args.true if args.first().listp() else args.false
 

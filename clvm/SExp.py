@@ -157,6 +157,15 @@ class SExp(CLVMObject):
                 return False
         return True
 
+    def list_len(self):
+        v = self
+        size = 0
+        while v.listp():
+            size += 1
+            v = v.rest()
+        return size
+
+
     def as_python(self):
         return as_python(self)
 
