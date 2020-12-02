@@ -10,10 +10,25 @@ from .op_utils import operators_for_module
 
 
 KEYWORDS = (
-    ". q . a i c f r l x = sha256 + - * divmod "
-    "substr strlen point_add pubkey_for_exp concat sha256tree > >s "
-    "logand logior logxor lognot ash lsh "
-    "not any all "
+    # core opcodes
+    "q a i c f r l x "
+
+    # opcodes on atoms as strings
+    "= >s sha256 substr strlen concat . . "
+
+    # opcodes on atoms as ints
+    "+ - * divmod > ash lsh . . "
+
+    # opcodes on atoms as vectors of bools
+    "logand logior logxor lognot . "
+
+    # opcodes for bls 1381
+    "point_add pubkey_for_exp . "
+
+    # bool opcodes
+    "not any all . "
+
+    # misc
     "softfork "
 ).split()
 

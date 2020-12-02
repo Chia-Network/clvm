@@ -40,7 +40,7 @@ def run_program(
     operator_lookup: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]],
     max_cost=None,
     pre_eval_f=None,
-    apply_kw: bytes = b"\x03",
+    apply_kw: bytes = b"\x01",
 ) -> Tuple[int, CLVMObject]:
 
     program = SExp.to(program)
