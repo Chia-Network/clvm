@@ -32,27 +32,6 @@ def op_sha256(args):
     return cost, args.to(h.digest())
 
 
-def sha256tree_with_cost(v):
-    pair = v.pair
-    if pair:
-        cl, left = sha256tree_with_cost(pair[0])
-        cr, right = sha256tree_with_cost(pair[1])
-        s = b"\2" + left + right
-        cost = cl + cr + SHA256_COST
-    else:
-        atom = v.atom
-        s = b"\1" + atom
-        cost = len(atom) + SHA256_COST
-    return cost, hashlib.sha256(s).digest()
-
-
-def op_sha256tree(args):
-    if args.nullp() or not args.rest().nullp():
-        raise EvalError("op_sha256tree expects exactly one argument", args)
-    cost, r = sha256tree_with_cost(args.first())
-    return cost, args.to(r)
-
-
 def args_as_ints(op_name, args):
     for arg in args.as_iter():
         if not arg.pair:
