@@ -11,7 +11,7 @@ from .op_utils import operators_for_module
 
 KEYWORDS = (
     ". q . a i c f r l x = sha256 + - * divmod "
-    "substr strlen point_add pubkey_for_exp concat sha256tree > >s "
+    "substr strlen point_add pubkey_for_exp concat . > >s "
     "logand logior logxor lognot ash lsh "
     "not any all "
     "softfork "
