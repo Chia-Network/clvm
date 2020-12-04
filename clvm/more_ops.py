@@ -7,28 +7,55 @@ from .EvalError import EvalError
 from .casts import limbs_for_int
 
 from .costs import (
-    MIN_COST,
-    ADD_COST_PER_LIMB,
-    MUL_COST_PER_LIMB,
-    DIVMOD_COST_PER_LIMB,
-    SHA256_COST,
-    PUBKEY_FOR_EXP_COST,
-    POINT_ADD_COST,
-    CONCAT_COST_PER_BYTE,
-    LOGOP_COST_PER_BYTE,
-    BOOL_OP_COST,
+    ARITH_BASE_COST,
+    ARITH_COST_PER_LIMB_DIVIDER,
+    ARITH_COST_PER_ARG,
+    LOG_BASE_COST,
+    LOG_COST_PER_ARG,
+    LOG_COST_PER_LIMB_DIVIDER,
+    DIVMOD_BASE_COST,
+    DIVMOD_COST_PER_LIMB_DIVIDER,
+    MUL_BASE_COST,
+    MUL_COST_PER_OP,
+    MUL_LINEAR_COST_PER_BYTE_DIVIDER,
+    MUL_SQUARE_COST_PER_BYTE_DIVIDER,
+    SHA256_BASE_COST,
+    SHA256_COST_PER_ARG,
+    SHA256_COST_PER_BYTE_DIVIDER,
+    PUBKEY_BASE_COST,
+    PUBKEY_COST_PER_BYTE_DIVIDER,
+    POINT_ADD_BASE_COST,
+    POINT_ADD_COST_PER_ARG,
+    STRLEN_BASE_COST,
+    STRLEN_COST_PER_BYTE_DIVIDER,
+    CONCAT_BASE_COST,
+    CONCAT_COST_PER_ARG,
+    CONCAT_COST_PER_BYTE_DIVIDER,
+    BOOL_BASE_COST,
+    BOOL_COST_PER_ARG,
+    LOGNOT_BASE_COST,
+    LOGNOT_COST_PER_BYTE_DIVIDER,
+    SHIFT_BASE_COST,
+    SHIFT_COST_PER_BYTE_DIVIDER,
+    CMP_BASE_COST,
+    CMP_COST_PER_LIMB_DIVIDER,
+    GR_BASE_COST,
+    GR_COST_PER_LIMB_DIVIDER,
 )
 
 
 def op_sha256(args):
-    cost = SHA256_COST
+    cost = SHA256_BASE_COST
+    arg_len = 0
     h = hashlib.sha256()
     for _ in args.as_iter():
         atom = _.atom
         if atom is None:
             raise EvalError("sha256 got list", _)
-        cost += len(atom)
+        arg_len += len(atom)
+        cost += SHA256_COST_PER_ARG
         h.update(atom)
+    cost += arg_len // SHA256_COST_PER_BYTE_DIVIDER
     return cost, args.to(h.digest())
 
 
@@ -69,48 +96,64 @@ def args_as_bool_list(op_name, args, count):
 
 def op_add(args):
     total = 0
-    cost = MIN_COST
+    cost = ARITH_BASE_COST
+    arg_size = 0
     for r in args_as_ints("+", args):
         total += r
-        cost += limbs_for_int(r) * ADD_COST_PER_LIMB
+        arg_size += limbs_for_int(r)
+        cost += ARITH_COST_PER_ARG
+    cost += arg_size // ARITH_COST_PER_LIMB_DIVIDER
     return cost, args.to(total)
 
 
 def op_subtract(args):
-    cost = MIN_COST
+    cost = ARITH_BASE_COST
     if args.nullp():
         return cost, args.to(0)
     sign = 1
     total = 0
+    arg_size = 0
     for r in args_as_ints("-", args):
         total += sign * r
         sign = -1
-        cost += limbs_for_int(r) * ADD_COST_PER_LIMB
+        arg_size += limbs_for_int(r)
+        cost += ARITH_COST_PER_ARG
+    cost += arg_size // ARITH_COST_PER_LIMB_DIVIDER
     return cost, args.to(total)
 
 
 def op_multiply(args):
-    cost = MIN_COST
-    v = 1
-    for r in args_as_ints("*", args):
-        cost += MUL_COST_PER_LIMB * limbs_for_int(r) * limbs_for_int(v)
+    cost = MUL_BASE_COST
+    operands = args_as_ints("*", args)
+    try:
+        v = next(operands)
+    except StopIteration:
+        return cost, args.to(1)
+
+    for r in operands:
+        rs = limbs_for_int(r)
+        vs = limbs_for_int(v)
+        cost += MUL_COST_PER_OP
+        cost += (rs + vs) / MUL_LINEAR_COST_PER_BYTE_DIVIDER
+        cost += (rs * vs) / MUL_SQUARE_COST_PER_BYTE_DIVIDER
         v = v * r
     return cost, args.to(v)
 
 
 def op_divmod(args):
-    cost = MIN_COST
+    cost = DIVMOD_BASE_COST
     i0, i1 = args_as_int_list("divmod", args, 2)
     if i1 == 0:
         raise EvalError("divmod with 0", args.to(i0))
-    cost += DIVMOD_COST_PER_LIMB * (limbs_for_int(i0) + limbs_for_int(i1))
+    cost += (limbs_for_int(i0) + limbs_for_int(i1)) // DIVMOD_COST_PER_LIMB_DIVIDER
     q, r = divmod(i0, i1)
     return cost, args.to((q, r))
 
 
 def op_gr(args):
     i0, i1 = args_as_int_list(">", args, 2)
-    cost = ADD_COST_PER_LIMB * max(limbs_for_int(i0), limbs_for_int(i1))
+    cost = GR_BASE_COST
+    cost += (limbs_for_int(i0) + limbs_for_int(i1)) // GR_COST_PER_LIMB_DIVIDER
     return cost, args.true if i0 > i1 else args.false
 
 
@@ -123,7 +166,8 @@ def op_gr_bytes(args):
         raise EvalError(">s on list", args)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
-    cost = max(len(b0), len(b1))
+    cost = CMP_BASE_COST
+    cost += (len(b0) + len(b1)) // CMP_COST_PER_LIMB_DIVIDER
     return cost, args.true if b0 > b1 else args.false
 
 
@@ -131,21 +175,22 @@ def op_pubkey_for_exp(args):
     (i0,) = args_as_int_list("pubkey_for_exp", args, 1)
     i0 %= 0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001
     try:
-        cost = PUBKEY_FOR_EXP_COST
         r = args.to(bytes(G1Element.generator() * i0))
+        cost = PUBKEY_BASE_COST
+        cost += limbs_for_int(i0) // PUBKEY_COST_PER_BYTE_DIVIDER
         return cost, r
     except Exception as ex:
         raise EvalError("problem in op_pubkey_for_exp: %s" % ex, args)
 
 
 def op_point_add(items):
-    cost = MIN_COST
+    cost = POINT_ADD_BASE_COST
     p = G1Element.generator() * 0
 
     for _ in items.as_iter():
         try:
             p += G1Element.from_bytes(_.as_atom())
-            cost += POINT_ADD_COST
+            cost += POINT_ADD_COST_PER_ARG
         except Exception as ex:
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
     return cost, items.to(p)
@@ -156,7 +201,7 @@ def op_strlen(args):
     if a0.pair:
         raise EvalError("len on list", a0)
     size = len(a0.as_atom())
-    cost = size
+    cost = STRLEN_BASE_COST + size / STRLEN_COST_PER_BYTE_DIVIDER
     return cost, args.to(size)
 
 
@@ -176,19 +221,19 @@ def op_substr(args):
 
 
 def op_concat(args):
-    cost = 1
+    cost = CONCAT_BASE_COST
     s = io.BytesIO()
     for arg in args.as_iter():
         if arg.pair:
             raise EvalError("concat on list", arg)
         s.write(arg.as_atom())
+        cost += CONCAT_COST_PER_ARG
     r = s.getvalue()
-    cost += len(r) * CONCAT_COST_PER_BYTE
+    cost += len(r) // CONCAT_COST_PER_BYTE_DIVIDER
     return cost, args.to(r)
 
 
 def op_ash(args):
-    cost = MIN_COST
     i0, i1 = args_as_int_list("ash", args, 2)
     if abs(i1) > 65535:
         raise EvalError("shift too large", args.to(i1))
@@ -196,13 +241,12 @@ def op_ash(args):
         r = i0 << i1
     else:
         r = i0 >> -i1
-    cost += limbs_for_int(i0) * LOGOP_COST_PER_BYTE
-    cost += limbs_for_int(r) * LOGOP_COST_PER_BYTE
+    cost = SHIFT_BASE_COST
+    cost += (limbs_for_int(i0) + limbs_for_int(r)) / SHIFT_COST_PER_BYTE_DIVIDER
     return cost, args.to(r)
 
 
 def op_lsh(args):
-    cost = MIN_COST
     i0, i1 = args_as_int_list("ash", args, 2)
     if abs(i1) > 65535:
         raise EvalError("shift too large", args.to(i1))
@@ -213,51 +257,52 @@ def op_lsh(args):
         r = i0 << i1
     else:
         r = i0 >> -i1
-    cost += limbs_for_int(i0) * LOGOP_COST_PER_BYTE
-    cost += limbs_for_int(r) * LOGOP_COST_PER_BYTE
+    cost = SHIFT_BASE_COST
+    cost += (limbs_for_int(i0) + limbs_for_int(r)) / SHIFT_COST_PER_BYTE_DIVIDER
     return cost, args.to(r)
 
 
-def binop_reduction(op_name, cost, initial_value, args, op_f):
+def binop_reduction(op_name, initial_value, args, op_f):
     total = initial_value
+    arg_size = 0
+    cost = LOG_BASE_COST
     for r in args_as_ints(op_name, args):
-        total, this_cost = op_f(total, r)
-        cost += this_cost
+        total = op_f(total, r)
+        arg_size += limbs_for_int(total)
+        cost += LOG_COST_PER_ARG
+    cost += arg_size // LOG_COST_PER_LIMB_DIVIDER
     return cost, args.to(total)
 
 
 def op_logand(args):
     def binop(a, b):
         a &= b
-        cost = limbs_for_int(a) * LOGOP_COST_PER_BYTE
-        return a, cost
+        return a
 
-    return binop_reduction("logand", MIN_COST, -1, args, binop)
+    return binop_reduction("logand", -1, args, binop)
 
 
 def op_logior(args):
     def binop(a, b):
         a |= b
-        cost = limbs_for_int(a) * LOGOP_COST_PER_BYTE
-        return a, cost
+        return a
 
-    return binop_reduction("logior", MIN_COST, 0, args, binop)
+    return binop_reduction("logior", 0, args, binop)
 
 
 def op_logxor(args):
     def binop(a, b):
         a ^= b
-        cost = limbs_for_int(a) * LOGOP_COST_PER_BYTE
-        return a, cost
+        return a
 
-    return binop_reduction("logxor", MIN_COST, 0, args, binop)
+    return binop_reduction("logxor", 0, args, binop)
 
 
 def op_lognot(args):
     (i0,) = args_as_int_list("lognot", args, 1)
     r = ~i0
     limbs = limbs_for_int(r)
-    cost = limbs * LOGOP_COST_PER_BYTE
+    cost = LOGNOT_BASE_COST + limbs // LOGNOT_COST_PER_BYTE_DIVIDER
     return cost, args.to(r)
 
 
@@ -267,13 +312,13 @@ def op_not(args):
         r = args.true
     else:
         r = args.false
-    cost = BOOL_OP_COST
+    cost = BOOL_BASE_COST + BOOL_COST_PER_ARG
     return cost, args.to(r)
 
 
 def op_any(args):
     items = list(args_as_bools("any", args))
-    cost = len(items)
+    cost = BOOL_BASE_COST + len(items) * BOOL_COST_PER_ARG
     r = args.false
     for v in items:
         if v.as_atom() != b"":
@@ -284,7 +329,7 @@ def op_any(args):
 
 def op_all(args):
     items = list(args_as_bools("all", args))
-    cost = len(items)
+    cost = BOOL_BASE_COST + len(items) * BOOL_COST_PER_ARG
     r = args.true
     for v in items:
         if v.as_atom() == b"":
