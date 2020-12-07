@@ -134,8 +134,8 @@ def op_multiply(args):
         rs = limbs_for_int(r)
         vs = limbs_for_int(v)
         cost += MUL_COST_PER_OP
-        cost += (rs + vs) / MUL_LINEAR_COST_PER_BYTE_DIVIDER
-        cost += (rs * vs) / MUL_SQUARE_COST_PER_BYTE_DIVIDER
+        cost += (rs + vs) // MUL_LINEAR_COST_PER_BYTE_DIVIDER
+        cost += (rs * vs) // MUL_SQUARE_COST_PER_BYTE_DIVIDER
         v = v * r
     return cost, args.to(v)
 
@@ -201,7 +201,7 @@ def op_strlen(args):
     if a0.pair:
         raise EvalError("len on list", a0)
     size = len(a0.as_atom())
-    cost = STRLEN_BASE_COST + size / STRLEN_COST_PER_BYTE_DIVIDER
+    cost = STRLEN_BASE_COST + size // STRLEN_COST_PER_BYTE_DIVIDER
     return cost, args.to(size)
 
 
@@ -242,7 +242,7 @@ def op_ash(args):
     else:
         r = i0 >> -i1
     cost = SHIFT_BASE_COST
-    cost += (limbs_for_int(i0) + limbs_for_int(r)) / SHIFT_COST_PER_BYTE_DIVIDER
+    cost += (limbs_for_int(i0) + limbs_for_int(r)) // SHIFT_COST_PER_BYTE_DIVIDER
     return cost, args.to(r)
 
 
@@ -258,7 +258,7 @@ def op_lsh(args):
     else:
         r = i0 >> -i1
     cost = SHIFT_BASE_COST
-    cost += (limbs_for_int(i0) + limbs_for_int(r)) / SHIFT_COST_PER_BYTE_DIVIDER
+    cost += (limbs_for_int(i0) + limbs_for_int(r)) // SHIFT_COST_PER_BYTE_DIVIDER
     return cost, args.to(r)
 
 
