@@ -1,0 +1,2 @@
+brun '(concat (q -1) (q -1))'
+0xffff

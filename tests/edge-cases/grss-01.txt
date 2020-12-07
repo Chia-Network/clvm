@@ -1,0 +1,2 @@
+brun '(>s)'
+FAIL: >s requires 2 args ()

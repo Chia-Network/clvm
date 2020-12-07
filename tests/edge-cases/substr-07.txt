@@ -1,0 +1,2 @@
+brun '(substr (q (1 2)) (q (1 2)) (q (1 2)))'
+FAIL: substr on list (q 2)

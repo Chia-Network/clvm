@@ -1,0 +1,2 @@
+brun '(logand)'
+-1

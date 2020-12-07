@@ -1,0 +1,2 @@
+brun '(logand (q 0xffff) (q 0xffff))'
+-1

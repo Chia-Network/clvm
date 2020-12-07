@@ -1,0 +1,2 @@
+brun '(substr (q 0xffff) (q 0xffff) (q 0xffff))'
+FAIL: invalid indices for substr (0xffff 0xffff 0xffff)

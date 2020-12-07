@@ -1,0 +1,2 @@
+brun '(r)'
+FAIL: r takes exactly 1 argument ()

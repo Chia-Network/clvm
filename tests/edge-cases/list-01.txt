@@ -1,0 +1,2 @@
+brun '(l)'
+FAIL: l takes exactly 1 argument ()

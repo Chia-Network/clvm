@@ -1,0 +1,2 @@
+brun '(pubkey_for_exp)'
+FAIL: pubkey_for_exp requires 1 arg ()

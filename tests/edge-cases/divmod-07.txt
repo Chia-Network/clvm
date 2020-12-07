@@ -1,0 +1,2 @@
+brun '(divmod (q 0xffff) (q 0xffff))'
+(q)

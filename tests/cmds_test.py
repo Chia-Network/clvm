@@ -99,6 +99,7 @@ def inject(*paths):
 
 
 inject("brun")
+inject("edge-cases")
 
 
 def main():

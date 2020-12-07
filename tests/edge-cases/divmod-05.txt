@@ -1,0 +1,2 @@
+brun '(divmod () ())'
+FAIL: divmod with 0 ()

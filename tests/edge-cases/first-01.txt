@@ -1,0 +1,2 @@
+brun '(f)'
+FAIL: f takes exactly 1 argument ()

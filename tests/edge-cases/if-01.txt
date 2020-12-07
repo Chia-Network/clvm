@@ -1,0 +1,2 @@
+brun '(i)'
+FAIL: i takes exactly 3 arguments ()

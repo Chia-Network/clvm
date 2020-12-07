@@ -197,15 +197,19 @@ def op_point_add(items):
 
 
 def op_strlen(args):
+    if args.list_len() != 1:
+        raise EvalError("strlen takes exactly 1 argument", args)
     a0 = args.first()
     if a0.pair:
-        raise EvalError("len on list", a0)
+        raise EvalError("strlen on list", a0)
     size = len(a0.as_atom())
     cost = STRLEN_BASE_COST + size // STRLEN_COST_PER_BYTE_DIVIDER
     return cost, args.to(size)
 
 
 def op_substr(args):
+    if args.list_len() != 3:
+        raise EvalError("substr takes exactly 3 argument", args)
     a0 = args.first()
     if a0.pair:
         raise EvalError("substr on list", a0)
@@ -339,7 +343,12 @@ def op_all(args):
 
 
 def op_softfork(args):
-    cost = args.first().as_int()
+    if args.list_len() < 1:
+        raise EvalError("softfork takes at least 1 argument", args)
+    a = args.first()
+    if a.pair:
+        raise EvalError("softfork requires an int argument", a)
+    cost = a.as_int()
     if cost < 1:
         raise EvalError("cost must be > 0", args)
     return cost, args.to(0)

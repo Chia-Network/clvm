@@ -1,0 +1,2 @@
+brun '(point_add () ())'
+FAIL: point_add expects blob, got 80: Length of bytes object not equal to G1Element::SIZE (() ())
