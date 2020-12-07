@@ -1,0 +1,2 @@
+brun '(f (q -1))'
+FAIL: first of non-cons -1

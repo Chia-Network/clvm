@@ -1,2 +1,2 @@
 brun -c '(strlen 1)' '(foo-bar)'
-FAIL: len on list ("foo-bar")
+FAIL: strlen on list ("foo-bar")

@@ -1,0 +1,2 @@
+brun '(=)'
+FAIL: = takes exactly 2 arguments ()

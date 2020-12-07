@@ -1,0 +1,2 @@
+brun '(> (q 1) (q 1) (q 1))'
+FAIL: > requires 2 args (q 1 1)

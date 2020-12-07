@@ -1,0 +1,2 @@
+brun -c '(softfork ())'
+FAIL: cost must be > 0 (())

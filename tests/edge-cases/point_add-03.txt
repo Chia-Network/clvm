@@ -1,0 +1,2 @@
+brun '(point_add (q 1) (q 1))'
+FAIL: point_add expects blob, got 01: Length of bytes object not equal to G1Element::SIZE (q 1)

@@ -49,6 +49,8 @@ def op_raise(args):
 
 
 def op_eq(args):
+    if args.list_len() != 2:
+        raise EvalError("= takes exactly 2 arguments", args)
     a0 = args.first()
     a1 = args.rest().first()
     if a0.pair or a1.pair:

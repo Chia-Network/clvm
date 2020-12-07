@@ -1,0 +1,2 @@
+brun '(c)'
+FAIL: c takes exactly 2 arguments ()

@@ -1,0 +1,2 @@
+brun '(strlen)'
+FAIL: strlen takes exactly 1 argument ()

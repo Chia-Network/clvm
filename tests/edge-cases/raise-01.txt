@@ -1,0 +1,2 @@
+brun '(x)'
+FAIL: clvm raise ()

@@ -1,0 +1,2 @@
+brun '(f (q 0xffff))'
+FAIL: first of non-cons 0xffff

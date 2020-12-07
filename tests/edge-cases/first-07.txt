@@ -1,0 +1,2 @@
+brun '(f (q 128))'
+FAIL: first of non-cons 128

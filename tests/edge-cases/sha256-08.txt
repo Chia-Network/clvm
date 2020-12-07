@@ -1,0 +1,2 @@
+brun '(sha256 (q -1) (q -1))'
+0xca2fd00fa001190744c15c317643ab092e7048ce086a243e2be9437c898de1bb

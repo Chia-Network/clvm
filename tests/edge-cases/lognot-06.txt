@@ -1,0 +1,2 @@
+brun '(lognot (q 0xffff))'
+()

@@ -1,0 +1,2 @@
+brun '(r (q 0xffff))'
+FAIL: rest of non-cons 0xffff

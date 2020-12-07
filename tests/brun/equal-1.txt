@@ -1,2 +1,2 @@
 brun -c '(= (q 10))'
-FAIL: first of non-cons ()
+FAIL: = takes exactly 2 arguments (=)

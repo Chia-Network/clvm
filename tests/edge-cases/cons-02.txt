@@ -1,0 +1,2 @@
+brun '(c (q 1))'
+FAIL: c takes exactly 2 arguments (q)
