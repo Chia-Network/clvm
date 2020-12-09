@@ -108,9 +108,7 @@ def run_program(
         op = operator.as_atom()
         operand_list = sexp.rest()
         if op == quote_kw:
-            if operand_list.nullp() or not operand_list.rest().nullp():
-                raise EvalError("quote requires exactly 1 parameter", sexp.rest())
-            value_stack.append(operand_list.first())
+            value_stack.append(operand_list)
             return QUOTE_COST
 
         op_stack.append(apply_op)
