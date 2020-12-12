@@ -4,12 +4,12 @@ import typing
 from blspy import G1Element
 
 from .as_python import as_python
-from .CLVMObject import CLVMObject, SExpType
+from .CLVMObject import SExpType
 
 try:
-    from clvm_rs import PySExp as BaseSExp
+    from clvm_rs import PyNode as CLVMObject
 except ImportError:
-    from .BaseSExp import BaseSExp
+    from .CLVMObject import CLVMObject
 
 from .EvalError import EvalError
 
