@@ -61,12 +61,9 @@ def op_sha256(args):
 
 def args_as_ints(op_name, args):
     for arg in args.as_iter():
-        if not arg.pair:
-            r = arg.as_int()
-            if r is not None:
-                yield r
-                continue
-        raise EvalError("%s requires int args" % op_name, args)
+        if arg.pair:
+            raise EvalError("%s requires int args" % op_name, args)
+        yield arg.as_int()
 
 
 def args_as_int_list(op_name, args, count):
