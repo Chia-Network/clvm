@@ -95,15 +95,6 @@ class SExp(CLVMObject):
         sexp_to_stream(self, f)
         return f.getvalue()
 
-    def validate(self):
-        pair = self.pair
-        if pair:
-            assert len(pair) == 2
-            pair[0].validate()
-            pair[1].validate()
-        else:
-            assert isinstance(self.atom, bytes)
-
     @classmethod
     def to(class_, v: CastableType):
         if isinstance(v, class_):
