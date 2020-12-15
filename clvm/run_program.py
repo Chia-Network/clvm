@@ -8,7 +8,9 @@ from .SExp import SExp
 from .costs import (
     APPLY_COST,
     QUOTE_COST,
-    PATH_LOOKUP_COST_PER_LEG
+    TRAVERSE_BASE_COST,
+    TRAVERSE_COST_PER_BYTE,
+    TRAVERSE_COST_PER_BIT
 )
 
 # the "Any" below should really be "OpStackType" but
@@ -54,8 +56,12 @@ def run_program(
         pre_eval_op = None
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
-        cost = PATH_LOOKUP_COST_PER_LEG
-        if sexp.nullp():
+        cost = TRAVERSE_BASE_COST
+        atom = sexp.atom
+        while len(atom) and atom[0] == b"\0":
+            cost += TRAVERSE_COST_PER_BYTE
+            atom = atom[1:]
+        if len(atom) == 0:
             return cost, sexp.null()
         node_index = int_from_bytes(sexp.atom)
         while node_index > 1:
@@ -65,7 +71,7 @@ def run_program(
                 env = env.rest()
             else:
                 env = env.first()
-            cost += PATH_LOOKUP_COST_PER_LEG
+            cost += TRAVERSE_COST_PER_BIT
             node_index >>= 1
         return cost, env
 
