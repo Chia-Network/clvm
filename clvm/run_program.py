@@ -16,7 +16,7 @@ try:
 except ImportError:
     py_run_program = None
 
-py_run_program = None
+# py_run_program = None
 
 NATIVE_OPS = bytes(range(256))
 #NATIVE_OPS = b""   # uncomment to use all python operators
@@ -89,7 +89,11 @@ def run_program(
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
         cost = PATH_LOOKUP_COST_PER_LEG
-        if sexp.nullp():
+        atom = sexp.atom
+        while len(atom) and atom[0] == b"\0":
+            cost += SHIFT_COST_PER_BYTE
+            atom = atom[1:]
+        if len(atom) == 0:
             return cost, sexp.null()
 
         b = sexp.atom
