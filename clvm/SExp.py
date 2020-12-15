@@ -40,7 +40,8 @@ class SExp(CLVMObject):
         v: CastableType,
     ) -> SExpType:
         if isinstance(v, tuple):
-            assert len(v) == 2
+            if len(v) != 2:
+                raise ValueError("can't cast tuple of size %d" % len(v))
             left, right = v
             if type(left) != CLVMObject:
                 left = CLVMObject(class_._to_sexp_type(left))
