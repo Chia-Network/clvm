@@ -6,6 +6,8 @@ from .costs import (
     FIRST_COST,
     REST_COST,
     LISTP_COST,
+    CMP_BASE_COST,
+    CMP_COST_PER_LIMB_DIVIDER,
 )
 
 
@@ -53,5 +55,6 @@ def op_eq(args):
         raise EvalError("= on list", args)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
-    cost = len(b0) + len(b1)
+    cost = CMP_BASE_COST
+    cost += (len(b0) + len(b1)) // CMP_COST_PER_LIMB_DIVIDER
     return cost, (args.true if b0 == b1 else args.false)

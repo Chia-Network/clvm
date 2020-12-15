@@ -7,7 +7,7 @@ from .SExp import SExp
 
 from .costs import (
     QUOTE_COST,
-    SHIFT_COST_PER_LIMB
+    PATH_LOOKUP_COST_PER_LEG
 )
 
 # the "Any" below should really be "OpStackType" but
@@ -52,7 +52,7 @@ def run_program(
         pre_eval_op = None
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
-        cost = 1
+        cost = PATH_LOOKUP_COST_PER_LEG
         if sexp.nullp():
             return cost, sexp.null()
         node_index = int_from_bytes(sexp.atom)
@@ -63,7 +63,7 @@ def run_program(
                 env = env.rest()
             else:
                 env = env.first()
-            cost += SHIFT_COST_PER_LIMB * limbs_for_int(node_index)
+            cost += PATH_LOOKUP_COST_PER_LEG
             node_index >>= 1
         return cost, env
 
