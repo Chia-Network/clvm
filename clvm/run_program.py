@@ -9,7 +9,8 @@ from .costs import (
     QUOTE_COST,
     PATH_LOOKUP_COST_PER_LEG,
     PATH_LOOKUP_COST_PER_ZERO_BYTE,
-    SHIFT_COST_PER_BYTE
+    TRAVERSE_BASE_COST,
+    TRAVERSE_COST_PER_BYTE,
 )
 
 try:
@@ -88,10 +89,10 @@ def run_program(
         return cost, r
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
-        cost = PATH_LOOKUP_COST_PER_LEG
+        cost = TRAVERSE_BASE_COST
         atom = sexp.atom
         while len(atom) and atom[0] == b"\0":
-            cost += SHIFT_COST_PER_BYTE
+            cost += TRAVERSE_COST_PER_BYTE
             atom = atom[1:]
         if len(atom) == 0:
             return cost, sexp.null()
