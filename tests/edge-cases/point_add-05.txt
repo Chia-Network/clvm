@@ -1,5 +1,2 @@
 brun '(point_add (q (1 2)) (q (1 2)))'
-FAIL: point_add expects blob, got ff01ff0280: from_bytes(): incompatible function arguments. The following argument types are supported:
-    1. (self: buffer) -> blspy.G1Element
-
-Invoked with: None ((q 2) (q 2))
+FAIL: point_add expects blob, got list ((q 2) (q 2))

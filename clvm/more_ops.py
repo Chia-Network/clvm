@@ -188,6 +188,8 @@ def op_point_add(items):
     p = G1Element.generator() * 0
 
     for _ in items.as_iter():
+        if _.pair:
+            raise EvalError("point_add expects blob, got list", items)
         try:
             p += G1Element.from_bytes(_.as_atom())
             cost += POINT_ADD_COST_PER_ARG
