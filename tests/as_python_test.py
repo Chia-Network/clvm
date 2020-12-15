@@ -30,3 +30,9 @@ class AsPythonTest(unittest.TestCase):
         self.check_as_python(
             [b"", b"1", b"2", [b"30", b"40", b"90"], b"600", (b"", b"18")]
         )
+
+    def test_deep_recursion(self):
+        d = [b"2"]
+        for i in range(480):
+            d = [d]
+        self.check_as_python(d)
