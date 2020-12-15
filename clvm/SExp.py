@@ -112,7 +112,7 @@ class SExp(CLVMObject):
         return class_(v1)
 
     def cons(self, right: "CLVMObject"):
-        s = super(SExp, self).cons(SExp.to(right))
+        s = super(SExp, self).cons(right)
         return self.to(s)
 
     def first(self):
