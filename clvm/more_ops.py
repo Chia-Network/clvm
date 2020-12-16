@@ -247,7 +247,7 @@ def op_ash(args):
 
 
 def op_lsh(args):
-    i0, i1 = args_as_int_list("ash", args, 2)
+    i0, i1 = args_as_int_list("lsh", args, 2)
     if abs(i1) > 65535:
         raise EvalError("shift too large", args.to(i1))
     # we actually want i0 to be an *unsigned* int
