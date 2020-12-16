@@ -1,0 +1,3 @@
+# a surprising case
+brun -c '(a (q q) (q (2 3 4)))'
+FAIL: unimplemented operator 1

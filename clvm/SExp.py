@@ -156,7 +156,6 @@ class SExp(CLVMObject):
             v = v.rest()
         return size
 
-
     def as_python(self):
         return as_python(self)
 

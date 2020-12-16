@@ -1,0 +1,2 @@
+brun -c '(a)'
+FAIL: apply requires exactly 2 parameters ()

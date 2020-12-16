@@ -1,11 +1,12 @@
 from typing import Any, Callable, List, Tuple
 
-from .casts import int_from_bytes, limbs_for_int
+from .casts import int_from_bytes
 from .CLVMObject import CLVMObject
 from .EvalError import EvalError
 from .SExp import SExp
 
 from .costs import (
+    APPLY_COST,
     QUOTE_COST,
     PATH_LOOKUP_COST_PER_LEG
 )
@@ -40,6 +41,7 @@ def run_program(
     program: CLVMObject,
     args: CLVMObject,
     quote_kw: bytes,
+    apply_kw: bytes,
     operator_lookup: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]],
     max_cost=None,
     pre_eval_f=None,
@@ -129,7 +131,23 @@ def run_program(
         if operator.pair:
             raise EvalError("internal error", operator)
 
-        additional_cost, r = operator_lookup(operator.as_atom(), operand_list)
+        op = operator.as_atom()
+        if op == apply_kw:
+            if operand_list.list_len() != 2:
+                raise EvalError("apply requires exactly 2 parameters", operand_list)
+            new_operator = operand_list.first()
+            new_operand_list = operand_list.rest().first()
+            if new_operator.pair:
+                new_pair = new_operator.cons(new_operand_list)
+                value_stack.append(new_pair)
+                op_stack.append(eval_op)
+            else:
+                value_stack.append(new_operator)
+                value_stack.append(new_operand_list)
+                op_stack.append(apply_op)
+            return APPLY_COST
+
+        additional_cost, r = operator_lookup(op, operand_list)
         value_stack.append(r)
         return additional_cost
 
