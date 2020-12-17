@@ -7,6 +7,17 @@ from clvm.serialize import (sexp_from_stream, atom_to_byte_iterator)
 
 TEXT = b"the quick brown fox jumps over the lazy dogs"
 
+class InfiniteStream(io.TextIOBase):
+    def __init__(self, b):
+        self.buf = b
+    def read(self, n):
+        ret = b''
+        while n > 0 and len(self.buf) > 0:
+            ret += self.buf[0:1]
+            self.buf = self.buf[1:]
+            n -= 1
+        ret += b' ' * n
+        return ret
 
 class LargeAtom:
     def __len__(self):
@@ -90,3 +101,14 @@ class SerializeTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
+
+    def test_deserialize_large_blob(self):
+        # this length prefix is 7 bytes long, the last 6 bytes specifies the
+        # length of the blob, which is 0xffffffffffff, or (2^48 - 1)
+        # we don't support blobs this large, and we should fail immediately when
+        # exceeding the max blob size, rather than trying to read this many
+        # bytes from the stream
+        bytes_in = b'\xfe' + b'\xff' * 6
+
+        with self.assertRaises(ValueError):
+            sexp_from_stream(InfiniteStream(bytes_in), to_sexp_f)
