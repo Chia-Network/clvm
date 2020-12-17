@@ -2,11 +2,15 @@ import io
 import unittest
 
 from clvm import to_sexp_f
-from clvm.serialize import sexp_from_stream
+from clvm.serialize import (sexp_from_stream, atom_to_byte_iterator)
 
 
 TEXT = b"the quick brown fox jumps over the lazy dogs"
 
+
+class LargeAtom:
+    def __len__(self):
+        return 0x400000001
 
 class SerializeTest(unittest.TestCase):
     def check_serde(self, s):
@@ -43,6 +47,11 @@ class SerializeTest(unittest.TestCase):
         for _, t in enumerate(text):
             t1 = text[:_]
             self.check_serde(t1)
+
+    def test_blob_limit(self):
+        with self.assertRaises(ValueError):
+            for b in atom_to_byte_iterator(LargeAtom()):
+                print('%02x' % b)
 
     def test_very_long_blobs(self):
         for size in [0x40, 0x2000, 0x100000, 0x8000000]:
