@@ -124,6 +124,8 @@ def _atom_from_stream(f, b, to_sexp):
             raise ValueError("bad encoding")
         size_blob += b
     size = int.from_bytes(size_blob, "big")
+    if size >= 0x400000000:
+        raise ValueError("blob too large")
     blob = f.read(size)
     if len(blob) != size:
         raise ValueError("bad encoding")
