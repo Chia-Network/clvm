@@ -70,3 +70,23 @@ class SerializeTest(unittest.TestCase):
             for _ in range(depth):
                 s = to_sexp_f((s, blob))
             self.check_serde(s)
+
+    def test_deserialize_empty(self):
+        bytes_in = b''
+        with self.assertRaises(ValueError):
+            sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
+
+    def test_deserialize_truncated_size(self):
+        # fe means the total number of bytes in the length-prefix is 7
+        # one for each bit set. 5 bytes is too few
+        bytes_in = b'\xfe    '
+        with self.assertRaises(ValueError):
+            sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
+
+    def test_deserialize_truncated_blob(self):
+        # this is a complete length prefix. The blob is supposed to be 63 bytes
+        # the blob itself is truncated though, it's less than 63 bytes
+        bytes_in = b'\xbf   '
+
+        with self.assertRaises(ValueError):
+            sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
