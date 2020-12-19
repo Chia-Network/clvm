@@ -14,10 +14,6 @@
 
 from .CLVMObject import CLVMObject
 
-try:
-    from clvm_rs import PySExp as BaseSExp
-except ImportError:
-    from .BaseSExp import BaseSExp
 
 MAX_SINGLE_BYTE = 0x7F
 CONS_BOX_MARKER = 0xFF
