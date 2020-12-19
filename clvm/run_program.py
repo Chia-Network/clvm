@@ -8,7 +8,8 @@ from .costs import (
     APPLY_COST,
     QUOTE_COST,
     PATH_LOOKUP_COST_PER_LEG,
-    PATH_LOOKUP_COST_PER_ZERO_BYTE
+    PATH_LOOKUP_COST_PER_ZERO_BYTE,
+    SHIFT_COST_PER_BYTE
 )
 
 try:
@@ -82,10 +83,9 @@ def run_program(
             return cost, r
         op_lookup = NativeOpLookup(NATIVE_OPS, operator_lookup)
 
-        cost, r = py_run_program(program, args, quote_kw[0], max_cost or 0, op_lookup, pre_eval=pre_eval_f)
+        cost, r = py_run_program(program, args, quote_kw[0], apply_kw[0], max_cost or 0, op_lookup, pre_eval=pre_eval_f)
         r = SExp.to(r)
         return cost, r
-
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
         cost = PATH_LOOKUP_COST_PER_LEG

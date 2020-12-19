@@ -12,10 +12,8 @@
 # 0xf7-0xfb is 5 bytes ((perform logical and of first byte with 0x3))
 
 
-try:
-    from clvm_rs import PyNode as CLVMObject
-except ImportError:
-    from .CLVMObject import CLVMObject
+from .CLVMObject import CLVMObject
+
 
 MAX_SINGLE_BYTE = 0x7F
 CONS_BOX_MARKER = 0xFF
