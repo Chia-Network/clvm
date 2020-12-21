@@ -10,6 +10,10 @@ class dummy_class:
     def __init__(self):
         self.i = 0
 
+def gen_tree(depth):
+    if depth == 0: return SExp.to(1337)
+    return SExp.to((gen_tree(depth - 1), gen_tree(depth - 1)))
+
 class AsPythonTest(unittest.TestCase):
     def check_as_python(self, p):
         v = SExp.to(p)
@@ -84,6 +88,10 @@ class AsPythonTest(unittest.TestCase):
             v = SExp.to((42, v))
         self.assertEqual(v.list_len(), 100)
 
+    def test_list_len_atom(self):
+        v = SExp.to(42);
+        self.assertEqual(v.list_len(), 0)
+
     def test_as_int(self):
         self.assertEqual(SExp.to(b'\x80').as_int(), -128)
         self.assertEqual(SExp.to(b'\xff').as_int(), -1)
@@ -117,6 +125,18 @@ class AsPythonTest(unittest.TestCase):
         o2 = CLVMObject(b"bar")
         self.assertEqual(SExp.to((o1, o2)), (o1, o2))
 
+    def test_first(self):
+        val = SExp.to(1)
+        self.assertRaises(EvalError, lambda: val.first())
+        val = SExp.to((42, val))
+        self.assertEqual(val.first(), SExp.to(42))
+
+    def test_rest(self):
+        val = SExp.to(1)
+        self.assertRaises(EvalError, lambda: val.rest())
+        val = SExp.to((42, val))
+        self.assertEqual(val.rest(), SExp.to(1))
+
     def test_as_iter(self):
         val = list(SExp.to((1, (2, (3, (4, b""))))).as_iter())
         self.assertEqual(val, [1, 2, 3, 4])
@@ -130,3 +150,39 @@ class AsPythonTest(unittest.TestCase):
         # these fail because the lists are not null-terminated
         self.assertRaises(EvalError, lambda: list(SExp.to(1).as_iter()))
         self.assertRaises(EvalError, lambda: list(SExp.to((1, (2, (3, (4, 5))))).as_iter()))
+
+    def test_eq(self):
+        val = SExp.to(1)
+
+        self.assertTrue(val == 1)
+        self.assertFalse(val == 2)
+
+        # mismatching types
+        self.assertFalse(val == [1])
+        self.assertFalse(val == [1, 2])
+        self.assertFalse(val == (1, 2))
+        self.assertFalse(val == (dummy_class, dummy_class))
+
+    def test_eq_tree(self):
+        val1 = gen_tree(2)
+        val2 = gen_tree(2)
+        val3 = gen_tree(3)
+
+        self.assertTrue(val1 == val2)
+        self.assertTrue(val2 == val1)
+        self.assertFalse(val1 == val3)
+        self.assertFalse(val3 == val1)
+
+    def test_str(self):
+        self.assertEqual(str(SExp.to(1)), '01')
+        self.assertEqual(str(SExp.to(1337)), '820539')
+        self.assertEqual(str(SExp.to(-1)), '81ff')
+        self.assertEqual(str(gen_tree(1)), 'ff820539820539')
+        self.assertEqual(str(gen_tree(2)), 'ffff820539820539ff820539820539')
+
+    def test_repr(self):
+        self.assertEqual(repr(SExp.to(1)), 'SExp(01)')
+        self.assertEqual(repr(SExp.to(1337)), 'SExp(820539)')
+        self.assertEqual(repr(SExp.to(-1)), 'SExp(81ff)')
+        self.assertEqual(repr(gen_tree(1)), 'SExp(ff820539820539)')
+        self.assertEqual(repr(gen_tree(2)), 'SExp(ffff820539820539ff820539820539)')
