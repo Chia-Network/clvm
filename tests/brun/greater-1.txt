@@ -1,2 +1,2 @@
-brun -c '(> (q 10))'
+brun -c '(> (q . 10))'
 FAIL: > requires 2 args (=)

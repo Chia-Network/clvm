@@ -1,2 +1,2 @@
-brun '(not (q 1) (q 1))'
+brun '(not (q . 1) (q . 1))'
 FAIL: not requires 1 arg (q 1)

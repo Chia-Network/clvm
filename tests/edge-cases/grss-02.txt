@@ -1,2 +1,2 @@
-brun '(>s (q 1))'
+brun '(>s (q . 1))'
 FAIL: >s requires 2 args (q)

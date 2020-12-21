@@ -1,2 +1,2 @@
-brun -c '(ash (q 1) (q 1) (q 1))'
+brun -c '(ash (q . 1) (q . 1) (q . 1))'
 FAIL: ash requires 2 args (q 1 1)

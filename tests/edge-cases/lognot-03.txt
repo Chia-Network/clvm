@@ -1,2 +1,2 @@
-brun '(lognot (q 1) (q 1))'
+brun '(lognot (q . 1) (q . 1))'
 FAIL: lognot requires 1 arg (q 1)

@@ -1,2 +1,2 @@
-brun '(logand (q 128) (q 128))'
+brun '(logand (q . 128) (q . 128))'
 128

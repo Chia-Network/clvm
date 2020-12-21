@@ -1,2 +1,2 @@
-brun -c '(softfork (q -1))'
+brun -c '(softfork (q . -1))'
 FAIL: cost must be > 0 (-1)

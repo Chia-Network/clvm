@@ -1,2 +1,2 @@
-brun '(lsh (q 1) (q 1))'
+brun '(lsh (q . 1) (q . 1))'
 2

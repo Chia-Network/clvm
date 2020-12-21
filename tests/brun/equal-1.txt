@@ -1,2 +1,2 @@
-brun -c '(= (q 10))'
+brun -c '(= (q . 10))'
 FAIL: = takes exactly 2 arguments (=)

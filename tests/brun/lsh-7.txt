@@ -1,2 +1,2 @@
-brun -c '(lsh (q (foo)) (q 1))'
+brun -c '(lsh (q . (foo)) (q . 1))'
 FAIL: lsh requires int args (("foo") 1)

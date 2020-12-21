@@ -1,2 +1,2 @@
-brun '(strlen (q 128))'
+brun '(strlen (q . 128))'
 2

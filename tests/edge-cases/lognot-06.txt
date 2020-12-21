@@ -1,2 +1,2 @@
-brun '(lognot (q 0xffff))'
+brun '(lognot (q . 0xffff))'
 ()
