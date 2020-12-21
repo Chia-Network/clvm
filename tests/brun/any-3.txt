@@ -1,3 +1,3 @@
-brun -c '(all (q 0) (q 0))'
+brun -c '(any (q 0) (q 0))'
 cost = 72
 ()
