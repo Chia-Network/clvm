@@ -32,9 +32,9 @@ jobs:
           coverage run -a --branch --include=clvm/serialize.py -m pytest tests/serialize_test.py
           coverage run -a --branch --source=clvm --omit=clvm/SExp.py,clvm/serialize.py -m pytest tests
           coverage report -m
-          ls -l
+          ls -al
       - name: Coveralls
         uses: coverallsapp/github-action@v1.1.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: ${{ github.workspace }}
+          path-to-lcov: ${{ github.workspace }}./coverage/lcov.info
