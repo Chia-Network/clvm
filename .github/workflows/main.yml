@@ -32,8 +32,7 @@ jobs:
           coverage run -a --branch --include=clvm/serialize.py -m pytest tests/serialize_test.py
           coverage run -a --branch --source=clvm --omit=clvm/SExp.py,clvm/serialize.py -m pytest tests
           coverage report -m
-      - name: coverall
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          coveralls
+      - name: Coveralls
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
