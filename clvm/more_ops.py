@@ -15,6 +15,8 @@ from .costs import (
     LOG_COST_PER_LIMB_DIVIDER,
     DIVMOD_BASE_COST,
     DIVMOD_COST_PER_LIMB_DIVIDER,
+    DIV_BASE_COST,
+    DIV_COST_PER_LIMB_DIVIDER,
     MUL_BASE_COST,
     MUL_COST_PER_OP,
     MUL_LINEAR_COST_PER_BYTE_DIVIDER,
@@ -145,6 +147,16 @@ def op_divmod(args):
     cost += (limbs_for_int(i0) + limbs_for_int(i1)) // DIVMOD_COST_PER_LIMB_DIVIDER
     q, r = divmod(i0, i1)
     return cost, args.to((q, r))
+
+
+def op_div(args):
+    cost = DIV_BASE_COST
+    i0, i1 = args_as_int_list("div", args, 2)
+    if i1 == 0:
+        raise EvalError("div with 0", args.to(i0))
+    cost += (limbs_for_int(i0) + limbs_for_int(i1)) // DIV_COST_PER_LIMB_DIVIDER
+    q = i0 // i1
+    return cost, args.to(q)
 
 
 def op_gr(args):

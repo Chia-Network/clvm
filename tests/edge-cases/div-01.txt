@@ -1,0 +1,2 @@
+brun '(div)'
+FAIL: div requires 2 args ()
