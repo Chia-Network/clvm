@@ -61,6 +61,8 @@ class SExp(CLVMObject):
             return NULL
         if v == []:
             return NULL
+        if isinstance(v, str):
+            return v.encode()
 
         if hasattr(v, "__iter__"):
             pair: SExpType = NULL

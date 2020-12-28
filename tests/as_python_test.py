@@ -96,6 +96,9 @@ class AsPythonTest(unittest.TestCase):
         # cons-box of two values
         self.assertEqual(SExp.to(b'\x01').cons(SExp.to(b'\x02').as_python()), (b'\x01', b'\x02'))
 
+    def test_string(self):
+        self.assertEqual(SExp.to('foobar').as_atom(), b'foobar')
+
     def test_deep_recursion(self):
         d = [b"2"]
         for i in range(480):
