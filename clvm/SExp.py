@@ -39,41 +39,77 @@ class SExp(CLVMObject):
         class_,
         v: CastableType,
     ) -> SExpType:
-        if isinstance(v, tuple):
-            if len(v) != 2:
-                raise ValueError("can't cast tuple of size %d" % len(v))
-            left, right = v
-            if type(left) != CLVMObject:
-                left = CLVMObject(class_._to_sexp_type(left))
-            if type(right) != CLVMObject:
-                right = CLVMObject(class_._to_sexp_type(right))
-            return (left, right)
-        if isinstance(v, CLVMObject):
-            return v.pair or v.atom
-        if isinstance(v, bytes):
-            return v
+        stack = [v]
+        ops = [(0, None)] # convert
 
-        if isinstance(v, int):
-            return int_to_bytes(v)
-        if isinstance(v, G1Element):
-            return bytes(v)
-        if v is None:
-            return NULL
-        if v == []:
-            return NULL
-        if isinstance(v, str):
-            return v.encode()
+        while len(ops) > 0:
+            op, target = ops.pop()
+            # convert value
+            if op == 0:
+                v = stack.pop()
+                if isinstance(v, tuple):
+                    if len(v) != 2:
+                        raise ValueError("can't cast tuple of size %d" % len(v))
+                    left, right = v
+                    target = len(stack)
+                    stack.append((left, right))
+                    if type(right) != CLVMObject:
+                        stack.append(right)
+                        ops.append((2, target)) # set right
+                        ops.append((0, None)) # convert
+                    if type(left) != CLVMObject:
+                        stack.append(left)
+                        ops.append((1, target)) # set left
+                        ops.append((0, None)) # convert
+                    continue
+                if isinstance(v, CLVMObject):
+                    stack.append(v.pair or v.atom)
+                    continue
+                if isinstance(v, bytes):
+                    stack.append(v)
+                    continue
+                if isinstance(v, str):
+                    stack.append(v.encode())
+                    continue
+                if isinstance(v, int):
+                    stack.append(int_to_bytes(v))
+                    continue
+                if isinstance(v, G1Element):
+                    stack.append(bytes(v))
+                    continue
+                if v is None:
+                    stack.append(NULL)
+                    continue
+                if v == []:
+                    stack.append(NULL)
+                    continue
 
-        if hasattr(v, "__iter__"):
-            pair: SExpType = NULL
-            for _ in reversed(v):
-                pair = (
-                    class_.to(_),
-                    class_.to(pair),
-                )
-            return pair
+                if hasattr(v, "__iter__"):
+                    target = len(stack)
+                    stack.append(NULL)
+                    for _ in v:
+                        stack.append(_)
+                        ops.append((3, target)) # prepend list
+                        # we only need to convert if it's not already the right
+                        # tpye
+                        if not isinstance(_, class_):
+                            ops.append((0, None)) # convert
+                    continue
 
-        raise ValueError("can't cast to %s: %s" % (class_, v))
+                raise ValueError("can't cast to %s: %s" % (class_, v))
+            if op == 1: # set left
+                stack[target] = (stack.pop(), stack[target][1])
+                continue
+            if op == 2: # set right
+                stack[target] = (stack[target][0], stack.pop())
+                continue
+            if op == 3: # prepend list
+                stack[target] = (stack.pop(), stack[target])
+                continue
+        # there's exactly one item left at this point
+        if len(stack) != 1:
+            raise ValueError("internal error")
+        return stack[0]
 
     def as_pair(self):
         pair = self.pair

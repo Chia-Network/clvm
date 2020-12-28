@@ -112,10 +112,39 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(SExp.to('foobar').as_atom(), b'foobar')
 
     def test_deep_recursion(self):
-        d = [b"2"]
-        for i in range(480):
+        d = b'2'
+        for i in range(1000):
             d = [d]
-#        self.check_as_python(d)
+        v = SExp.to(d)
+        for i in range(1000):
+            self.assertEqual(v.as_pair()[1].as_atom(), SExp.null())
+            v = v.as_pair()[0]
+            d = d[0]
+
+        self.assertEqual(v.as_atom(), b'2')
+        self.assertEqual(d, b'2')
+
+    def test_long_linked_list(self):
+        d = b''
+        for i in range(1000):
+            d = (b'2', d)
+        v = SExp.to(d)
+        for i in range(1000):
+            self.assertEqual(v.as_pair()[0].as_atom(), d[0])
+            v = v.as_pair()[1]
+            d = d[1]
+
+        self.assertEqual(v.as_atom(), SExp.null())
+        self.assertEqual(d, b'')
+
+    def test_long_list(self):
+        d = [1337] * 1000
+        v = SExp.to(d)
+        for i in range(1000 - 1):
+            self.assertEqual(v.as_pair()[0].as_int(), d[i])
+            v = v.as_pair()[1]
+
+        self.assertEqual(v.as_atom(), SExp.null())
 
     def test_invalid_type(self):
         self.assertRaises(ValueError, lambda: SExp.to(dummy_class))
