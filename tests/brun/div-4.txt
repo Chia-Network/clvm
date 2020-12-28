@@ -1,0 +1,2 @@
+brun -c '(div 2 5)' '(80001 0)'
+FAIL: div with 0 0x013881
