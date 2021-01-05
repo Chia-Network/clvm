@@ -98,13 +98,13 @@ class SExp(CLVMObject):
 
                 raise ValueError("can't cast to %s: %s" % (class_, v))
             if op == 1: # set left
-                stack[target] = (stack.pop(), stack[target][1])
+                stack[target] = (CLVMObject(stack.pop()), stack[target][1])
                 continue
             if op == 2: # set right
-                stack[target] = (stack[target][0], stack.pop())
+                stack[target] = (stack[target][0], CLVMObject(stack.pop()))
                 continue
             if op == 3: # prepend list
-                stack[target] = (stack.pop(), stack[target])
+                stack[target] = (class_(stack.pop()), stack[target])
                 continue
         # there's exactly one item left at this point
         if len(stack) != 1:
