@@ -10,10 +10,13 @@ class dummy_class:
     def __init__(self):
         self.i = 0
 
+
 def gen_tree(depth):
-    if depth == 0: return SExp.to(1337)
+    if depth == 0:
+        return SExp.to(1337)
     subtree = gen_tree(depth-1)
     return SExp.to((subtree, subtree))
+
 
 class AsPythonTest(unittest.TestCase):
     def check_as_python(self, p):
@@ -64,12 +67,12 @@ class AsPythonTest(unittest.TestCase):
         )
 
     def test_listp(self):
-        self.assertEqual(SExp.to(42).listp(), False);
-        self.assertEqual(SExp.to(b"").listp(), False);
-        self.assertEqual(SExp.to(b"1337").listp(), False);
+        self.assertEqual(SExp.to(42).listp(), False)
+        self.assertEqual(SExp.to(b"").listp(), False)
+        self.assertEqual(SExp.to(b"1337").listp(), False)
 
-        self.assertEqual(SExp.to((1337, 42)).listp(), True);
-        self.assertEqual(SExp.to([1337, 42]).listp(), True);
+        self.assertEqual(SExp.to((1337, 42)).listp(), True)
+        self.assertEqual(SExp.to([1337, 42]).listp(), True)
 
     def test_nullp(self):
         self.assertEqual(SExp.to(b"").nullp(), True)
@@ -83,14 +86,14 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(SExp.false, False)
 
     def test_list_len(self):
-        v = SExp.to(42);
+        v = SExp.to(42)
         for i in range(100):
             self.assertEqual(v.list_len(), i)
             v = SExp.to((42, v))
         self.assertEqual(v.list_len(), 100)
 
     def test_list_len_atom(self):
-        v = SExp.to(42);
+        v = SExp.to(42)
         self.assertEqual(v.list_len(), 0)
 
     def test_as_int(self):
