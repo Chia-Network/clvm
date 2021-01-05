@@ -7,9 +7,11 @@ from clvm.serialize import (sexp_from_stream, atom_to_byte_iterator)
 
 TEXT = b"the quick brown fox jumps over the lazy dogs"
 
+
 class InfiniteStream(io.TextIOBase):
     def __init__(self, b):
         self.buf = b
+
     def read(self, n):
         ret = b''
         while n > 0 and len(self.buf) > 0:
@@ -19,9 +21,11 @@ class InfiniteStream(io.TextIOBase):
         ret += b' ' * n
         return ret
 
+
 class LargeAtom:
     def __len__(self):
         return 0x400000001
+
 
 class SerializeTest(unittest.TestCase):
     def check_serde(self, s):

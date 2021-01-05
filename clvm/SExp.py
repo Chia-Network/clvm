@@ -40,7 +40,7 @@ class SExp(CLVMObject):
         v: CastableType,
     ) -> SExpType:
         stack = [v]
-        ops = [(0, None)] # convert
+        ops = [(0, None)]  # convert
 
         while len(ops) > 0:
             op, target = ops.pop()
@@ -55,12 +55,12 @@ class SExp(CLVMObject):
                     stack.append((left, right))
                     if type(right) != CLVMObject:
                         stack.append(right)
-                        ops.append((2, target)) # set right
-                        ops.append((0, None)) # convert
+                        ops.append((2, target))  # set right
+                        ops.append((0, None))  # convert
                     if type(left) != CLVMObject:
                         stack.append(left)
-                        ops.append((1, target)) # set left
-                        ops.append((0, None)) # convert
+                        ops.append((1, target))  # set left
+                        ops.append((0, None))  # convert
                     continue
                 if isinstance(v, CLVMObject):
                     stack.append(v.pair or v.atom)
@@ -89,21 +89,21 @@ class SExp(CLVMObject):
                     stack.append(NULL)
                     for _ in v:
                         stack.append(_)
-                        ops.append((3, target)) # prepend list
+                        ops.append((3, target))  # prepend list
                         # we only need to convert if it's not already the right
                         # type
                         if not isinstance(_, class_):
-                            ops.append((0, None)) # convert
+                            ops.append((0, None))  # convert
                     continue
 
                 raise ValueError("can't cast to %s: %s" % (class_, v))
-            if op == 1: # set left
+            if op == 1:  # set left
                 stack[target] = (CLVMObject(stack.pop()), stack[target][1])
                 continue
-            if op == 2: # set right
+            if op == 2:  # set right
                 stack[target] = (stack[target][0], CLVMObject(stack.pop()))
                 continue
-            if op == 3: # prepend list
+            if op == 3:  # prepend list
                 stack[target] = (class_(stack.pop()), stack[target])
                 continue
         # there's exactly one item left at this point
