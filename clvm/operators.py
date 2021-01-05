@@ -50,7 +50,8 @@ class OperatorDict(dict):
     def __call__(self, op: bytes, arguments: CLVMObject) -> Tuple[int, CLVMObject]:
         f = self.get(op)
         if f is None:
-            f = lambda args: self.unknown_op_handler(op, args)
+            def f(args):
+                return self.unknown_op_handler(op, args)
         return f(arguments)
 
     def set_unknown_op_handler(self, callback: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]]):
