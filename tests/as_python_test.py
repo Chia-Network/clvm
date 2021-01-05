@@ -12,7 +12,8 @@ class dummy_class:
 
 def gen_tree(depth):
     if depth == 0: return SExp.to(1337)
-    return SExp.to((gen_tree(depth - 1), gen_tree(depth - 1)))
+    subtree = gen_tree(depth-1)
+    return SExp.to((subtree, subtree))
 
 class AsPythonTest(unittest.TestCase):
     def check_as_python(self, p):
