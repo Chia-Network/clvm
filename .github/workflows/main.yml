@@ -25,6 +25,9 @@ jobs:
           python -m pip install .[dev]
           python -m pip install coverage
           python -m pip install coveralls
+          python -m pip install flake8
+      - name: flake8
+        run: flake8 clvm tests --max-line-length=120
       - name: Test with pytest
         run: |
           py.test tests
