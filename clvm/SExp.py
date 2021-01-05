@@ -91,7 +91,7 @@ class SExp(CLVMObject):
                         stack.append(_)
                         ops.append((3, target)) # prepend list
                         # we only need to convert if it's not already the right
-                        # tpye
+                        # type
                         if not isinstance(_, class_):
                             ops.append((0, None)) # convert
                     continue
