@@ -49,6 +49,13 @@ class AsPythonTest(unittest.TestCase):
         v = SExp.to([])
         self.assertEqual(v.atom, b"")
 
+    def test_list_of_one(self):
+        v = SExp.to([1])
+        self.assertEqual(type(v.pair[0]), CLVMObject)
+        self.assertEqual(type(v.pair[1]), CLVMObject)
+        self.assertEqual(v.pair[0].atom, b"\x01")
+        self.assertEqual(v.pair[1].atom, b"")
+
     def test_g1element(self):
         b = b"\xb3\xb8\xac\x53\x7f\x4f\xd6\xbd\xe9\xb2" \
             b"\x62\x21\xd4\x9b\x54\xb1\x7a\x50\x6b\xe1\x47\x34\x7d\xae\x5d" \
