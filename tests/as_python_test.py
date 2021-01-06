@@ -54,6 +54,13 @@ class AsPythonTest(unittest.TestCase):
         v = SExp.to([])
         self.assertEqual(v.atom, b"")
 
+    def test_list_of_one(self):
+        v = SExp.to([1])
+        self.assertEqual(type(v.pair[0]), CLVMObject)
+        self.assertEqual(type(v.pair[1]), CLVMObject)
+        self.assertEqual(v.pair[0].atom, b"\x01")
+        self.assertEqual(v.pair[1].atom, b"")
+
     def test_g1element(self):
         b = fh(
             "b3b8ac537f4fd6bde9b26221d49b54b17a506be147347dae5"
