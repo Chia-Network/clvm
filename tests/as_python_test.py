@@ -14,8 +14,13 @@ class dummy_class:
 def gen_tree(depth):
     if depth == 0:
         return SExp.to(1337)
-    subtree = gen_tree(depth-1)
+    subtree = gen_tree(depth - 1)
     return SExp.to((subtree, subtree))
+
+
+fh = bytes.fromhex
+H01 = fh("01")
+H02 = fh("02")
 
 
 class AsPythonTest(unittest.TestCase):
@@ -39,7 +44,7 @@ class AsPythonTest(unittest.TestCase):
 
     def test_int(self):
         v = SExp.to(42)
-        self.assertEqual(v.atom, b"\x2a")
+        self.assertEqual(v.atom, bytes([42]))
 
     def test_none(self):
         v = SExp.to(None)
@@ -50,10 +55,10 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(v.atom, b"")
 
     def test_g1element(self):
-        b = b"\xb3\xb8\xac\x53\x7f\x4f\xd6\xbd\xe9\xb2" \
-            b"\x62\x21\xd4\x9b\x54\xb1\x7a\x50\x6b\xe1\x47\x34\x7d\xae\x5d" \
-            b"\x08\x1c\x0a\x65\x72\xb6\x11\xd8\x48\x4e\x33\x8f\x34\x32\x97" \
-            b"\x1a\x98\x23\x97\x6c\x6a\x23\x2b"
+        b = fh(
+            "b3b8ac537f4fd6bde9b26221d49b54b17a506be147347dae5"
+            "d081c0a6572b611d8484e338f3432971a9823976c6a232b"
+        )
         v = SExp.to(G1Element(b))
         self.assertEqual(v.atom, b)
 
@@ -97,22 +102,25 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(v.list_len(), 0)
 
     def test_as_int(self):
-        self.assertEqual(SExp.to(b'\x80').as_int(), -128)
-        self.assertEqual(SExp.to(b'\xff').as_int(), -1)
-        self.assertEqual(SExp.to(b'\x00\x80').as_int(), 128)
-        self.assertEqual(SExp.to(b'\x00\xff').as_int(), 255)
+        self.assertEqual(SExp.to(fh("80")).as_int(), -128)
+        self.assertEqual(SExp.to(fh("ff")).as_int(), -1)
+        self.assertEqual(SExp.to(fh("0080")).as_int(), 128)
+        self.assertEqual(SExp.to(fh("00ff")).as_int(), 255)
 
     def test_cons(self):
         # list
-        self.assertEqual(SExp.to(b'\x01').cons(SExp.to(b'\x02').cons(SExp.null())).as_python(), [b'\x01', b'\x02'])
+        self.assertEqual(
+            SExp.to(H01).cons(SExp.to(H02).cons(SExp.null())).as_python(),
+            [H01, H02],
+        )
         # cons-box of two values
-        self.assertEqual(SExp.to(b'\x01').cons(SExp.to(b'\x02').as_python()), (b'\x01', b'\x02'))
+        self.assertEqual(SExp.to(H01).cons(SExp.to(H02).as_python()), (H01, H02))
 
     def test_string(self):
-        self.assertEqual(SExp.to('foobar').as_atom(), b'foobar')
+        self.assertEqual(SExp.to("foobar").as_atom(), b"foobar")
 
     def test_deep_recursion(self):
-        d = b'2'
+        d = b"2"
         for i in range(1000):
             d = [d]
         v = SExp.to(d)
@@ -121,13 +129,13 @@ class AsPythonTest(unittest.TestCase):
             v = v.as_pair()[0]
             d = d[0]
 
-        self.assertEqual(v.as_atom(), b'2')
-        self.assertEqual(d, b'2')
+        self.assertEqual(v.as_atom(), b"2")
+        self.assertEqual(d, b"2")
 
     def test_long_linked_list(self):
-        d = b''
+        d = b""
         for i in range(1000):
-            d = (b'2', d)
+            d = (b"2", d)
         v = SExp.to(d)
         for i in range(1000):
             self.assertEqual(v.as_pair()[0].as_atom(), d[0])
@@ -135,7 +143,7 @@ class AsPythonTest(unittest.TestCase):
             d = d[1]
 
         self.assertEqual(v.as_atom(), SExp.null())
-        self.assertEqual(d, b'')
+        self.assertEqual(d, b"")
 
     def test_long_list(self):
         d = [1337] * 1000
@@ -151,7 +159,9 @@ class AsPythonTest(unittest.TestCase):
 
     def test_invalid_tuple(self):
         self.assertRaises(ValueError, lambda: SExp.to((dummy_class, dummy_class)))
-        self.assertRaises(ValueError, lambda: SExp.to((dummy_class, dummy_class, dummy_class)))
+        self.assertRaises(
+            ValueError, lambda: SExp.to((dummy_class, dummy_class, dummy_class))
+        )
 
     def test_clvm_object_tuple(self):
         o1 = CLVMObject(b"foo")
@@ -182,7 +192,9 @@ class AsPythonTest(unittest.TestCase):
 
         # these fail because the lists are not null-terminated
         self.assertRaises(EvalError, lambda: list(SExp.to(1).as_iter()))
-        self.assertRaises(EvalError, lambda: list(SExp.to((1, (2, (3, (4, 5))))).as_iter()))
+        self.assertRaises(
+            EvalError, lambda: list(SExp.to((1, (2, (3, (4, 5))))).as_iter())
+        )
 
     def test_eq(self):
         val = SExp.to(1)
@@ -207,15 +219,15 @@ class AsPythonTest(unittest.TestCase):
         self.assertFalse(val3 == val1)
 
     def test_str(self):
-        self.assertEqual(str(SExp.to(1)), '01')
-        self.assertEqual(str(SExp.to(1337)), '820539')
-        self.assertEqual(str(SExp.to(-1)), '81ff')
-        self.assertEqual(str(gen_tree(1)), 'ff820539820539')
-        self.assertEqual(str(gen_tree(2)), 'ffff820539820539ff820539820539')
+        self.assertEqual(str(SExp.to(1)), "01")
+        self.assertEqual(str(SExp.to(1337)), "820539")
+        self.assertEqual(str(SExp.to(-1)), "81ff")
+        self.assertEqual(str(gen_tree(1)), "ff820539820539")
+        self.assertEqual(str(gen_tree(2)), "ffff820539820539ff820539820539")
 
     def test_repr(self):
-        self.assertEqual(repr(SExp.to(1)), 'SExp(01)')
-        self.assertEqual(repr(SExp.to(1337)), 'SExp(820539)')
-        self.assertEqual(repr(SExp.to(-1)), 'SExp(81ff)')
-        self.assertEqual(repr(gen_tree(1)), 'SExp(ff820539820539)')
-        self.assertEqual(repr(gen_tree(2)), 'SExp(ffff820539820539ff820539820539)')
+        self.assertEqual(repr(SExp.to(1)), "SExp(01)")
+        self.assertEqual(repr(SExp.to(1337)), "SExp(820539)")
+        self.assertEqual(repr(SExp.to(-1)), "SExp(81ff)")
+        self.assertEqual(repr(gen_tree(1)), "SExp(ff820539820539)")
+        self.assertEqual(repr(gen_tree(2)), "SExp(ffff820539820539ff820539820539)")
