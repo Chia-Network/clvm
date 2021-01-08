@@ -92,7 +92,7 @@ class SExp(CLVMObject):
                         ops.append((3, target))  # prepend list
                         # we only need to convert if it's not already the right
                         # type
-                        if not isinstance(_, class_):
+                        if not isinstance(_, CLVMObject):
                             ops.append((0, None))  # convert
                     continue
 
@@ -104,7 +104,7 @@ class SExp(CLVMObject):
                 stack[target] = (stack[target][0], CLVMObject(stack.pop()))
                 continue
             if op == 3:  # prepend list
-                stack[target] = (class_(stack.pop()), stack[target])
+                stack[target] = (CLVMObject(stack.pop()), CLVMObject(stack[target]))
                 continue
         # there's exactly one item left at this point
         if len(stack) != 1:
