@@ -1,2 +1,2 @@
 brun '(substr)'
-FAIL: substr takes exactly 3 argument ()
+FAIL: substr takes exactly 3 arguments ()

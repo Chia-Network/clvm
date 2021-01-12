@@ -1,2 +1,2 @@
 brun '(pubkey_for_exp)'
-FAIL: pubkey_for_exp requires 1 arg ()
+FAIL: pubkey_for_exp takes exactly 1 argument ()

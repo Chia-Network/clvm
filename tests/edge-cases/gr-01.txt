@@ -1,2 +1,2 @@
 brun '(>)'
-FAIL: > requires 2 args ()
+FAIL: > takes exactly 2 arguments ()

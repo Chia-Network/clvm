@@ -1,2 +1,2 @@
 brun '(ash)'
-FAIL: ash requires 2 args ()
+FAIL: ash takes exactly 2 arguments ()
