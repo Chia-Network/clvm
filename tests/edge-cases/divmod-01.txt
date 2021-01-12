@@ -1,2 +1,2 @@
 brun '(divmod)'
-FAIL: divmod requires 2 args ()
+FAIL: divmod takes exactly 2 arguments ()

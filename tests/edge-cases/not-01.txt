@@ -1,2 +1,2 @@
 brun '(not)'
-FAIL: not requires 1 arg ()
+FAIL: not takes exactly 1 argument ()

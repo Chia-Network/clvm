@@ -1,2 +1,2 @@
 brun '(div)'
-FAIL: div requires 2 args ()
+FAIL: div takes exactly 2 arguments ()

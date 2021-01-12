@@ -1,2 +1,2 @@
 brun '(lognot (q 1) (q 1))'
-FAIL: lognot requires 1 arg (q 1)
+FAIL: lognot takes exactly 1 argument (q 1)

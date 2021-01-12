@@ -1,2 +1,2 @@
 brun '(lsh)'
-FAIL: lsh requires 2 args ()
+FAIL: lsh takes exactly 2 arguments ()

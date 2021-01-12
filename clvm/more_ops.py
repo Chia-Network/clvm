@@ -72,7 +72,7 @@ def args_as_int_list(op_name, args, count):
     int_list = list(args_as_ints(op_name, args))
     if len(int_list) != count:
         plural = "s" if count != 1 else ""
-        raise EvalError("%s requires %d arg%s" % (op_name, count, plural), args)
+        raise EvalError("%s takes exactly %d argument%s" % (op_name, count, plural), args)
     return int_list
 
 
@@ -89,7 +89,7 @@ def args_as_bool_list(op_name, args, count):
     bool_list = list(args_as_bools(op_name, args))
     if len(bool_list) != count:
         plural = "s" if count != 1 else ""
-        raise EvalError("%s requires %d arg%s" % (op_name, count, plural), args)
+        raise EvalError("%s takes exactly %d argument%s" % (op_name, count, plural), args)
     return bool_list
 
 
@@ -169,7 +169,7 @@ def op_gr(args):
 def op_gr_bytes(args):
     arg_list = list(args.as_iter())
     if len(arg_list) != 2:
-        raise EvalError(">s requires 2 args", args)
+        raise EvalError(">s takes exactly 2 arguments", args)
     a0, a1 = arg_list
     if a0.pair or a1.pair:
         raise EvalError(">s on list", args)
@@ -220,7 +220,7 @@ def op_strlen(args):
 
 def op_substr(args):
     if args.list_len() != 3:
-        raise EvalError("substr takes exactly 3 argument", args)
+        raise EvalError("substr takes exactly 3 arguments", args)
     a0 = args.first()
     if a0.pair:
         raise EvalError("substr on list", a0)
