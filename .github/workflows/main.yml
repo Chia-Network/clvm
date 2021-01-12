@@ -37,6 +37,7 @@ jobs:
           coverage run -a --branch --source=clvm --omit=clvm/SExp.py,clvm/serialize.py,clvm/operators.py -m pytest tests
           coverage report -m
       - name: coverall
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
