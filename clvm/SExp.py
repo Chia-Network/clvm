@@ -92,7 +92,7 @@ class SExp(CLVMObject):
                         ops.append((3, target))  # prepend list
                         # we only need to convert if it's not already the right
                         # type
-                        if not isinstance(_, CLVMObject):
+                        if type(_) != CLVMObject:
                             ops.append((0, None))  # convert
                     continue
 
