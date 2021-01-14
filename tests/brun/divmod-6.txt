@@ -1,2 +1,2 @@
 brun -c '(divmod 2 5)' '(80001 (200 73))'
-FAIL: divmod requires int args (0x013881 (200 73))
+FAIL: divmod requires int args (200 73)

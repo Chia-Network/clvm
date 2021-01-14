@@ -1,2 +1,2 @@
 brun -c '(> (q (0)) (q 0))'
-FAIL: > requires int args ((()) ())
+FAIL: > requires int args (())

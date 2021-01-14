@@ -1,2 +1,2 @@
 brun '(logxor (q (1 2)) (q (1 2)))'
-FAIL: logxor requires int args ((q 2) (q 2))
+FAIL: logxor requires int args (q 2)
