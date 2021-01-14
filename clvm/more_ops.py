@@ -69,8 +69,15 @@ def args_as_ints(op_name, args):
 
 
 def args_as_int_list(op_name, args, count):
-    int_list = list(args_as_ints(op_name, args))
-    if len(int_list) != count:
+    int_list = []
+    c = count
+    for v in args_as_ints(op_name, args):
+        if c == 0:
+            plural = "s" if count != 1 else ""
+            raise EvalError("%s takes exactly %d argument%s" % (op_name, count, plural), args)
+        c -= 1
+        int_list.append(v)
+    if c > 0:
         plural = "s" if count != 1 else ""
         raise EvalError("%s takes exactly %d argument%s" % (op_name, count, plural), args)
     return int_list
@@ -86,8 +93,15 @@ def args_as_bools(op_name, args):
 
 
 def args_as_bool_list(op_name, args, count):
-    bool_list = list(args_as_bools(op_name, args))
-    if len(bool_list) != count:
+    bool_list = []
+    c = count
+    for v in args_as_bools(op_name, args):
+        if c == 0:
+            plural = "s" if count != 1 else ""
+            raise EvalError("%s takes exactly %d argument%s" % (op_name, count, plural), args)
+        c -= 1
+        bool_list.append(v)
+    if c > 0:
         plural = "s" if count != 1 else ""
         raise EvalError("%s takes exactly %d argument%s" % (op_name, count, plural), args)
     return bool_list
