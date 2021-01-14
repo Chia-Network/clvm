@@ -65,7 +65,7 @@ def args_as_ints(op_name, args):
     for arg in args.as_iter():
         if arg.pair:
             raise EvalError("%s requires int args" % op_name, args)
-        yield arg.as_int()
+        yield (arg.as_int(), len(arg.as_atom()))
 
 
 def args_as_int_list(op_name, args, count):
@@ -97,9 +97,9 @@ def op_add(args):
     total = 0
     cost = ARITH_BASE_COST
     arg_size = 0
-    for r in args_as_ints("+", args):
+    for r, l in args_as_ints("+", args):
         total += r
-        arg_size += limbs_for_int(r)
+        arg_size += l
         cost += ARITH_COST_PER_ARG
     cost += arg_size // ARITH_COST_PER_LIMB_DIVIDER
     return cost, args.to(total)
@@ -112,10 +112,10 @@ def op_subtract(args):
     sign = 1
     total = 0
     arg_size = 0
-    for r in args_as_ints("-", args):
+    for r, l in args_as_ints("-", args):
         total += sign * r
         sign = -1
-        arg_size += limbs_for_int(r)
+        arg_size += l
         cost += ARITH_COST_PER_ARG
     cost += arg_size // ARITH_COST_PER_LIMB_DIVIDER
     return cost, args.to(total)
@@ -125,44 +125,43 @@ def op_multiply(args):
     cost = MUL_BASE_COST
     operands = args_as_ints("*", args)
     try:
-        v = next(operands)
+        v, vs = next(operands)
     except StopIteration:
         return cost, args.to(1)
 
-    for r in operands:
-        rs = limbs_for_int(r)
-        vs = limbs_for_int(v)
+    for r, rs in operands:
         cost += MUL_COST_PER_OP
         cost += (rs + vs) // MUL_LINEAR_COST_PER_BYTE_DIVIDER
         cost += (rs * vs) // MUL_SQUARE_COST_PER_BYTE_DIVIDER
         v = v * r
+        vs = limbs_for_int(v)
     return cost, args.to(v)
 
 
 def op_divmod(args):
     cost = DIVMOD_BASE_COST
-    i0, i1 = args_as_int_list("divmod", args, 2)
+    (i0, l0), (i1, l1) = args_as_int_list("divmod", args, 2)
     if i1 == 0:
         raise EvalError("divmod with 0", args.to(i0))
-    cost += (limbs_for_int(i0) + limbs_for_int(i1)) // DIVMOD_COST_PER_LIMB_DIVIDER
+    cost += (l0 + l1) // DIVMOD_COST_PER_LIMB_DIVIDER
     q, r = divmod(i0, i1)
     return cost, args.to((q, r))
 
 
 def op_div(args):
     cost = DIV_BASE_COST
-    i0, i1 = args_as_int_list("div", args, 2)
+    (i0, l0), (i1, l1) = args_as_int_list("div", args, 2)
     if i1 == 0:
         raise EvalError("div with 0", args.to(i0))
-    cost += (limbs_for_int(i0) + limbs_for_int(i1)) // DIV_COST_PER_LIMB_DIVIDER
+    cost += (l0 + l1) // DIV_COST_PER_LIMB_DIVIDER
     q = i0 // i1
     return cost, args.to(q)
 
 
 def op_gr(args):
-    i0, i1 = args_as_int_list(">", args, 2)
+    (i0, l0), (i1, l1) = args_as_int_list(">", args, 2)
     cost = GR_BASE_COST
-    cost += (limbs_for_int(i0) + limbs_for_int(i1)) // GR_COST_PER_LIMB_DIVIDER
+    cost += (l0 + l1) // GR_COST_PER_LIMB_DIVIDER
     return cost, args.true if i0 > i1 else args.false
 
 
@@ -181,12 +180,12 @@ def op_gr_bytes(args):
 
 
 def op_pubkey_for_exp(args):
-    (i0,) = args_as_int_list("pubkey_for_exp", args, 1)
+    ((i0, l0),) = args_as_int_list("pubkey_for_exp", args, 1)
     i0 %= 0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001
     try:
         r = args.to(bytes(G1Element.generator() * i0))
         cost = PUBKEY_BASE_COST
-        cost += limbs_for_int(i0) // PUBKEY_COST_PER_BYTE_DIVIDER
+        cost += l0 // PUBKEY_COST_PER_BYTE_DIVIDER
         return cost, r
     except Exception as ex:
         raise EvalError("problem in op_pubkey_for_exp: %s" % ex, args)
@@ -225,7 +224,7 @@ def op_substr(args):
     if a0.pair:
         raise EvalError("substr on list", a0)
 
-    i1, i2 = args_as_int_list("substr", args.rest(), 2)
+    (i1, _), (i2, _) = args_as_int_list("substr", args.rest(), 2)
 
     s0 = a0.as_atom()
     if i2 > len(s0) or i2 < i1 or i2 < 0 or i1 < 0:
@@ -249,7 +248,7 @@ def op_concat(args):
 
 
 def op_ash(args):
-    i0, i1 = args_as_int_list("ash", args, 2)
+    (i0, l0), (i1, _) = args_as_int_list("ash", args, 2)
     if abs(i1) > 65535:
         raise EvalError("shift too large", args.to(i1))
     if i1 >= 0:
@@ -257,12 +256,12 @@ def op_ash(args):
     else:
         r = i0 >> -i1
     cost = SHIFT_BASE_COST
-    cost += (limbs_for_int(i0) + limbs_for_int(r)) // SHIFT_COST_PER_BYTE_DIVIDER
+    cost += (l0 + limbs_for_int(r)) // SHIFT_COST_PER_BYTE_DIVIDER
     return cost, args.to(r)
 
 
 def op_lsh(args):
-    i0, i1 = args_as_int_list("lsh", args, 2)
+    (i0, l0), (i1, _) = args_as_int_list("lsh", args, 2)
     if abs(i1) > 65535:
         raise EvalError("shift too large", args.to(i1))
     # we actually want i0 to be an *unsigned* int
@@ -273,7 +272,7 @@ def op_lsh(args):
     else:
         r = i0 >> -i1
     cost = SHIFT_BASE_COST
-    cost += (limbs_for_int(i0) + limbs_for_int(r)) // SHIFT_COST_PER_BYTE_DIVIDER
+    cost += (l0 + limbs_for_int(r)) // SHIFT_COST_PER_BYTE_DIVIDER
     return cost, args.to(r)
 
 
@@ -281,9 +280,9 @@ def binop_reduction(op_name, initial_value, args, op_f):
     total = initial_value
     arg_size = 0
     cost = LOG_BASE_COST
-    for r in args_as_ints(op_name, args):
+    for r, l in args_as_ints(op_name, args):
         total = op_f(total, r)
-        arg_size += limbs_for_int(total)
+        arg_size += l
         cost += LOG_COST_PER_ARG
     cost += arg_size // LOG_COST_PER_LIMB_DIVIDER
     return cost, args.to(total)
@@ -314,7 +313,7 @@ def op_logxor(args):
 
 
 def op_lognot(args):
-    (i0,) = args_as_int_list("lognot", args, 1)
+    (i0, _), = args_as_int_list("lognot", args, 1)
     r = ~i0
     limbs = limbs_for_int(r)
     cost = LOGNOT_BASE_COST + limbs // LOGNOT_COST_PER_BYTE_DIVIDER
