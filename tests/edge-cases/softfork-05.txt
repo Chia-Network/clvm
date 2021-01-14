@@ -1,2 +1,2 @@
 brun -c '(softfork (q (1 2)))'
-FAIL: softfork requires an int argument (q 2)
+FAIL: softfork requires int args (q 2)

@@ -1,2 +1,2 @@
 brun -c '(sha256 1)' '(hello)'
-FAIL: sha256 got list ("hello")
+FAIL: sha256 on list ("hello")

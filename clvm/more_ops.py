@@ -53,7 +53,7 @@ def op_sha256(args):
     for _ in args.as_iter():
         atom = _.atom
         if atom is None:
-            raise EvalError("sha256 got list", _)
+            raise EvalError("sha256 on list", _)
         arg_len += len(atom)
         cost += SHA256_COST_PER_ARG
         h.update(atom)
@@ -64,7 +64,7 @@ def op_sha256(args):
 def args_as_ints(op_name, args):
     for arg in args.as_iter():
         if arg.pair:
-            raise EvalError("%s requires int args" % op_name, args)
+            raise EvalError("%s requires int args" % op_name, arg)
         yield (arg.as_int(), len(arg.as_atom()))
 
 
@@ -171,7 +171,7 @@ def op_gr_bytes(args):
         raise EvalError(">s takes exactly 2 arguments", args)
     a0, a1 = arg_list
     if a0.pair or a1.pair:
-        raise EvalError(">s on list", args)
+        raise EvalError(">s on list", a0)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
     cost = CMP_BASE_COST
@@ -197,7 +197,7 @@ def op_point_add(items):
 
     for _ in items.as_iter():
         if _.pair:
-            raise EvalError("point_add expects blob, got list", items)
+            raise EvalError("point_add on list", _)
         try:
             p += G1Element.from_bytes(_.as_atom())
             cost += POINT_ADD_COST_PER_ARG
@@ -355,7 +355,7 @@ def op_softfork(args):
         raise EvalError("softfork takes at least 1 argument", args)
     a = args.first()
     if a.pair:
-        raise EvalError("softfork requires an int argument", a)
+        raise EvalError("softfork requires int args", a)
     cost = a.as_int()
     if cost < 1:
         raise EvalError("cost must be > 0", args)

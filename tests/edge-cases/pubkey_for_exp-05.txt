@@ -1,2 +1,2 @@
 brun '(pubkey_for_exp (q (1 2)))'
-FAIL: pubkey_for_exp requires int args ((q 2))
+FAIL: pubkey_for_exp requires int args (q 2)
