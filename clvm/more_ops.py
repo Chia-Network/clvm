@@ -313,11 +313,9 @@ def op_logxor(args):
 
 
 def op_lognot(args):
-    (i0, _), = args_as_int_list("lognot", args, 1)
-    r = ~i0
-    limbs = limbs_for_int(r)
-    cost = LOGNOT_BASE_COST + limbs // LOGNOT_COST_PER_BYTE_DIVIDER
-    return cost, args.to(r)
+    (i0, l0), = args_as_int_list("lognot", args, 1)
+    cost = LOGNOT_BASE_COST + l0 // LOGNOT_COST_PER_BYTE_DIVIDER
+    return cost, args.to(~i0)
 
 
 def op_not(args):
