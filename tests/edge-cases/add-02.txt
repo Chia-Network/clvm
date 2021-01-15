@@ -1,2 +1,2 @@
-brun '(+ (q 1))'
+brun '(+ (quote 1))'
 1

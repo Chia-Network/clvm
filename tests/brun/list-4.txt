@@ -1,2 +1,2 @@
-brun -c '(l (q 100) (q 200))'
+brun -c '(l (quote 100) (quote 200))'
 FAIL: l takes exactly 1 argument (100 200)

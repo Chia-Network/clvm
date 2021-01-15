@@ -1,2 +1,2 @@
-brun '(substr (q 128) (q 128) (q 128))'
+brun '(substr (quote 128) (quote 128) (quote 128))'
 FAIL: invalid indices for substr (128 128 128)

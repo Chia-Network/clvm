@@ -1,2 +1,2 @@
-brun -c '(lognot (q (foo)))'
+brun -c '(lognot (quote (foo)))'
 FAIL: lognot requires int args (("foo"))

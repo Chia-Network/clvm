@@ -1,2 +1,2 @@
-brun '(a (q 1) (q 1))'
+brun '(a (quote 1) (quote 1))'
 FAIL: unimplemented operator 1

@@ -8,8 +8,9 @@ from .EvalError import EvalError
 from .casts import int_to_bytes
 from .op_utils import operators_for_module
 
+QUOTE_KW = "quote"
 KEYWORDS = (
-    ". q . a i c f r l x = sha256 + - * divmod "
+    f". {QUOTE_KW} . a i c f r l x = sha256 + - * divmod "
     "substr strlen point_add pubkey_for_exp concat . > >s "
     "logand logior logxor lognot ash lsh "
     "not any all "
@@ -64,4 +65,4 @@ OPERATOR_LOOKUP = OperatorDict(
     operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE)
 )
 OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRITE))
-QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
+QUOTE_ATOM = KEYWORD_TO_ATOM[QUOTE_KW]

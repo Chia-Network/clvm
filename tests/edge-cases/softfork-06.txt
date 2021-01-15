@@ -1,2 +1,2 @@
-brun -c '(softfork (q 0xffff))'
+brun -c '(softfork (quote 0xffff))'
 FAIL: cost must be > 0 (0xffff)

@@ -1,3 +1,3 @@
-brun -c "(= (q 2) (q 3))"
+brun -c "(= (quote 2) (quote 3))"
 cost = 71
 ()

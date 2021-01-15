@@ -1,2 +1,2 @@
-brun '(x (q 1))'
-FAIL: clvm raise (q)
+brun '(x (quote 1))'
+FAIL: clvm raise (quote)

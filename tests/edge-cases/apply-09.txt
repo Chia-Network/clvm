@@ -1,2 +1,2 @@
-brun '(a (q 128) (q 128) (q 128))'
+brun '(a (quote 128) (quote 128) (quote 128))'
 FAIL: apply requires exactly 2 parameters (128 128 128)

@@ -1,2 +1,2 @@
-brun -c '(q)'
+brun -c '(quote)'
 FAIL: quote requires exactly 1 parameter ()

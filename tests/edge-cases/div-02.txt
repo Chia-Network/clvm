@@ -1,2 +1,2 @@
-brun '(div (q 1))'
-FAIL: div takes exactly 2 arguments (q)
+brun '(div (quote 1))'
+FAIL: div takes exactly 2 arguments (quote)

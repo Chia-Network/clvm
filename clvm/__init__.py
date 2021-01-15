@@ -1,5 +1,6 @@
 from .SExp import SExp
 from .operators import (  # noqa
+    QUOTE_KW,
     QUOTE_ATOM,
     KEYWORD_TO_ATOM,
     KEYWORD_FROM_ATOM,

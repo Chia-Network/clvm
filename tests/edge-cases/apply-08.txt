@@ -1,2 +1,2 @@
-brun '(a (q 0xffff) (q 0xffff) (q 0xffff))'
+brun '(a (quote 0xffff) (quote 0xffff) (quote 0xffff))'
 FAIL: apply requires exactly 2 parameters (0xffff 0xffff 0xffff)

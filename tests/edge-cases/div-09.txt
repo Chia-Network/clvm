@@ -1,2 +1,2 @@
-brun '(div (q -1) (q -1))'
+brun '(div (quote -1) (quote -1))'
 1

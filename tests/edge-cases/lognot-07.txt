@@ -1,2 +1,2 @@
-brun '(lognot (q 128))'
+brun '(lognot (quote 128))'
 -129

@@ -1,2 +1,2 @@
-brun '(q (q (1 2)))'
-(q (q 2))
+brun '(quote (quote (1 2)))'
+(quote (quote 2))

@@ -1,2 +1,2 @@
-brun '(a (q 1) (q 1) (q 1) (q 1))'
-FAIL: apply requires exactly 2 parameters (q 1 1 1)
+brun '(a (quote 1) (quote 1) (quote 1) (quote 1))'
+FAIL: apply requires exactly 2 parameters (quote 1 1 1)

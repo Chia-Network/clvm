@@ -1,2 +1,2 @@
-brun -c '(concat (q foo) (q (bar)))'
+brun -c '(concat (quote foo) (quote (bar)))'
 FAIL: concat on list ("bar")

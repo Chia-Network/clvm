@@ -1,2 +1,2 @@
-brun '(f (q -1))'
+brun '(f (quote -1))'
 FAIL: first of non-cons -1

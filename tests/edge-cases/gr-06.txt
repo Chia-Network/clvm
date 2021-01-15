@@ -1,2 +1,2 @@
-brun '(> (q (1 2)) (q (1 2)))'
-FAIL: > requires int args ((q 2) (q 2))
+brun '(> (quote (1 2)) (quote (1 2)))'
+FAIL: > requires int args ((quote 2) (quote 2))

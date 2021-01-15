@@ -1,3 +1,3 @@
-brun -c '(substr (q "abcdefghijkl") 2 5)' '(0 12)'
+brun -c '(substr (quote "abcdefghijkl") 2 5)' '(0 12)'
 cost = 60
 "abcdefghijkl"

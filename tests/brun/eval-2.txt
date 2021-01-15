@@ -1,2 +1,2 @@
-brun -c '((c (q 1)))'
-FAIL: c takes exactly 2 arguments (q)
+brun -c '((c (quote 1)))'
+FAIL: c takes exactly 2 arguments (quote)

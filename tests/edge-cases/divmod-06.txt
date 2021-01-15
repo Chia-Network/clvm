@@ -1,2 +1,2 @@
-brun '(divmod (q (1 2)) (q (1 2)))'
-FAIL: divmod requires int args ((q 2) (q 2))
+brun '(divmod (quote (1 2)) (quote (1 2)))'
+FAIL: divmod requires int args ((quote 2) (quote 2))

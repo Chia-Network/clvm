@@ -1,3 +1,3 @@
-brun -c '(any (q 0) (q (foo)))'
+brun -c '(any (quote 0) (quote (foo)))'
 cost = 72
 1

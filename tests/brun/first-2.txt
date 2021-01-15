@@ -1,3 +1,3 @@
-brun -c '(f (q (1 2 3)))'
+brun -c '(f (quote (1 2 3)))'
 cost = 62
 1

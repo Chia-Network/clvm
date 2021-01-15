@@ -1,2 +1,2 @@
-brun '(concat (q 0xffff) (q 0xffff))'
+brun '(concat (quote 0xffff) (quote 0xffff))'
 0xffffffff

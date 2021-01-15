@@ -1,2 +1,2 @@
-brun -d '(q -128)'
+brun -d '(quote -128)'
 8180

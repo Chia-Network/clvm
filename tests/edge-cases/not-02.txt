@@ -1,2 +1,2 @@
-brun '(not (q 1))'
+brun '(not (quote 1))'
 ()

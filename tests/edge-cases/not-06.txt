@@ -1,2 +1,2 @@
-brun '(not (q 0xffff))'
+brun '(not (quote 0xffff))'
 ()

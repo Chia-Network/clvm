@@ -1,2 +1,2 @@
-brun -c '(ash (q 500) (q 65536))'
+brun -c '(ash (quote 500) (quote 65536))'
 FAIL: shift too large 0x010000

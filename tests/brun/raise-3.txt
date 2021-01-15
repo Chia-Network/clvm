@@ -1,2 +1,2 @@
-brun -c '(x (q (100)) (q (200)) (q (300)))'
+brun -c '(x (quote (100)) (quote (200)) (quote (300)))'
 FAIL: clvm raise ((100) (200) (300))

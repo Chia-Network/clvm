@@ -1,2 +1,2 @@
-brun '(ash (q 1))'
-FAIL: ash takes exactly 2 arguments (q)
+brun '(ash (quote 1))'
+FAIL: ash takes exactly 2 arguments (quote)

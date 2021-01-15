@@ -1,2 +1,2 @@
-brun '(ash (q (1 2)) (q (1 2)))'
-FAIL: ash requires int args ((q 2) (q 2))
+brun '(ash (quote (1 2)) (quote (1 2)))'
+FAIL: ash requires int args ((quote 2) (quote 2))

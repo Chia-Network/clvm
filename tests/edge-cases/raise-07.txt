@@ -1,2 +1,2 @@
-brun '(x (q 128) (q 128))'
+brun '(x (quote 128) (quote 128))'
 FAIL: clvm raise (128 128)

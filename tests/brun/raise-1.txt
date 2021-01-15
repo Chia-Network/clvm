@@ -1,2 +1,2 @@
-brun -c '(x (q 2000))'
+brun -c '(x (quote 2000))'
 FAIL: clvm raise (2000)

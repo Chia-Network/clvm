@@ -1,2 +1,2 @@
-brun '(- (q 0xffff) (q 0xffff))'
+brun '(- (quote 0xffff) (quote 0xffff))'
 ()

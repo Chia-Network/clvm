@@ -1,2 +1,2 @@
-brun '(substr (q 1) (q 1) (q 1) (q 1))'
-FAIL: substr takes exactly 3 arguments (q 1 1 1)
+brun '(substr (quote 1) (quote 1) (quote 1) (quote 1))'
+FAIL: substr takes exactly 3 arguments (quote 1 1 1)

@@ -1,2 +1,2 @@
-brun -c '(a (q +))'
+brun -c '(a (quote +))'
 FAIL: apply requires exactly 2 parameters (+)

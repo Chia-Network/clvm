@@ -1,2 +1,2 @@
-brun '(not (q 1) (q 1))'
-FAIL: not takes exactly 1 argument (q 1)
+brun '(not (quote 1) (quote 1))'
+FAIL: not takes exactly 1 argument (quote 1)

@@ -1,2 +1,2 @@
-brun '(all (q 128) (q 128))'
+brun '(all (quote 128) (quote 128))'
 1

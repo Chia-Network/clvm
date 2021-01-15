@@ -1,2 +1,2 @@
-brun -c '(r (q ()))'
+brun -c '(r (quote ()))'
 FAIL: rest of non-cons ()

@@ -1,2 +1,2 @@
-brun '(r (q 0xffff))'
+brun '(r (quote 0xffff))'
 FAIL: rest of non-cons 0xffff

@@ -1,2 +1,2 @@
-brun '(any (q (1 2)) (q (1 2)))'
+brun '(any (quote (1 2)) (quote (1 2)))'
 1

@@ -1,2 +1,2 @@
-brun '(> (q 1) (q 1) (q 1))'
-FAIL: > takes exactly 2 arguments (q 1 1)
+brun '(> (quote 1) (quote 1) (quote 1))'
+FAIL: > takes exactly 2 arguments (quote 1 1)

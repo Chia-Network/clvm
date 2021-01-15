@@ -1,2 +1,2 @@
-brun '(i (q 128) (q 128) (q 128))'
+brun '(i (quote 128) (quote 128) (quote 128))'
 128

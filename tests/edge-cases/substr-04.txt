@@ -1,2 +1,2 @@
-brun '(substr (q 1) (q 1) (q 1))'
+brun '(substr (quote 1) (quote 1) (quote 1))'
 ()

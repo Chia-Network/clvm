@@ -1,2 +1,2 @@
-brun '(logior (q 1))'
+brun '(logior (quote 1))'
 1

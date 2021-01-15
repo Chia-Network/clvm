@@ -1,2 +1,2 @@
-brun '(divmod (q 1) (q 1))'
-(q)
+brun '(divmod (quote 1) (quote 1))'
+(quote)
