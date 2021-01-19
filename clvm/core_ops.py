@@ -54,7 +54,7 @@ def op_eq(args):
     a0 = args.first()
     a1 = args.rest().first()
     if a0.pair or a1.pair:
-        raise EvalError("= on list", a0)
+        raise EvalError("= on list", a0 if a0.pair else a1)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
     cost = CMP_BASE_COST
