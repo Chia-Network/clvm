@@ -171,7 +171,7 @@ def op_gr_bytes(args):
         raise EvalError(">s takes exactly 2 arguments", args)
     a0, a1 = arg_list
     if a0.pair or a1.pair:
-        raise EvalError(">s on list", a0)
+        raise EvalError(">s on list", a0 if a0.pair else a1)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
     cost = CMP_BASE_COST
