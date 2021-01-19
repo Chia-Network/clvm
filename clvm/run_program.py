@@ -1,8 +1,10 @@
+import io
 from typing import Any, Callable, List, Tuple
 
 from .CLVMObject import CLVMObject
 from .EvalError import EvalError
 from .SExp import SExp
+from .serialize import sexp_from_stream
 
 from .costs import (
     APPLY_COST,
@@ -15,13 +17,19 @@ from .costs import (
 
 try:
     from clvm_rs import py_run_program, NativeOpLookup
+
+    try:
+        from clvm_rs import serialize_and_run_program
+    except ImportError:
+        serialize_and_run_program = None
 except ImportError:
     py_run_program = None
 
 # py_run_program = None
+# serialize_and_run_program = None
 
 NATIVE_OPS = bytes(range(256))
-#NATIVE_OPS = b""   # uncomment to use all python operators
+# NATIVE_OPS = b""   # uncomment to use all python operators
 
 
 # the "Any" below should really be "OpStackType" but
@@ -76,16 +84,31 @@ def run_program(
     original_operator_lookup = operator_lookup
 
     if py_run_program:
+
         def operator_lookup(op, sexp):
             s = SExp.to(sexp)
-            #breakpoint()
             cost, r = original_operator_lookup(op, s)
             r = SExp.to(r)
             return cost, r
+
         op_lookup = NativeOpLookup(NATIVE_OPS, operator_lookup)
 
-        cost, r = py_run_program(program, args, quote_kw[0], apply_kw[0], max_cost or 0, op_lookup, pre_eval=pre_eval_f)
-        r = SExp.to(r)
+        if serialize_and_run_program and not pre_eval_op:
+            cost, blob = serialize_and_run_program(
+                program.as_bin(), args.as_bin(), quote_kw[0], apply_kw[0], max_cost or 0
+            )
+            r = sexp_from_stream(io.BytesIO(bytes(blob)), SExp.to)
+        else:
+            cost, r = py_run_program(
+                program,
+                args,
+                quote_kw[0],
+                apply_kw[0],
+                max_cost or 0,
+                op_lookup,
+                pre_eval=pre_eval_f,
+            )
+            r = SExp.to(r)
         return cost, r
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
