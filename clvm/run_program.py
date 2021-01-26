@@ -64,7 +64,7 @@ def run_program(
         while end_byte_cursor < len(b) and b[end_byte_cursor] == 0:
             end_byte_cursor += 1
 
-#        cost += end_byte_cursor * PATH_LOOKUP_COST_PER_ZERO_BYTE
+        cost += end_byte_cursor * PATH_LOOKUP_COST_PER_ZERO_BYTE
         if end_byte_cursor == len(b):
             return cost, sexp.null()
 
