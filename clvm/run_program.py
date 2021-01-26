@@ -1,6 +1,5 @@
 from typing import Any, Callable, List, Tuple
 
-from .casts import int_from_bytes
 from .CLVMObject import CLVMObject
 from .EvalError import EvalError
 from .SExp import SExp
@@ -8,7 +7,8 @@ from .SExp import SExp
 from .costs import (
     APPLY_COST,
     QUOTE_COST,
-    PATH_LOOKUP_COST_PER_LEG
+    PATH_LOOKUP_COST_PER_LEG,
+    PATH_LOOKUP_COST_PER_ZERO_BYTE
 )
 
 # the "Any" below should really be "OpStackType" but
@@ -57,16 +57,39 @@ def run_program(
         cost = PATH_LOOKUP_COST_PER_LEG
         if sexp.nullp():
             return cost, sexp.null()
-        node_index = int_from_bytes(sexp.atom)
-        while node_index > 1:
+
+        b = sexp.atom
+
+        end_byte_cursor = 0
+        while end_byte_cursor < len(b) and b[end_byte_cursor] == 0:
+            end_byte_cursor += 1
+
+#        cost += end_byte_cursor * PATH_LOOKUP_COST_PER_ZERO_BYTE
+        if end_byte_cursor == len(b):
+            return cost, sexp.null()
+
+        # create a bitmask for the most significant *set* bit
+        # in the last non-zero byte
+        end_bitmask = b[end_byte_cursor]
+        end_bitmask |= end_bitmask >> 1
+        end_bitmask |= end_bitmask >> 2
+        end_bitmask |= end_bitmask >> 4
+        end_bitmask = (end_bitmask + 1) >> 1
+
+        byte_cursor = len(b) - 1
+        bitmask = 0x01
+        while byte_cursor > end_byte_cursor or bitmask < end_bitmask:
             if env.pair is None:
                 raise EvalError("path into atom", env)
-            if node_index & 1:
+            if b[byte_cursor] & bitmask:
                 env = env.rest()
             else:
                 env = env.first()
             cost += PATH_LOOKUP_COST_PER_LEG
-            node_index >>= 1
+            bitmask <<= 1
+            if bitmask == 0x100:
+                byte_cursor -= 1
+                bitmask = 0x01
         return cost, env
 
     def swap_op(op_stack: OpStackType, value_stack: ValStackType) -> int:
