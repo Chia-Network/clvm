@@ -37,6 +37,13 @@ def to_pre_eval_op(pre_eval_f, to_sexp_f):
     return my_pre_eval_op
 
 
+def msb_mask(byte):
+    byte |= byte >> 1
+    byte |= byte >> 2
+    byte |= byte >> 4
+    return (byte + 1) >> 1
+
+
 def run_program(
     program: CLVMObject,
     args: CLVMObject,
@@ -70,11 +77,7 @@ def run_program(
 
         # create a bitmask for the most significant *set* bit
         # in the last non-zero byte
-        end_bitmask = b[end_byte_cursor]
-        end_bitmask |= end_bitmask >> 1
-        end_bitmask |= end_bitmask >> 2
-        end_bitmask |= end_bitmask >> 4
-        end_bitmask = (end_bitmask + 1) >> 1
+        end_bitmask = msb_mask(b[end_byte_cursor])
 
         byte_cursor = len(b) - 1
         bitmask = 0x01
