@@ -11,7 +11,6 @@
 # 0xf0-0xf7 is 4 bytes ((perform logical and of first byte with 0x7))
 # 0xf7-0xfb is 5 bytes ((perform logical and of first byte with 0x3))
 
-
 from .CLVMObject import CLVMObject
 
 
