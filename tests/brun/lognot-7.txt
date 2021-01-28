@@ -1,2 +1,2 @@
-brun -c '(lognot (q 1) (q 2))'
-FAIL: lognot takes exactly 1 argument (q 2)
+brun -c -n '(lognot (q . 1) (q . 2))'
+FAIL: lognot takes exactly 1 argument (1 2)

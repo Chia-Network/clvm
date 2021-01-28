@@ -1,2 +1,2 @@
-brun '(sha256 (q (1 2)) (q (1 2)))'
-FAIL: sha256 on list (q 2)
+brun -n '(sha256 (q . (1 2)) (q . (1 2)))'
+FAIL: sha256 on list (1 2)

@@ -1,2 +1,2 @@
-brun '(div (q 1) (q 1) (q 1))'
-FAIL: div takes exactly 2 arguments (q 1 1)
+brun -n '(div (q . 1) (q . 1) (q . 1))'
+FAIL: div takes exactly 2 arguments (1 1 1)

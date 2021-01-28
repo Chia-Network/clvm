@@ -1,2 +1,2 @@
-brun '(pubkey_for_exp (q 1) (q 1))'
-FAIL: pubkey_for_exp takes exactly 1 argument (q 1)
+brun -n '(pubkey_for_exp (q . 1) (q . 1))'
+FAIL: pubkey_for_exp takes exactly 1 argument (1 1)

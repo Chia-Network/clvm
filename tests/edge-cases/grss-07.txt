@@ -1,2 +1,2 @@
-brun '(>s (q 0xffff) (q 0xffff))'
+brun '(>s (q . 0xffff) (q . 0xffff))'
 ()

@@ -1,2 +1,2 @@
-brun -c '(substr (q "abcdefghijkl") 2 5)' '(10 9)'
+brun -c '(substr (q . "abcdefghijkl") 2 5)' '(10 9)'
 FAIL: invalid indices for substr ("abcdefghijkl" 10 9)
