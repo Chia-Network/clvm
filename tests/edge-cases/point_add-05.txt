@@ -1,2 +1,2 @@
-brun -n '(point_add (q (1 2)) (q (1 2)))'
+brun -n '(point_add (q . (1 2)) (q . (1 2)))'
 FAIL: point_add on list (1 2)

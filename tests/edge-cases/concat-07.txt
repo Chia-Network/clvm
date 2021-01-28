@@ -1,2 +1,2 @@
-brun '(concat (q 128) (q 128))'
+brun '(concat (q . 128) (q . 128))'
 0x00800080

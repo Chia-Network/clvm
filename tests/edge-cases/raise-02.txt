@@ -1,2 +1,2 @@
-brun -n '(x (q 1))'
+brun -n '(x (q . 1))'
 FAIL: clvm raise (1)

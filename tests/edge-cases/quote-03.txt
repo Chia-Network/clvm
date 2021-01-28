@@ -1,2 +1,2 @@
-brun -n '(q (q 1) (q 1))'
-FAIL: quote requires exactly 1 parameter ((1 1) (1 1))
+brun '(q . (q . 1) (q . 1))'
+FAIL: illegal dot expression at 3

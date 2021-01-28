@@ -1,2 +1,2 @@
-brun -n '(substr (q (1 2)) (q (1 2)) (q (1 2)))'
+brun -n '(substr (q . (1 2)) (q . (1 2)) (q . (1 2)))'
 FAIL: substr on list (1 2)
