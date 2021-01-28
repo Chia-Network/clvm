@@ -41,7 +41,7 @@ def op_rest(args):
 def op_listp(args):
     if args.list_len() != 1:
         raise EvalError("l takes exactly 1 argument", args)
-    return LISTP_COST, args.true if args.first().listp() else args.false
+    return LISTP_COST, args.one() if args.first().listp() else args.null()
 
 
 def op_raise(args):
@@ -59,4 +59,4 @@ def op_eq(args):
     b1 = a1.as_atom()
     cost = CMP_BASE_COST
     cost += (len(b0) + len(b1)) // CMP_COST_PER_LIMB_DIVIDER
-    return cost, (args.true if b0 == b1 else args.false)
+    return cost, (args.one() if b0 == b1 else args.null())

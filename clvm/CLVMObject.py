@@ -43,5 +43,15 @@ class CLVMObject:
     def cons(self, right: "CLVMObject"):
         return self.__class__((self, right))
 
+    def null(self):
+        return NULL
+
+    def one(self):
+        return ONE
+
+
+ONE = CLVMObject(b"\1")
+NULL = CLVMObject(b"")
+
 
 SExpType = typing.Union[bytes, typing.Tuple[CLVMObject, CLVMObject]]

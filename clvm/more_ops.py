@@ -80,9 +80,9 @@ def args_as_bools(op_name, args):
     for arg in args.as_iter():
         v = arg.as_atom()
         if v == b"":
-            yield args.false
+            yield args.null()
         else:
-            yield args.true
+            yield args.one()
 
 
 def args_as_bool_list(op_name, args, count):
@@ -162,7 +162,7 @@ def op_gr(args):
     (i0, l0), (i1, l1) = args_as_int_list(">", args, 2)
     cost = GR_BASE_COST
     cost += (l0 + l1) // GR_COST_PER_LIMB_DIVIDER
-    return cost, args.true if i0 > i1 else args.false
+    return cost, args.one() if i0 > i1 else args.null()
 
 
 def op_gr_bytes(args):
@@ -176,7 +176,7 @@ def op_gr_bytes(args):
     b1 = a1.as_atom()
     cost = CMP_BASE_COST
     cost += (len(b0) + len(b1)) // CMP_COST_PER_LIMB_DIVIDER
-    return cost, args.true if b0 > b1 else args.false
+    return cost, args.one() if b0 > b1 else args.null()
 
 
 def op_pubkey_for_exp(args):
@@ -321,9 +321,9 @@ def op_lognot(args):
 def op_not(args):
     (i0,) = args_as_bool_list("not", args, 1)
     if i0.as_atom() == b"":
-        r = args.true
+        r = args.one()
     else:
-        r = args.false
+        r = args.null()
     cost = BOOL_BASE_COST + BOOL_COST_PER_ARG
     return cost, args.to(r)
 
@@ -331,10 +331,10 @@ def op_not(args):
 def op_any(args):
     items = list(args_as_bools("any", args))
     cost = BOOL_BASE_COST + len(items) * BOOL_COST_PER_ARG
-    r = args.false
+    r = args.null()
     for v in items:
         if v.as_atom() != b"":
-            r = args.true
+            r = args.one()
             break
     return cost, args.to(r)
 
@@ -342,10 +342,10 @@ def op_any(args):
 def op_all(args):
     items = list(args_as_bools("all", args))
     cost = BOOL_BASE_COST + len(items) * BOOL_COST_PER_ARG
-    r = args.true
+    r = args.one()
     for v in items:
         if v.as_atom() == b"":
-            r = args.false
+            r = args.null()
             break
     return cost, args.to(r)
 

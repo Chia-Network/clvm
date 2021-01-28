@@ -22,6 +22,8 @@ fh = bytes.fromhex
 H01 = fh("01")
 H02 = fh("02")
 
+S0 = SExp.to(0)
+
 
 class AsPythonTest(unittest.TestCase):
     def check_as_python(self, p):
@@ -92,10 +94,9 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(SExp.to((b"", b"")).nullp(), False)
 
     def test_constants(self):
-        self.assertEqual(SExp.__null__.nullp(), True)
-        self.assertEqual(SExp.null().nullp(), True)
-        self.assertEqual(SExp.true, True)
-        self.assertEqual(SExp.false, False)
+        self.assertEqual(S0.null().nullp(), True)
+        self.assertEqual(S0.one(), True)
+        self.assertEqual(S0.null(), False)
 
     def test_list_len(self):
         v = SExp.to(42)
@@ -117,7 +118,7 @@ class AsPythonTest(unittest.TestCase):
     def test_cons(self):
         # list
         self.assertEqual(
-            SExp.to(H01).cons(SExp.to(H02).cons(SExp.null())).as_python(),
+            SExp.to(H01).cons(SExp.to(H02).cons(S0.null())).as_python(),
             [H01, H02],
         )
         # cons-box of two values
@@ -132,7 +133,7 @@ class AsPythonTest(unittest.TestCase):
             d = [d]
         v = SExp.to(d)
         for i in range(1000):
-            self.assertEqual(v.as_pair()[1].as_atom(), SExp.null())
+            self.assertEqual(v.as_pair()[1].as_atom(), S0.null())
             v = v.as_pair()[0]
             d = d[0]
 
@@ -149,7 +150,7 @@ class AsPythonTest(unittest.TestCase):
             v = v.as_pair()[1]
             d = d[1]
 
-        self.assertEqual(v.as_atom(), SExp.null())
+        self.assertEqual(v.as_atom(), S0.null())
         self.assertEqual(d, b"")
 
     def test_long_list(self):
@@ -159,7 +160,7 @@ class AsPythonTest(unittest.TestCase):
             self.assertEqual(v.as_pair()[0].as_int(), d[i])
             v = v.as_pair()[1]
 
-        self.assertEqual(v.as_atom(), SExp.null())
+        self.assertEqual(v.as_atom(), S0.null())
 
     def test_invalid_type(self):
         self.assertRaises(ValueError, lambda: SExp.to(dummy_class))

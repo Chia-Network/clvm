@@ -106,10 +106,6 @@ def to_sexp_type(
 
 
 class SExp(CLVMObject):
-    true: "SExp"
-    false: "SExp"
-    __null__: "SExp"
-
     def as_pair(self):
         pair = self.pair
         if pair is None:
@@ -156,15 +152,17 @@ class SExp(CLVMObject):
             return self.to(pair[1])
         raise EvalError("rest of non-cons", self)
 
-    @classmethod
-    def null(class_):
-        return class_.__null__
-
     def as_iter(self):
         v = self
         while not v.nullp():
             yield v.first()
             v = v.rest()
+
+    def null(self):
+        return self.to(super(SExp, self).null())
+
+    def one(self):
+        return self.to(super(SExp, self).one())
 
     def __eq__(self, other: CastableType):
         try:
@@ -202,7 +200,3 @@ class SExp(CLVMObject):
 
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, str(self))
-
-
-SExp.false = SExp.__null__ = SExp(b"")
-SExp.true = SExp(b"\1")
