@@ -1,2 +1,2 @@
-brun '(logxor (q 128) (q 128))'
+brun '(logxor (q . 128) (q . 128))'
 ()

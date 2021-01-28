@@ -1,2 +1,2 @@
-brun '(r (q 128))'
+brun '(r (q . 128))'
 FAIL: rest of non-cons 128

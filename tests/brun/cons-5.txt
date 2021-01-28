@@ -1,2 +1,2 @@
-brun -c '(c (q 100))'
+brun -c '(c (q . 100))'
 FAIL: c takes exactly 2 arguments (100)

@@ -1,2 +1,2 @@
-brun '(r (q -1))'
+brun '(r (q . -1))'
 FAIL: rest of non-cons -1

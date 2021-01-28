@@ -1,2 +1,2 @@
-brun -c '(softfork (q 0) (q (+ 60 50)))'
+brun -c '(softfork (q . 0) (q . (+ 60 50)))'
 FAIL: cost must be > 0 (() (+ 60 50))

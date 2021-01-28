@@ -1,2 +1,2 @@
-brun '(any (q 1))'
+brun '(any (q . 1))'
 1

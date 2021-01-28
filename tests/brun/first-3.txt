@@ -1,2 +1,2 @@
-brun -c '(f (q ()))'
+brun -c '(f (q . ()))'
 FAIL: first of non-cons ()

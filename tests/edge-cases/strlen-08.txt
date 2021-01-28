@@ -1,2 +1,2 @@
-brun '(strlen (q -1))'
+brun '(strlen (q . -1))'
 1

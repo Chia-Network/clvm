@@ -1,2 +1,2 @@
-brun '(strlen (q (1 2)))'
-FAIL: strlen on list (q 2)
+brun -n '(strlen (q . (1 2)))'
+FAIL: strlen on list (1 2)

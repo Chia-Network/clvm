@@ -1,2 +1,2 @@
-brun '(strlen (q 0xffff))'
+brun '(strlen (q . 0xffff))'
 2

@@ -73,6 +73,7 @@ def make_f(cmd_lines, expected_output, comments, path):
         for c in cmd.split(";"):
             r, actual_output, actual_stderr = self.invoke_tool(c)
         if actual_output != expected_output:
+            print(path)
             print(cmd)
             print(actual_output)
             print(expected_output)

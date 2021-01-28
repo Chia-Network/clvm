@@ -1,2 +1,2 @@
-brun '(>s (q (1 2)) (q (1 2)))'
-FAIL: >s on list (q 2)
+brun -n '(>s (q . (1 2)) (q . (1 2)))'
+FAIL: >s on list (1 2)

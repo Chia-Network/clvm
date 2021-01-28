@@ -1,3 +1,3 @@
-brun -c '(softfork (q 50))'
+brun -c '(softfork (q . 50))'
 cost = 104
 ()

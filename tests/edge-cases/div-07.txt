@@ -1,2 +1,2 @@
-brun '(div (q 0xffff) (q 0xffff))'
+brun '(div (q . 0xffff) (q . 0xffff))'
 1

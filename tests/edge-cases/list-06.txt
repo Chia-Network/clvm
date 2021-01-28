@@ -1,2 +1,2 @@
-brun '(l (q 0xffff))'
+brun '(l (q . 0xffff))'
 ()

@@ -1,2 +1,2 @@
-brun '(concat (q 1))'
+brun '(concat (q . 1))'
 1

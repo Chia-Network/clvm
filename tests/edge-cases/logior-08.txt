@@ -1,2 +1,2 @@
-brun '(logior (q -1) (q -1))'
+brun '(logior (q . -1) (q . -1))'
 -1

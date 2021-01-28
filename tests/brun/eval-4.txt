@@ -1,2 +1,2 @@
-brun -c '((c (q 0) (q 1) (q 2)))'
+brun -c '((c (q . 0) (q . 1) (q . 2)))'
 FAIL: c takes exactly 2 arguments (() 1 2)
