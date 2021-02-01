@@ -2,7 +2,7 @@ import io
 import unittest
 
 from clvm import to_sexp_f
-from clvm.serialize import (sexp_from_stream, atom_to_byte_iterator)
+from clvm.serialize import (sexp_from_stream, sexp_buffer_from_stream, atom_to_byte_iterator)
 
 
 TEXT = b"the quick brown fox jumps over the lazy dogs"
@@ -38,6 +38,11 @@ class SerializeTest(unittest.TestCase):
             b = v.as_bin()
             v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)
         self.assertEqual(v, v1)
+        # this copies the bytes that represent a single s-expression, just to
+        # know where the message ends. It doesn't build a python representaion
+        # of it
+        buf = sexp_buffer_from_stream(io.BytesIO(b))
+        self.assertEqual(buf, b)
 
     def test_empty_string(self):
         self.check_serde(b"")
@@ -91,12 +96,18 @@ class SerializeTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
 
+        with self.assertRaises(ValueError):
+            sexp_buffer_from_stream(io.BytesIO(bytes_in))
+
     def test_deserialize_truncated_size(self):
         # fe means the total number of bytes in the length-prefix is 7
         # one for each bit set. 5 bytes is too few
         bytes_in = b'\xfe    '
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
+
+        with self.assertRaises(ValueError):
+            sexp_buffer_from_stream(io.BytesIO(bytes_in))
 
     def test_deserialize_truncated_blob(self):
         # this is a complete length prefix. The blob is supposed to be 63 bytes
@@ -105,6 +116,9 @@ class SerializeTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
+
+        with self.assertRaises(ValueError):
+            sexp_buffer_from_stream(io.BytesIO(bytes_in))
 
     def test_deserialize_large_blob(self):
         # this length prefix is 7 bytes long, the last 6 bytes specifies the
@@ -116,3 +130,6 @@ class SerializeTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             sexp_from_stream(InfiniteStream(bytes_in), to_sexp_f)
+
+        with self.assertRaises(ValueError):
+            sexp_buffer_from_stream(InfiniteStream(bytes_in))
