@@ -106,6 +106,58 @@ def sexp_from_stream(f, to_sexp):
     return to_sexp(val_stack.pop())
 
 
+def _op_consume_sexp(f):
+    blob = f.read(1)
+    if len(blob) == 0:
+        raise ValueError("bad encoding")
+    b = blob[0]
+    if b == CONS_BOX_MARKER:
+        return (blob, 2)
+    return (_consume_atom(f, b), 0)
+
+
+def _consume_atom(f, b):
+    if b == 0x80:
+        return bytes([b])
+    if b <= MAX_SINGLE_BYTE:
+        return bytes([b])
+    bit_count = 0
+    bit_mask = 0x80
+    ll = b
+    while ll & bit_mask:
+        bit_count += 1
+        ll &= 0xFF ^ bit_mask
+        bit_mask >>= 1
+    size_blob = bytes([ll])
+    if bit_count > 1:
+        ll = f.read(bit_count - 1)
+        if len(ll) != bit_count - 1:
+            raise ValueError("bad encoding")
+        size_blob += ll
+    size = int.from_bytes(size_blob, "big")
+    if size >= 0x400000000:
+        raise ValueError("blob too large")
+    blob = f.read(size)
+    if len(blob) != size:
+        raise ValueError("bad encoding")
+    return bytes([b]) + size_blob[1:] + blob
+
+
+# instead of parsing the input stream, this function pulls out all the bytes
+# that represent on S-expression tree, and returns them. This is more efficient
+# than parsing and returning a python S-expression tree.
+def sexp_buffer_from_stream(f):
+    ret = b''
+
+    depth = 1
+    while depth > 0:
+        depth -= 1
+        buf, d = _op_consume_sexp(f)
+        depth += d
+        ret += buf
+    return ret
+
+
 def _atom_from_stream(f, b, to_sexp):
     if b == 0x80:
         return to_sexp(b"")
