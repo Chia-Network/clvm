@@ -1,0 +1,2 @@
+brun --strict -c '(a (q 0x017f) (q ()))'
+FAIL: unimplemented operator 383

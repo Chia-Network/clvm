@@ -1,0 +1,2 @@
+brun --strict -c '(a (q 0x3801) (q (1 2 3)))'
+FAIL: unimplemented operator 14337
