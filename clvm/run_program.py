@@ -47,8 +47,6 @@ def msb_mask(byte):
 def run_program(
     program: CLVMObject,
     args: CLVMObject,
-    quote_kw: bytes,
-    apply_kw: bytes,
     operator_lookup: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]],
     max_cost=None,
     pre_eval_f=None,
@@ -133,7 +131,7 @@ def run_program(
 
         op = operator.as_atom()
         operand_list = sexp.rest()
-        if op == quote_kw:
+        if op == operator_lookup.quote_atom:
             if operand_list.nullp() or not operand_list.rest().nullp():
                 raise EvalError("quote requires exactly 1 parameter", sexp.rest())
             value_stack.append(operand_list.first())
@@ -158,7 +156,7 @@ def run_program(
             raise EvalError("internal error", operator)
 
         op = operator.as_atom()
-        if op == apply_kw:
+        if op == operator_lookup.apply_atom:
             if operand_list.list_len() != 2:
                 raise EvalError("apply requires exactly 2 parameters", operand_list)
             new_operator = operand_list.first()
