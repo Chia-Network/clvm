@@ -1,4 +1,4 @@
-brun -c -v '(x)'
+brun --backend=python -c -v '(x)'
 FAIL: clvm raise ()
 
 ((c (f 1) (r 1))) [((x))] => (didn't finish)
