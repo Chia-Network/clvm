@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Tuple
+from typing import Dict, Tuple
 
 from . import core_ops, more_ops
 
