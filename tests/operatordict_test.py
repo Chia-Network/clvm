@@ -9,7 +9,7 @@ class OperatorDictTest(unittest.TestCase):
            either by object property or by keyword argument.
            Note that they cannot be specified in the operator dictionary itself.
         """
-        d = { 1 : "hello", 2 : "goodbye" }
+        d = {1: "hello", 2: "goodbye"}
         with self.assertRaises(AttributeError):
             o = OperatorDict(d)
         with self.assertRaises(AttributeError):
@@ -21,11 +21,8 @@ class OperatorDictTest(unittest.TestCase):
         assert d == o
         assert o.apply_atom == 1
         assert o.quote_atom == 2
-        #assert dict(o) == d
 
         # Test construction from an already existing OperatorDict
         o2 = OperatorDict(o)
-        assert o.apply_atom == 1
-        assert o.quote_atom == 2
-
-
+        assert o2.apply_atom == 1
+        assert o2.quote_atom == 2
