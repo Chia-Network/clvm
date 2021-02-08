@@ -155,6 +155,8 @@ class OperatorDict(dict):
         """
         `quote_atom` and `apply_atom` must be set
         `unknown_op_handler` has a default implementation
+        We do not check if quote and apply are distinct
+        We do not check if the opcode values for quote and apply exist in the passed-in dict
         """
         self = super(OperatorDict, class_).__new__(class_, d)
         self.quote_atom = kwargs["quote"] if "quote" in kwargs else d.quote_atom
