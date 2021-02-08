@@ -1,0 +1,31 @@
+import unittest
+
+from clvm.operators import OperatorDict
+
+
+class OperatorDictTest(unittest.TestCase):
+    def test_operatordict_constructor(self):
+        """Constructing should fail if quote or apply are not specified,
+           either by object property or by keyword argument.
+           Note that they cannot be specified in the operator dictionary itself.
+        """
+        d = { 1 : "hello", 2 : "goodbye" }
+        with self.assertRaises(AttributeError):
+            o = OperatorDict(d)
+        with self.assertRaises(AttributeError):
+            o = OperatorDict(d, apply=1)
+        with self.assertRaises(AttributeError):
+            o = OperatorDict(d, quote=1)
+        o = OperatorDict(d, apply=1, quote=2)
+        print(o)
+        assert d == o
+        assert o.apply_atom == 1
+        assert o.quote_atom == 2
+        #assert dict(o) == d
+
+        # Test construction from an already existing OperatorDict
+        o2 = OperatorDict(o)
+        assert o.apply_atom == 1
+        assert o.quote_atom == 2
+
+
