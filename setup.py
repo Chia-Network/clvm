@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 dev_dependencies = [
-    "clvm_tools>=0.2.0",
+    "clvm_tools>=0.3.0",
     "pytest",
 ]
 
