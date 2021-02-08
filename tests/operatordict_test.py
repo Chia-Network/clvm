@@ -20,10 +20,10 @@ class OperatorDictTest(unittest.TestCase):
         print(o)
         # Why does the constructed Operator dict contain entries for "apply":1 and "quote":2 ?
         # assert d == o
-        assert o.apply_atom == 1
-        assert o.quote_atom == 2
+        self.assertEqual(o.apply_atom, 1)
+        self.assertEqual(o.quote_atom, 2)
 
         # Test construction from an already existing OperatorDict
         o2 = OperatorDict(o)
-        assert o2.apply_atom == 1
-        assert o2.quote_atom == 2
+        self.assertEqual(o2.apply_atom, 1)
+        self.assertEqual(o2.quote_atom, 2)
