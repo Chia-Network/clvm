@@ -1,6 +1,6 @@
 import unittest
 
-from clvm.operators import (OPERATOR_LOOKUP, KEYWORD_TO_ATOM)
+from clvm.operators import (OPERATOR_LOOKUP, KEYWORD_TO_ATOM, OperatorDict)
 from clvm.EvalError import EvalError
 from clvm import SExp
 
@@ -18,8 +18,8 @@ class OperatorsTest(unittest.TestCase):
 
     def test_unknown_op(self):
         self.assertRaises(EvalError, lambda: OPERATOR_LOOKUP(b'unknown-op', SExp.to(1337)))
-        OPERATOR_LOOKUP.set_unknown_op_handler(lambda name, args: self.unknown_handler(name, args))
-        cost, ret = OPERATOR_LOOKUP(b'unknown-op', SExp.to(1337))
+        od = OperatorDict(OPERATOR_LOOKUP, unknown_op_handler=lambda name, args: self.unknown_handler(name, args))
+        cost, ret = od(b'unknown-op', SExp.to(1337))
         self.assertTrue(self.handler_called)
         self.assertEqual(cost, 42)
         self.assertEqual(ret, SExp.to(b'foobar'))

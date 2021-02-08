@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Tuple
+from typing import Dict, Tuple
 
 from . import core_ops, more_ops
 
@@ -41,9 +41,18 @@ class OperatorDict(dict):
     operators can be added dynamically.
     """
 
-    def __new__(class_, d: Dict):
+    def __new__(class_, d: Dict, *args, **kwargs):
+        """
+        `quote_atom` and `apply_atom` must be set
+        `unknown_op_handler` has a default implementation
+        """
         self = super(OperatorDict, class_).__new__(class_, d)
-        self.unknown_op_handler = self.unknown_op_raise
+        self.quote_atom = kwargs["quote"] if "quote" in kwargs else d.quote_atom
+        self.apply_atom = kwargs["apply"] if "apply" in kwargs else d.apply_atom
+        if "unknown_op_handler" in kwargs:
+            self.unknown_op_handler = kwargs["unknown_op_handler"]
+        else:
+            self.unknown_op_handler = self.unknown_op_raise
         return self
 
     def __call__(self, op: bytes, arguments: CLVMObject) -> Tuple[int, CLVMObject]:
@@ -53,15 +62,14 @@ class OperatorDict(dict):
                 return self.unknown_op_handler(op, args)
         return f(arguments)
 
-    def set_unknown_op_handler(self, callback: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]]):
-        self.unknown_op_handler = callback
-
     def unknown_op_raise(self, op: bytes, arguments: CLVMObject):
         raise EvalError("unimplemented operator", arguments.to(op))
 
 
+QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
+APPLY_ATOM = KEYWORD_TO_ATOM["a"]
+
 OPERATOR_LOOKUP = OperatorDict(
-    operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE)
+    operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE), quote=QUOTE_ATOM, apply=APPLY_ATOM
 )
 OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRITE))
-QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
