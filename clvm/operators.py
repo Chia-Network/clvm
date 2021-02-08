@@ -65,6 +65,7 @@ class OperatorDict(dict):
     def unknown_op_raise(self, op: bytes, arguments: CLVMObject):
         raise EvalError("unimplemented operator", arguments.to(op))
 
+
 QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 APPLY_ATOM = KEYWORD_TO_ATOM["a"]
 
