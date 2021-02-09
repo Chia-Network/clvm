@@ -37,7 +37,7 @@ def atom_to_byte_iterator(as_atom):
         yield b"\x80"
         return
     if size == 1:
-        if 0 < as_atom[0] <= MAX_SINGLE_BYTE:
+        if as_atom[0] <= MAX_SINGLE_BYTE:
             yield as_atom
             return
     if size < 0x40:

@@ -44,6 +44,14 @@ class SerializeTest(unittest.TestCase):
         buf = sexp_buffer_from_stream(io.BytesIO(b))
         self.assertEqual(buf, b)
 
+    def test_zero(self):
+        v = to_sexp_f(b"\x00")
+        self.assertEqual(v.as_bin(), b"\x00")
+
+    def test_empty(self):
+        v = to_sexp_f(b"")
+        self.assertEqual(v.as_bin(), b"\x80")
+
     def test_empty_string(self):
         self.check_serde(b"")
 
