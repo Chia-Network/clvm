@@ -1,0 +1,3 @@
+brun -n -c '(divmod (q 100) (q 70))'
+cost = 84
+(1 . 30)
