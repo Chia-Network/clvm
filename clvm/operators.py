@@ -27,7 +27,7 @@ KEYWORDS = (
     "substr strlen point_add pubkey_for_exp concat . > >s "
     "logand logior logxor lognot ash lsh "
     "not any all "
-    "softfork div "
+    "softfork / "
 ).split()
 
 KEYWORD_FROM_ATOM = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}
@@ -37,6 +37,7 @@ OP_REWRITE = {
     "+": "add",
     "-": "subtract",
     "*": "multiply",
+    "/": "div",
     "i": "if",
     "c": "cons",
     "f": "first",

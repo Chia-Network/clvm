@@ -1,2 +1,2 @@
-brun '(div)'
-FAIL: div takes exactly 2 arguments ()
+brun '(/)'
+FAIL: / takes exactly 2 arguments ()

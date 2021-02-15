@@ -1,2 +1,2 @@
-brun '(div () ())'
+brun '(/ () ())'
 FAIL: div with 0 ()
