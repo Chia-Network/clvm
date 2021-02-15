@@ -150,7 +150,7 @@ def op_divmod(args):
 
 def op_div(args):
     cost = DIV_BASE_COST
-    (i0, l0), (i1, l1) = args_as_int_list("div", args, 2)
+    (i0, l0), (i1, l1) = args_as_int_list("/", args, 2)
     if i1 == 0:
         raise EvalError("div with 0", args.to(i0))
     cost += (l0 + l1) // DIV_COST_PER_LIMB_DIVIDER
