@@ -1,2 +1,2 @@
-brun -n -c '(a (q +) (q (1 2 3)) (q foo))'
-FAIL: apply requires exactly 2 parameters (12 (1 2 3) "foo")
+brun -c '(a (q +) (q (1 2 3)) (q foo))'
+FAIL: apply requires exactly 2 parameters (+ (q 2 3) "foo")
