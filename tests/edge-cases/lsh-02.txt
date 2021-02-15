@@ -1,2 +1,2 @@
-brun '(lsh (q 1))'
-FAIL: lsh takes exactly 2 arguments (q)
+brun -n '(lsh (q 1))'
+FAIL: lsh takes exactly 2 arguments (1)

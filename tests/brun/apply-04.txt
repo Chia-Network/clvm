@@ -1,2 +1,2 @@
-brun -c '(a (q +))'
-FAIL: apply requires exactly 2 parameters (+)
+brun -n -c '(a (q +))'
+FAIL: apply requires exactly 2 parameters (12)

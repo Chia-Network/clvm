@@ -1,2 +1,2 @@
-brun -c '(a (q 0x3840) (q (1 2 (q 10 20))))'
-FAIL: unknown op requires int args (q 10 20)
+brun -n -c '(a (q 0x3840) (q (1 2 (q 10 20))))'
+FAIL: unknown op requires int args (1 10 20)
