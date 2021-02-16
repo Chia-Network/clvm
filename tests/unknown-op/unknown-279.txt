@@ -1,2 +1,2 @@
-brun -c '(a (q 0x01c1) (q (1 2 (q 10 20))))'
+brun -c '(a (q . 0x01c1) (q . (1 2 (q . (10 20)))))'
 FAIL: unknown op on list (q 10 20)
