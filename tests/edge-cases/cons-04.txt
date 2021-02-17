@@ -1,2 +1,2 @@
-brun -n '(c (q 1) (q 1) (q 1))'
+brun -n '(c (q . 1) (q . 1) (q . 1))'
 FAIL: c takes exactly 2 arguments (1 1 1)

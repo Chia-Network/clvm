@@ -1,2 +1,2 @@
-brun -n '(>s (q 1) (q 1) (q 1))'
+brun -n '(>s (q . 1) (q . 1) (q . 1))'
 FAIL: >s takes exactly 2 arguments (1 1 1)

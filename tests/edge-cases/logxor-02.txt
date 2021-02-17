@@ -1,2 +1,2 @@
-brun '(logxor (q 1))'
+brun '(logxor (q . 1))'
 1

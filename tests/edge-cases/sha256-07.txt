@@ -1,2 +1,2 @@
-brun '(sha256 (q 128) (q 128))'
+brun '(sha256 (q . 128) (q . 128))'
 0xda60b92bc70e999c07a6ded180a16c1e801e89a5722b565ea242d6aff2f507d8

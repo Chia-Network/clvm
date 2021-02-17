@@ -1,2 +1,2 @@
-brun --strict '(a (q 1) (q 1))'
+brun --strict '(a (q . 1) (q . 1))'
 FAIL: unimplemented operator 1

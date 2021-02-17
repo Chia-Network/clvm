@@ -1,2 +1,2 @@
-brun -n '(a (q 1) (q 1) (q 1) (q 1))'
+brun -n '(a (q . 1) (q . 1) (q . 1) (q . 1))'
 FAIL: apply requires exactly 2 parameters (1 1 1 1)

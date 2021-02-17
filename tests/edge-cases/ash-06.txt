@@ -1,2 +1,2 @@
-brun '(ash (q 0xffff) (q 0xffff))'
+brun '(ash (q . 0xffff) (q . 0xffff))'
 -1

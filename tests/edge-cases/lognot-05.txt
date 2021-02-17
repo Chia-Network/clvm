@@ -1,2 +1,2 @@
-brun -n '(lognot (q (1 2)))'
+brun -n '(lognot (q . (1 2)))'
 FAIL: lognot requires int args (1 2)

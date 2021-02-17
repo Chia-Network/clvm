@@ -1,2 +1,2 @@
-brun -n '(divmod (q 0xffff) (q 0xffff))'
+brun -n '(divmod (q . 0xffff) (q . 0xffff))'
 (1)

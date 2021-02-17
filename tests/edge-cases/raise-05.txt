@@ -1,2 +1,2 @@
-brun -n '(x (q (1 2)) (q (1 2)))'
+brun -n '(x (q . (1 2)) (q . (1 2)))'
 FAIL: clvm raise ((1 2) (1 2))

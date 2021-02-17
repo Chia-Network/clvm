@@ -1,2 +1,2 @@
-brun -n '(q (q 0xffff))'
-(1 0xffff)
+brun -n '(q . (q . 0xffff))'
+(1 . 0xffff)

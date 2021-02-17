@@ -1,2 +1,2 @@
-brun -n '(concat (q (1 2)) (q (1 2)))'
+brun -n '(concat (q . (1 2)) (q . (1 2)))'
 FAIL: concat on list (1 2)
