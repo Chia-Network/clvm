@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 dev_dependencies = [
-    "clvm_tools@git+https://github.com/Chia-Network/clvm_tools.git@0774653662ade2d1b180d56f285fc4f90bced81a#egg=clvm-tools",  # noqa
+    "clvm_tools>=0.3.0",
     "pytest",
 ]
 
