@@ -77,15 +77,15 @@ def args_len(op_name, args):
 # like this:
 
 # byte index (reverse):
-# n | .... | 1          | 0          |
-# --+- - --+------------+------------+
-# n | .... |            |XX | XXXXXX |
-# --+- - --+------------+---+--------+
-# ^                      ^   ^
-# |                      |   + 6 bits ignored when computing cost
-# cost_multiplier        |
-#                        + 2 bits
-#                          cost_function
+# | 4 | 3 | 2 | 1 | 0          |
+# +---+---+---+---+------------+
+# | multiplier    |XX | XXXXXX |
+# +---+---+---+---+---+--------+
+#  ^               ^    ^
+#  |               |    + 6 bits ignored when computing cost
+# cost_multiplier  |
+#                  + 2 bits
+#                    cost_function
 
 # 1 is always added to the multiplier before using it to multiply the cost, this
 # is since cost may not be 0.
@@ -111,6 +111,10 @@ def default_unknown_op(op: bytes, args: CLVMObject) -> Tuple[int, CLVMObject]:
 
     cost_function = (op[-1] & 0b11000000) >> 6
     # the multiplier cannot be 0. it starts at 1
+
+    if len(op) > 5:
+        raise EvalError("invalid operator", args.to(op))
+
     cost_multiplier = int.from_bytes(op[:-1], "big", signed=False) + 1
 
     # 0 = constant

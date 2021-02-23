@@ -68,6 +68,15 @@ def args_as_ints(op_name, args):
         yield (arg.as_int(), len(arg.as_atom()))
 
 
+def args_as_int32(op_name, args):
+    for arg in args.as_iter():
+        if arg.pair:
+            raise EvalError("%s requires int32 args" % op_name, arg)
+        if len(arg.atom) > 4:
+            raise EvalError("%s requires int32 args (with no leading zeros)" % op_name, arg)
+        yield arg.as_int()
+
+
 def args_as_int_list(op_name, args, count):
     int_list = list(args_as_ints(op_name, args))
     if len(int_list) != count:
@@ -224,7 +233,7 @@ def op_substr(args):
     if a0.pair:
         raise EvalError("substr on list", a0)
 
-    (i1, _), (i2, _) = args_as_int_list("substr", args.rest(), 2)
+    i1, i2 = list(args_as_int32("substr", args.rest()))
 
     s0 = a0.as_atom()
     if i2 > len(s0) or i2 < i1 or i2 < 0 or i1 < 0:
@@ -248,7 +257,9 @@ def op_concat(args):
 
 
 def op_ash(args):
-    (i0, l0), (i1, _) = args_as_int_list("ash", args, 2)
+    (i0, l0), (i1, l1) = args_as_int_list("ash", args, 2)
+    if l1 > 4:
+        raise EvalError("ash requires int32 args (with no leading zeros)", args.rest().first())
     if abs(i1) > 65535:
         raise EvalError("shift too large", args.to(i1))
     if i1 >= 0:
@@ -261,7 +272,9 @@ def op_ash(args):
 
 
 def op_lsh(args):
-    (i0, l0), (i1, _) = args_as_int_list("lsh", args, 2)
+    (i0, l0), (i1, l1) = args_as_int_list("lsh", args, 2)
+    if l1 > 4:
+        raise EvalError("lsh requires int32 args (with no leading zeros)", args.rest().first())
     if abs(i1) > 65535:
         raise EvalError("shift too large", args.to(i1))
     # we actually want i0 to be an *unsigned* int
