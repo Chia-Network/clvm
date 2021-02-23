@@ -1,2 +1,2 @@
 brun -c '(substr (q . "abcdefghijkl") 2 5)' '(4294967297 3)'
-FAIL: invalid indices for substr ("abcdefghijkl" 0x0100000001 3)
+FAIL: substr requires int32 args (with no leading zeros) 0x0100000001
