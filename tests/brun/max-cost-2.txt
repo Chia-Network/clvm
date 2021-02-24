@@ -1,2 +1,2 @@
-brun -m 74 '((c (q . 1) (q . (100 200))))'
-FAIL: cost exceeded 74
+brun -m 72 '(c (q . 100) (q . 200))'
+FAIL: cost exceeded 72
