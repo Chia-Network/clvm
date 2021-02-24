@@ -1,17 +1,11 @@
 brun --backend=python -c -v '(x)'
 FAIL: clvm raise ()
 
-((c (f 1) (r 1))) [((x))] => (didn't finish)
+(a 2 3) [((x))] => (didn't finish)
 
-(c (f 1) (r 1)) [((x))] => ((x))
+3 [((x))] => ()
 
-(r 1) [((x))] => ()
-
-1 [((x))] => ((x))
-
-(f 1) [((x))] => (x)
-
-1 [((x))] => ((x))
+2 [((x))] => (x)
 
 (x) [()] => (didn't finish)
 
