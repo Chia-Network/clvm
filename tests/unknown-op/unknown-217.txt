@@ -1,3 +1,2 @@
-brun -c '(a (q . 0x0000) (q . (1 2 (q . (10 20)))))'
-cost = 57
-()
+brun -c '(0xfffeffff40 (q . 1) (q . 2) (q . (1 10 20)))'
+FAIL: unknown op requires int args (q 10 20)
