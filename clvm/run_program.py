@@ -157,16 +157,10 @@ def run_program(
         if op == operator_lookup.apply_atom:
             if operand_list.list_len() != 2:
                 raise EvalError("apply requires exactly 2 parameters", operand_list)
-            new_operator = operand_list.first()
-            new_operand_list = operand_list.rest().first()
-            if new_operator.pair:
-                new_pair = new_operator.cons(new_operand_list)
-                value_stack.append(new_pair)
-                op_stack.append(eval_op)
-            else:
-                value_stack.append(new_operator)
-                value_stack.append(new_operand_list)
-                op_stack.append(apply_op)
+            new_program = operand_list.first()
+            new_args = operand_list.rest().first()
+            value_stack.append(new_program.cons(new_args))
+            op_stack.append(eval_op)
             return APPLY_COST
 
         additional_cost, r = operator_lookup(op, operand_list)
