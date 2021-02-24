@@ -1,2 +1,2 @@
-brun --strict -c '(a (q 0x38c0) (q ()))'
-FAIL: unimplemented operator 14528
+brun --strict -c '(0x03f (q . 1) (q . 2) (q . 3))'
+FAIL: unimplemented operator 0x003f

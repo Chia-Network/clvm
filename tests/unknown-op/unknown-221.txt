@@ -1,3 +1,2 @@
-brun -c '(a (q . 0x003f) (q . (1 2 (q . (10 20)))))'
-cost = 57
-()
+brun -c '(0x7ffffffff40 (q . 1) (q . 2) (q . (1 10 20)))'
+FAIL: invalid operator 0x07ffffffff40

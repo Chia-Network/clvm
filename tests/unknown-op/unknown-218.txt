@@ -1,2 +1,2 @@
-brun --strict -c '(a (q 0x0001) (q (1 2 (q 10 20))))'
-FAIL: unimplemented operator 0x0001
+brun --strict -c '(0xfffeffff7f (q . 1) (q . 2) (q . (1 10 20)))'
+FAIL: unimplemented operator 0xfffeffff7f

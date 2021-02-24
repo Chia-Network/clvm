@@ -1,2 +1,0 @@
-brun --strict -c '(a (q 0x00c1) (q (1 2 (q 10 20))))'
-FAIL: unimplemented operator 193

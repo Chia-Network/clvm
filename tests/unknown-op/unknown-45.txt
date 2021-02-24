@@ -1,3 +1,2 @@
-brun -c '(a (q . 0x0181) (q . ()))'
-cost = 60
-()
+brun -c '(0x7ffffffff80 )'
+FAIL: invalid operator 0x07ffffffff80
