@@ -1,3 +1,2 @@
 brun -c '((c (q . (+ (q . 50) 1)) (q . 500)))'
-cost = 97
-550
+FAIL: (()) eval disabled ((c (q 16 (q . 50) 1) (q . 500)))

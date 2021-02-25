@@ -124,10 +124,7 @@ def run_program(
 
         operator = sexp.first()
         if operator.pair:
-            value_stack.append(operator.cons(args))
-            op_stack.append(eval_op)
-            op_stack.append(eval_op)
-            return 1
+            raise EvalError("(()) eval disabled", sexp)
 
         op = operator.as_atom()
         operand_list = sexp.rest()
