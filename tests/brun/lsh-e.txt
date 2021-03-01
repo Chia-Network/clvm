@@ -1,0 +1,3 @@
+brun -c '(lsh (q . 0xffffff) (q . 1))'
+cost = 76
+0x01fffffe
