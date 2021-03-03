@@ -1,0 +1,2 @@
+brun -c '(((+)) 1 2 3)'
+FAIL: in ((X)...) syntax X must be lone atom (((+)) 1 2 3)
