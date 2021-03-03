@@ -124,7 +124,14 @@ def run_program(
 
         operator = sexp.first()
         if operator.pair:
-            raise EvalError("(()) eval disabled", sexp)
+            new_operator, must_be_nil = operator.as_pair()
+            if new_operator.pair or must_be_nil.atom != b"":
+                raise EvalError("in ((X)...) syntax X must be lone atom", sexp)
+            new_operand_list = sexp.rest()
+            value_stack.append(new_operator)
+            value_stack.append(new_operand_list)
+            op_stack.append(apply_op)
+            return APPLY_COST
 
         op = operator.as_atom()
         operand_list = sexp.rest()
