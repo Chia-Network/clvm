@@ -1,7 +1,7 @@
 import hashlib
 import io
 
-from blspy import G1Element
+from blspy import G1Element, PrivateKey
 
 from .EvalError import EvalError
 from .casts import limbs_for_int
@@ -191,8 +191,9 @@ def op_gr_bytes(args):
 def op_pubkey_for_exp(args):
     ((i0, l0),) = args_as_int_list("pubkey_for_exp", args, 1)
     i0 %= 0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001
+    exponent = PrivateKey.from_bytes(i0.to_bytes(32, "big"))
     try:
-        r = args.to(bytes(G1Element.generator() * i0))
+        r = args.to(bytes(exponent.get_g1()))
         cost = PUBKEY_BASE_COST
         cost += l0 // PUBKEY_COST_PER_BYTE_DIVIDER
         return cost, r
@@ -202,7 +203,7 @@ def op_pubkey_for_exp(args):
 
 def op_point_add(items):
     cost = POINT_ADD_BASE_COST
-    p = G1Element.generator() * 0
+    p = G1Element()
 
     for _ in items.as_iter():
         if _.pair:
