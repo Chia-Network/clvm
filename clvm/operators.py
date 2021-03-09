@@ -27,7 +27,7 @@ KEYWORDS = (
     ". q a i c f r l x "
 
     # opcodes on atoms as strings 0x09-0x0f
-    "= >s sha256 substr strlen concat . "
+    "= >s sha256 substr strlen concat substr_r "
 
     # opcodes on atoms as ints 0x10-0x17
     "+ - * / divmod > ash lsh "

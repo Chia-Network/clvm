@@ -1,0 +1,2 @@
+brun -c '(substr_r (q . "abcdefghijkl") 2 5)' '(10 10)'
+FAIL: substr_r takes exactly 2 arguments ("abcdefghijkl" 10 10)

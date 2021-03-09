@@ -1,0 +1,3 @@
+brun -c '(substr_r (q . "abcdefghijkl") (q . 0))'
+cost = 56
+"abcdefghijkl"

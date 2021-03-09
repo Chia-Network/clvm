@@ -244,6 +244,24 @@ def op_substr(args):
     return cost, args.to(s)
 
 
+def op_substr_r(args):
+    if args.list_len() != 2:
+        raise EvalError("substr_r takes exactly 2 arguments", args)
+    a0 = args.first()
+    if a0.pair:
+        raise EvalError("substr_r on list", a0)
+
+    start_index = list(args_as_int32("substr_r", args.rest()))[0]
+
+    s0 = a0.as_atom()
+    end_index = len(s0)
+    if end_index < start_index or start_index < 0:
+        raise EvalError("invalid indices for substr_r", args)
+    s = s0[start_index:end_index]
+    cost = 1
+    return cost, args.to(s)
+
+
 def op_concat(args):
     cost = CONCAT_BASE_COST
     s = io.BytesIO()
