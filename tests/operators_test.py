@@ -44,7 +44,7 @@ class OperatorsTest(unittest.TestCase):
             self.assertEqual(default_unknown_op(b"", SExp.null()), (1, SExp.null()))
 
         # a single ff is not sufficient to be treated as a reserved opcode
-        self.assertEqual(default_unknown_op(b"\xff", SExp.null()), (4, SExp.null()))
+        self.assertEqual(default_unknown_op(b"\xff", SExp.null()), (1, SExp.null()))
 
         # leading zeroes count, and this does not count as a ffff-prefix
         # the cost is 0xffff00 = 16776960

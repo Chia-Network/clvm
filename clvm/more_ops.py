@@ -338,7 +338,7 @@ def op_not(args):
         r = args.true
     else:
         r = args.false
-    cost = BOOL_BASE_COST + BOOL_COST_PER_ARG
+    cost = BOOL_BASE_COST
     return cost, args.to(r)
 
 

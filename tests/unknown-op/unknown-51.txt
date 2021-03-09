@@ -1,3 +1,3 @@
 brun -c '(0x0ff )'
-cost = 57
+cost = 54
 ()
