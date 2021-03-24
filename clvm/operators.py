@@ -11,7 +11,7 @@ from .op_utils import operators_for_module
 
 from .costs import (
     ARITH_BASE_COST,
-    ARITH_COST_PER_LIMB_DIVIDER,
+    ARITH_COST_PER_BYTE_DIVIDER,
     ARITH_COST_PER_ARG,
     MUL_BASE_COST,
     MUL_COST_PER_OP,
@@ -130,7 +130,7 @@ def default_unknown_op(op: bytes, args: CLVMObject) -> Tuple[int, CLVMObject]:
         for length in args_len("unknown op", args):
             arg_size += length
             cost += ARITH_COST_PER_ARG
-        cost += arg_size // ARITH_COST_PER_LIMB_DIVIDER
+        cost += arg_size // ARITH_COST_PER_BYTE_DIVIDER
     elif cost_function == 2:
         # like op_multiply
         cost = MUL_BASE_COST

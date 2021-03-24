@@ -8,15 +8,15 @@ from .casts import limbs_for_int
 
 from .costs import (
     ARITH_BASE_COST,
-    ARITH_COST_PER_LIMB_DIVIDER,
+    ARITH_COST_PER_BYTE_DIVIDER,
     ARITH_COST_PER_ARG,
     LOG_BASE_COST,
     LOG_COST_PER_ARG,
-    LOG_COST_PER_LIMB_DIVIDER,
+    LOG_COST_PER_BYTE_DIVIDER,
     DIVMOD_BASE_COST,
-    DIVMOD_COST_PER_LIMB_DIVIDER,
+    DIVMOD_COST_PER_BYTE_DIVIDER,
     DIV_BASE_COST,
-    DIV_COST_PER_LIMB_DIVIDER,
+    DIV_COST_PER_BYTE_DIVIDER,
     MUL_BASE_COST,
     MUL_COST_PER_OP,
     MUL_LINEAR_COST_PER_BYTE_DIVIDER,
@@ -40,9 +40,9 @@ from .costs import (
     SHIFT_BASE_COST,
     SHIFT_COST_PER_BYTE_DIVIDER,
     CMP_BASE_COST,
-    CMP_COST_PER_LIMB_DIVIDER,
+    CMP_COST_PER_BYTE_DIVIDER,
     GR_BASE_COST,
-    GR_COST_PER_LIMB_DIVIDER,
+    GR_COST_PER_BYTE_DIVIDER,
 )
 
 
@@ -110,7 +110,7 @@ def op_add(args):
         total += r
         arg_size += l
         cost += ARITH_COST_PER_ARG
-    cost += arg_size // ARITH_COST_PER_LIMB_DIVIDER
+    cost += arg_size // ARITH_COST_PER_BYTE_DIVIDER
     return cost, args.to(total)
 
 
@@ -126,7 +126,7 @@ def op_subtract(args):
         sign = -1
         arg_size += l
         cost += ARITH_COST_PER_ARG
-    cost += arg_size // ARITH_COST_PER_LIMB_DIVIDER
+    cost += arg_size // ARITH_COST_PER_BYTE_DIVIDER
     return cost, args.to(total)
 
 
@@ -152,7 +152,7 @@ def op_divmod(args):
     (i0, l0), (i1, l1) = args_as_int_list("divmod", args, 2)
     if i1 == 0:
         raise EvalError("divmod with 0", args.to(i0))
-    cost += (l0 + l1) // DIVMOD_COST_PER_LIMB_DIVIDER
+    cost += (l0 + l1) // DIVMOD_COST_PER_BYTE_DIVIDER
     q, r = divmod(i0, i1)
     return cost, args.to((q, r))
 
@@ -162,7 +162,7 @@ def op_div(args):
     (i0, l0), (i1, l1) = args_as_int_list("/", args, 2)
     if i1 == 0:
         raise EvalError("div with 0", args.to(i0))
-    cost += (l0 + l1) // DIV_COST_PER_LIMB_DIVIDER
+    cost += (l0 + l1) // DIV_COST_PER_BYTE_DIVIDER
     q = i0 // i1
     return cost, args.to(q)
 
@@ -170,7 +170,7 @@ def op_div(args):
 def op_gr(args):
     (i0, l0), (i1, l1) = args_as_int_list(">", args, 2)
     cost = GR_BASE_COST
-    cost += (l0 + l1) // GR_COST_PER_LIMB_DIVIDER
+    cost += (l0 + l1) // GR_COST_PER_BYTE_DIVIDER
     return cost, args.true if i0 > i1 else args.false
 
 
@@ -184,7 +184,7 @@ def op_gr_bytes(args):
     b0 = a0.as_atom()
     b1 = a1.as_atom()
     cost = CMP_BASE_COST
-    cost += (len(b0) + len(b1)) // CMP_COST_PER_LIMB_DIVIDER
+    cost += (len(b0) + len(b1)) // CMP_COST_PER_BYTE_DIVIDER
     return cost, args.true if b0 > b1 else args.false
 
 
@@ -298,7 +298,7 @@ def binop_reduction(op_name, initial_value, args, op_f):
         total = op_f(total, r)
         arg_size += l
         cost += LOG_COST_PER_ARG
-    cost += arg_size // LOG_COST_PER_LIMB_DIVIDER
+    cost += arg_size // LOG_COST_PER_BYTE_DIVIDER
     return cost, args.to(total)
 
 
