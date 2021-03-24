@@ -7,7 +7,7 @@ from .costs import (
     REST_COST,
     LISTP_COST,
     CMP_BASE_COST,
-    CMP_COST_PER_LIMB_DIVIDER,
+    CMP_COST_PER_BYTE_DIVIDER,
 )
 
 
@@ -58,5 +58,5 @@ def op_eq(args):
     b0 = a0.as_atom()
     b1 = a1.as_atom()
     cost = CMP_BASE_COST
-    cost += (len(b0) + len(b1)) // CMP_COST_PER_LIMB_DIVIDER
+    cost += (len(b0) + len(b1)) // CMP_COST_PER_BYTE_DIVIDER
     return cost, (args.true if b0 == b1 else args.false)
