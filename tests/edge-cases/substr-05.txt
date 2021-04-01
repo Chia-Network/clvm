@@ -1,2 +1,2 @@
 brun -n '(substr (q . 1) (q . 1) (q . 1) (q . 1))'
-FAIL: substr takes exactly 3 arguments (1 1 1 1)
+FAIL: substr takes exactly 2 or 3 arguments (1 1 1 1)

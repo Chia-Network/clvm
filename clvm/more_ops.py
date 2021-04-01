@@ -228,15 +228,21 @@ def op_strlen(args):
 
 
 def op_substr(args):
-    if args.list_len() != 3:
-        raise EvalError("substr takes exactly 3 arguments", args)
+    arg_count = args.list_len()
+    if arg_count not in (2, 3):
+        raise EvalError("substr takes exactly 2 or 3 arguments", args)
     a0 = args.first()
     if a0.pair:
         raise EvalError("substr on list", a0)
 
-    i1, i2 = list(args_as_int32("substr", args.rest()))
-
     s0 = a0.as_atom()
+
+    if arg_count == 2:
+        i1, = list(args_as_int32("substr", args.rest()))
+        i2 = len(s0)
+    else:
+        i1, i2 = list(args_as_int32("substr", args.rest()))
+
     if i2 > len(s0) or i2 < i1 or i2 < 0 or i1 < 0:
         raise EvalError("invalid indices for substr", args)
     s = s0[i1:i2]

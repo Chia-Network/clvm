@@ -1,0 +1,3 @@
+brun -c '(substr (q . "abcdefghijkl") (q . 11))'
+cost = 56
+108
