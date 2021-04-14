@@ -1,3 +1,3 @@
 brun -c '(lognot (q . 12))'
-cost = 57
+cost = 374
 -13

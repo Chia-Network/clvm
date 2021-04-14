@@ -7,6 +7,7 @@ from .SExp import SExp
 from .costs import (
     APPLY_COST,
     QUOTE_COST,
+    PATH_LOOKUP_BASE_COST,
     PATH_LOOKUP_COST_PER_LEG,
     PATH_LOOKUP_COST_PER_ZERO_BYTE
 )
@@ -59,7 +60,8 @@ def run_program(
         pre_eval_op = None
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
-        cost = PATH_LOOKUP_COST_PER_LEG
+        cost = PATH_LOOKUP_BASE_COST
+        cost += PATH_LOOKUP_COST_PER_LEG
         if sexp.nullp():
             return cost, sexp.null()
 

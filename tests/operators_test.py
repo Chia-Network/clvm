@@ -3,6 +3,7 @@ import unittest
 from clvm.operators import (OPERATOR_LOOKUP, KEYWORD_TO_ATOM, default_unknown_op, OperatorDict)
 from clvm.EvalError import EvalError
 from clvm import SExp
+from clvm.costs import CONCAT_BASE_COST
 
 
 class OperatorsTest(unittest.TestCase):
@@ -44,7 +45,7 @@ class OperatorsTest(unittest.TestCase):
             self.assertEqual(default_unknown_op(b"", SExp.null()), (1, SExp.null()))
 
         # a single ff is not sufficient to be treated as a reserved opcode
-        self.assertEqual(default_unknown_op(b"\xff", SExp.null()), (1, SExp.null()))
+        self.assertEqual(default_unknown_op(b"\xff", SExp.null()), (CONCAT_BASE_COST, SExp.null()))
 
         # leading zeroes count, and this does not count as a ffff-prefix
         # the cost is 0xffff00 = 16776960

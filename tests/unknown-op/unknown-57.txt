@@ -1,3 +1,2 @@
 brun -c '(0xfffeffffc0 )'
-cost = 4294901813
-()
+FAIL: invalid operator 0xfffeffffc0

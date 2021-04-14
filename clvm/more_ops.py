@@ -8,42 +8,49 @@ from .casts import limbs_for_int
 
 from .costs import (
     ARITH_BASE_COST,
-    ARITH_COST_PER_BYTE_DIVIDER,
+    ARITH_COST_PER_BYTE,
     ARITH_COST_PER_ARG,
     LOG_BASE_COST,
     LOG_COST_PER_ARG,
-    LOG_COST_PER_BYTE_DIVIDER,
+    LOG_COST_PER_BYTE,
     DIVMOD_BASE_COST,
-    DIVMOD_COST_PER_BYTE_DIVIDER,
+    DIVMOD_COST_PER_BYTE,
     DIV_BASE_COST,
-    DIV_COST_PER_BYTE_DIVIDER,
+    DIV_COST_PER_BYTE,
     MUL_BASE_COST,
     MUL_COST_PER_OP,
-    MUL_LINEAR_COST_PER_BYTE_DIVIDER,
+    MUL_LINEAR_COST_PER_BYTE,
     MUL_SQUARE_COST_PER_BYTE_DIVIDER,
     SHA256_BASE_COST,
     SHA256_COST_PER_ARG,
-    SHA256_COST_PER_BYTE_DIVIDER,
+    SHA256_COST_PER_BYTE,
     PUBKEY_BASE_COST,
-    PUBKEY_COST_PER_BYTE_DIVIDER,
+    PUBKEY_COST_PER_BYTE,
     POINT_ADD_BASE_COST,
     POINT_ADD_COST_PER_ARG,
     STRLEN_BASE_COST,
-    STRLEN_COST_PER_BYTE_DIVIDER,
+    STRLEN_COST_PER_BYTE,
     CONCAT_BASE_COST,
     CONCAT_COST_PER_ARG,
-    CONCAT_COST_PER_BYTE_DIVIDER,
+    CONCAT_COST_PER_BYTE,
     BOOL_BASE_COST,
     BOOL_COST_PER_ARG,
     LOGNOT_BASE_COST,
-    LOGNOT_COST_PER_BYTE_DIVIDER,
-    SHIFT_BASE_COST,
-    SHIFT_COST_PER_BYTE_DIVIDER,
-    CMP_BASE_COST,
-    CMP_COST_PER_BYTE_DIVIDER,
+    LOGNOT_COST_PER_BYTE,
+    LSHIFT_BASE_COST,
+    LSHIFT_COST_PER_BYTE,
+    ASHIFT_BASE_COST,
+    ASHIFT_COST_PER_BYTE,
+    GRS_BASE_COST,
+    GRS_COST_PER_BYTE,
     GR_BASE_COST,
-    GR_COST_PER_BYTE_DIVIDER,
+    GR_COST_PER_BYTE,
+    MALLOC_COST_PER_BYTE,
 )
+
+
+def malloc_cost(cost, atom):
+    return cost + len(atom.atom) * MALLOC_COST_PER_BYTE, atom
 
 
 def op_sha256(args):
@@ -57,8 +64,8 @@ def op_sha256(args):
         arg_len += len(atom)
         cost += SHA256_COST_PER_ARG
         h.update(atom)
-    cost += arg_len // SHA256_COST_PER_BYTE_DIVIDER
-    return cost, args.to(h.digest())
+    cost += arg_len * SHA256_COST_PER_BYTE
+    return malloc_cost(cost, args.to(h.digest()))
 
 
 def args_as_ints(op_name, args):
@@ -110,14 +117,14 @@ def op_add(args):
         total += r
         arg_size += l
         cost += ARITH_COST_PER_ARG
-    cost += arg_size // ARITH_COST_PER_BYTE_DIVIDER
-    return cost, args.to(total)
+    cost += arg_size * ARITH_COST_PER_BYTE
+    return malloc_cost(cost, args.to(total))
 
 
 def op_subtract(args):
     cost = ARITH_BASE_COST
     if args.nullp():
-        return cost, args.to(0)
+        return malloc_cost(cost, args.to(0))
     sign = 1
     total = 0
     arg_size = 0
@@ -126,8 +133,8 @@ def op_subtract(args):
         sign = -1
         arg_size += l
         cost += ARITH_COST_PER_ARG
-    cost += arg_size // ARITH_COST_PER_BYTE_DIVIDER
-    return cost, args.to(total)
+    cost += arg_size * ARITH_COST_PER_BYTE
+    return malloc_cost(cost, args.to(total))
 
 
 def op_multiply(args):
@@ -136,15 +143,15 @@ def op_multiply(args):
     try:
         v, vs = next(operands)
     except StopIteration:
-        return cost, args.to(1)
+        return malloc_cost(cost, args.to(1))
 
     for r, rs in operands:
         cost += MUL_COST_PER_OP
-        cost += (rs + vs) // MUL_LINEAR_COST_PER_BYTE_DIVIDER
+        cost += (rs + vs) * MUL_LINEAR_COST_PER_BYTE
         cost += (rs * vs) // MUL_SQUARE_COST_PER_BYTE_DIVIDER
         v = v * r
         vs = limbs_for_int(v)
-    return cost, args.to(v)
+    return malloc_cost(cost, args.to(v))
 
 
 def op_divmod(args):
@@ -152,8 +159,11 @@ def op_divmod(args):
     (i0, l0), (i1, l1) = args_as_int_list("divmod", args, 2)
     if i1 == 0:
         raise EvalError("divmod with 0", args.to(i0))
-    cost += (l0 + l1) // DIVMOD_COST_PER_BYTE_DIVIDER
+    cost += (l0 + l1) * DIVMOD_COST_PER_BYTE
     q, r = divmod(i0, i1)
+    q1 = args.to(q)
+    r1 = args.to(r)
+    cost += (len(q1.atom) + len(r1.atom)) * MALLOC_COST_PER_BYTE
     return cost, args.to((q, r))
 
 
@@ -162,15 +172,15 @@ def op_div(args):
     (i0, l0), (i1, l1) = args_as_int_list("/", args, 2)
     if i1 == 0:
         raise EvalError("div with 0", args.to(i0))
-    cost += (l0 + l1) // DIV_COST_PER_BYTE_DIVIDER
+    cost += (l0 + l1) * DIV_COST_PER_BYTE
     q = i0 // i1
-    return cost, args.to(q)
+    return malloc_cost(cost, args.to(q))
 
 
 def op_gr(args):
     (i0, l0), (i1, l1) = args_as_int_list(">", args, 2)
     cost = GR_BASE_COST
-    cost += (l0 + l1) // GR_COST_PER_BYTE_DIVIDER
+    cost += (l0 + l1) * GR_COST_PER_BYTE
     return cost, args.true if i0 > i1 else args.false
 
 
@@ -183,8 +193,8 @@ def op_gr_bytes(args):
         raise EvalError(">s on list", a0 if a0.pair else a1)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
-    cost = CMP_BASE_COST
-    cost += (len(b0) + len(b1)) // CMP_COST_PER_BYTE_DIVIDER
+    cost = GRS_BASE_COST
+    cost += (len(b0) + len(b1)) * GRS_COST_PER_BYTE
     return cost, args.true if b0 > b1 else args.false
 
 
@@ -195,8 +205,8 @@ def op_pubkey_for_exp(args):
     try:
         r = args.to(bytes(exponent.get_g1()))
         cost = PUBKEY_BASE_COST
-        cost += l0 // PUBKEY_COST_PER_BYTE_DIVIDER
-        return cost, r
+        cost += l0 * PUBKEY_COST_PER_BYTE
+        return malloc_cost(cost, r)
     except Exception as ex:
         raise EvalError("problem in op_pubkey_for_exp: %s" % ex, args)
 
@@ -213,7 +223,7 @@ def op_point_add(items):
             cost += POINT_ADD_COST_PER_ARG
         except Exception as ex:
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
-    return cost, items.to(p)
+    return malloc_cost(cost, items.to(p))
 
 
 def op_strlen(args):
@@ -223,8 +233,8 @@ def op_strlen(args):
     if a0.pair:
         raise EvalError("strlen on list", a0)
     size = len(a0.as_atom())
-    cost = STRLEN_BASE_COST + size // STRLEN_COST_PER_BYTE_DIVIDER
-    return cost, args.to(size)
+    cost = STRLEN_BASE_COST + size * STRLEN_COST_PER_BYTE
+    return malloc_cost(cost, args.to(size))
 
 
 def op_substr(args):
@@ -259,8 +269,8 @@ def op_concat(args):
         s.write(arg.as_atom())
         cost += CONCAT_COST_PER_ARG
     r = s.getvalue()
-    cost += len(r) // CONCAT_COST_PER_BYTE_DIVIDER
-    return cost, args.to(r)
+    cost += len(r) * CONCAT_COST_PER_BYTE
+    return malloc_cost(cost, args.to(r))
 
 
 def op_ash(args):
@@ -273,9 +283,9 @@ def op_ash(args):
         r = i0 << i1
     else:
         r = i0 >> -i1
-    cost = SHIFT_BASE_COST
-    cost += (l0 + limbs_for_int(r)) // SHIFT_COST_PER_BYTE_DIVIDER
-    return cost, args.to(r)
+    cost = ASHIFT_BASE_COST
+    cost += (l0 + limbs_for_int(r)) * ASHIFT_COST_PER_BYTE
+    return malloc_cost(cost, args.to(r))
 
 
 def op_lsh(args):
@@ -291,9 +301,9 @@ def op_lsh(args):
         r = i0 << i1
     else:
         r = i0 >> -i1
-    cost = SHIFT_BASE_COST
-    cost += (l0 + limbs_for_int(r)) // SHIFT_COST_PER_BYTE_DIVIDER
-    return cost, args.to(r)
+    cost = LSHIFT_BASE_COST
+    cost += (l0 + limbs_for_int(r)) * LSHIFT_COST_PER_BYTE
+    return malloc_cost(cost, args.to(r))
 
 
 def binop_reduction(op_name, initial_value, args, op_f):
@@ -304,8 +314,8 @@ def binop_reduction(op_name, initial_value, args, op_f):
         total = op_f(total, r)
         arg_size += l
         cost += LOG_COST_PER_ARG
-    cost += arg_size // LOG_COST_PER_BYTE_DIVIDER
-    return cost, args.to(total)
+    cost += arg_size * LOG_COST_PER_BYTE
+    return malloc_cost(cost, args.to(total))
 
 
 def op_logand(args):
@@ -334,8 +344,8 @@ def op_logxor(args):
 
 def op_lognot(args):
     (i0, l0), = args_as_int_list("lognot", args, 1)
-    cost = LOGNOT_BASE_COST + l0 // LOGNOT_COST_PER_BYTE_DIVIDER
-    return cost, args.to(~i0)
+    cost = LOGNOT_BASE_COST + l0 * LOGNOT_COST_PER_BYTE
+    return malloc_cost(cost, args.to(~i0))
 
 
 def op_not(args):
@@ -379,4 +389,4 @@ def op_softfork(args):
     cost = a.as_int()
     if cost < 1:
         raise EvalError("cost must be > 0", args)
-    return cost, args.to(0)
+    return cost, args.false
