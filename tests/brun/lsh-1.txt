@@ -1,3 +1,3 @@
 brun -c '(lsh (q . 7) (q . 1))'
-cost = 59
+cost = 339
 14

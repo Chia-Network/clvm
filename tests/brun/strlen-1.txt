@@ -1,3 +1,3 @@
 brun -c '(strlen 1)' 'foo-bar'
-cost = 56
+cost = 234
 7

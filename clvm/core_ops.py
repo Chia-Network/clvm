@@ -6,8 +6,8 @@ from .costs import (
     FIRST_COST,
     REST_COST,
     LISTP_COST,
-    CMP_BASE_COST,
-    CMP_COST_PER_BYTE_DIVIDER,
+    EQ_BASE_COST,
+    EQ_COST_PER_BYTE,
 )
 
 
@@ -57,6 +57,6 @@ def op_eq(args):
         raise EvalError("= on list", a0 if a0.pair else a1)
     b0 = a0.as_atom()
     b1 = a1.as_atom()
-    cost = CMP_BASE_COST
-    cost += (len(b0) + len(b1)) // CMP_COST_PER_BYTE_DIVIDER
+    cost = EQ_BASE_COST
+    cost += (len(b0) + len(b1)) * EQ_COST_PER_BYTE
     return cost, (args.true if b0 == b1 else args.false)
