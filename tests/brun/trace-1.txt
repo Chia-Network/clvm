@@ -1,5 +1,5 @@
 brun --backend=python -c -v '(+ (q . 10) (f 1))' '(51)'
-cost = 856
+cost = 860
 61
 
 (a 2 3) [((+ (q . 10) (f 1)) 51)] => 61

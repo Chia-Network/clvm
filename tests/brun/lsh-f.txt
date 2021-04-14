@@ -1,3 +1,3 @@
 brun -c '(lsh (q . 0x00ffffff) (q . -1))'
-cost = 369
+cost = 378
 0x7fffff

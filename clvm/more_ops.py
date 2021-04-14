@@ -45,7 +45,12 @@ from .costs import (
     GRS_COST_PER_BYTE,
     GR_BASE_COST,
     GR_COST_PER_BYTE,
+    MALLOC_COST_PER_BYTE,
 )
+
+
+def malloc_cost(cost, atom):
+    return cost + len(atom.atom) * MALLOC_COST_PER_BYTE, atom
 
 
 def op_sha256(args):
@@ -60,7 +65,7 @@ def op_sha256(args):
         cost += SHA256_COST_PER_ARG
         h.update(atom)
     cost += arg_len * SHA256_COST_PER_BYTE
-    return cost, args.to(h.digest())
+    return malloc_cost(cost, args.to(h.digest()))
 
 
 def args_as_ints(op_name, args):
@@ -113,13 +118,13 @@ def op_add(args):
         arg_size += l
         cost += ARITH_COST_PER_ARG
     cost += arg_size * ARITH_COST_PER_BYTE
-    return cost, args.to(total)
+    return malloc_cost(cost, args.to(total))
 
 
 def op_subtract(args):
     cost = ARITH_BASE_COST
     if args.nullp():
-        return cost, args.to(0)
+        return malloc_cost(cost, args.to(0))
     sign = 1
     total = 0
     arg_size = 0
@@ -129,7 +134,7 @@ def op_subtract(args):
         arg_size += l
         cost += ARITH_COST_PER_ARG
     cost += arg_size * ARITH_COST_PER_BYTE
-    return cost, args.to(total)
+    return malloc_cost(cost, args.to(total))
 
 
 def op_multiply(args):
@@ -138,7 +143,7 @@ def op_multiply(args):
     try:
         v, vs = next(operands)
     except StopIteration:
-        return cost, args.to(1)
+        return malloc_cost(cost, args.to(1))
 
     for r, rs in operands:
         cost += MUL_COST_PER_OP
@@ -146,7 +151,7 @@ def op_multiply(args):
         cost += (rs * vs) // MUL_SQUARE_COST_PER_BYTE_DIVIDER
         v = v * r
         vs = limbs_for_int(v)
-    return cost, args.to(v)
+    return malloc_cost(cost, args.to(v))
 
 
 def op_divmod(args):
@@ -156,6 +161,9 @@ def op_divmod(args):
         raise EvalError("divmod with 0", args.to(i0))
     cost += (l0 + l1) * DIVMOD_COST_PER_BYTE
     q, r = divmod(i0, i1)
+    q1 = args.to(q)
+    r1 = args.to(r)
+    cost += (len(q1.atom) + len(r1.atom)) * MALLOC_COST_PER_BYTE
     return cost, args.to((q, r))
 
 
@@ -166,7 +174,7 @@ def op_div(args):
         raise EvalError("div with 0", args.to(i0))
     cost += (l0 + l1) * DIV_COST_PER_BYTE
     q = i0 // i1
-    return cost, args.to(q)
+    return malloc_cost(cost, args.to(q))
 
 
 def op_gr(args):
@@ -198,7 +206,7 @@ def op_pubkey_for_exp(args):
         r = args.to(bytes(exponent.get_g1()))
         cost = PUBKEY_BASE_COST
         cost += l0 * PUBKEY_COST_PER_BYTE
-        return cost, r
+        return malloc_cost(cost, r)
     except Exception as ex:
         raise EvalError("problem in op_pubkey_for_exp: %s" % ex, args)
 
@@ -215,7 +223,7 @@ def op_point_add(items):
             cost += POINT_ADD_COST_PER_ARG
         except Exception as ex:
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
-    return cost, items.to(p)
+    return malloc_cost(cost, items.to(p))
 
 
 def op_strlen(args):
@@ -226,7 +234,7 @@ def op_strlen(args):
         raise EvalError("strlen on list", a0)
     size = len(a0.as_atom())
     cost = STRLEN_BASE_COST + size * STRLEN_COST_PER_BYTE
-    return cost, args.to(size)
+    return malloc_cost(cost, args.to(size))
 
 
 def op_substr(args):
@@ -262,7 +270,7 @@ def op_concat(args):
         cost += CONCAT_COST_PER_ARG
     r = s.getvalue()
     cost += len(r) * CONCAT_COST_PER_BYTE
-    return cost, args.to(r)
+    return malloc_cost(cost, args.to(r))
 
 
 def op_ash(args):
@@ -277,7 +285,7 @@ def op_ash(args):
         r = i0 >> -i1
     cost = ASHIFT_BASE_COST
     cost += (l0 + limbs_for_int(r)) * ASHIFT_COST_PER_BYTE
-    return cost, args.to(r)
+    return malloc_cost(cost, args.to(r))
 
 
 def op_lsh(args):
@@ -295,7 +303,7 @@ def op_lsh(args):
         r = i0 >> -i1
     cost = LSHIFT_BASE_COST
     cost += (l0 + limbs_for_int(r)) * LSHIFT_COST_PER_BYTE
-    return cost, args.to(r)
+    return malloc_cost(cost, args.to(r))
 
 
 def binop_reduction(op_name, initial_value, args, op_f):
@@ -307,7 +315,7 @@ def binop_reduction(op_name, initial_value, args, op_f):
         arg_size += l
         cost += LOG_COST_PER_ARG
     cost += arg_size * LOG_COST_PER_BYTE
-    return cost, args.to(total)
+    return malloc_cost(cost, args.to(total))
 
 
 def op_logand(args):
@@ -337,7 +345,7 @@ def op_logxor(args):
 def op_lognot(args):
     (i0, l0), = args_as_int_list("lognot", args, 1)
     cost = LOGNOT_BASE_COST + l0 * LOGNOT_COST_PER_BYTE
-    return cost, args.to(~i0)
+    return malloc_cost(cost, args.to(~i0))
 
 
 def op_not(args):
@@ -381,4 +389,4 @@ def op_softfork(args):
     cost = a.as_int()
     if cost < 1:
         raise EvalError("cost must be > 0", args)
-    return cost, args.to(0)
+    return cost, args.false
