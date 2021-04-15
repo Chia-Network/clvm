@@ -1,0 +1,2 @@
+brun -c --strict '(a (q 0xff) (q 1))'
+FAIL: unimplemented operator -1
