@@ -26,10 +26,12 @@ class CLVMObject:
     __slots__ = ["atom", "pair"]
 ```
 
+Line by line we find:
+
 ```python 
      atom: typing.Optional[bytes]
 ```
-* Create an instance of a CLVMObject that is an instance of an atom that is of type [bytes] or None.
+* Create an instance of a CLVMObject that is an instance of an atom that is of type [bytes] or None? (TBD) 
 * [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
    * Union[X, Y] means either X or Y
 
