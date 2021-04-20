@@ -8,13 +8,16 @@ A [CLVM object](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py
 
 > minimal `SExp` type that defines how and where its contents are stored in the heap.
 
-SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf). 
 
-An S-expression or Symbolic Expression is commonly understood as a way to represent a nested list though the [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf) tells us that symbolic expressions are:
+### Symbolic Expressions
+
+SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf). An S-expression or Symbolic Expression is commonly understood as a way to represent a nested list though the [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf) tells us that symbolic expressions are:
 
 > data whose elementary parts can be arbitrary symbols rather than only numbers (p. 90) 
 
 *For further exploration see page 100 - 104 of the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf)*
+
+## CLVMObject Code
 
 Below we see the CLVMObject class in [CLVMObject.py](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py) and the extensive use of the [typing library](https://docs.python.org/3/library/typing.html) for type hints. 
 
@@ -31,17 +34,21 @@ Line by line we find:
 ```python 
      atom: typing.Optional[bytes]
 ```
-* Create an instance of a CLVMObject that is an instance of an atom that is of type [bytes] or None? (TBD) 
+* Create an instance of a CLVMObject that is an atom of type [bytes] or None (???) 
 * [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
    * Union[X, Y] means either X or Y
 
 ```python
   pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
 ```
-
+* Create an instance of CLVMObject that is a pair of tuple of two CLVMObjects each with their own type (???) 
 * [typing.Tuple](https://docs.python.org/3/library/typing.html#typing.Tuple) - Tuple[X, Y] is the type of a tuple of two items with the first item of type X and the second of type Y.
 * Example: Tuple[int, float, str] is a tuple of an int, a float and a string.
 
+```python
+   __slots__ = ["atom", "pair"]
+```
+* The dunder method for 
 
 ```python
     def __new__(class_, v: "SExpType"):
