@@ -1,4 +1,4 @@
-A fork of CLVM to add my own documentation.
+A fork of CLVM to add documentation and explanation. 
 
 # CLVMObject 
 
