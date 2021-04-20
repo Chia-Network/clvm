@@ -27,8 +27,22 @@ class CLVMObject:
     __slots__ = ["atom", "pair"]
 
 ```
-[Optional[X]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[X, None]](https://docs.python.org/3/library/typing.html#typing.Union) --> Union[X, Y] means either X or Y
 
+line by line:
+
+```python
+    
+     atom: typing.Optional[bytes]
+```
+* [Optional[X]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[X, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
+* Union[X, Y] means either X or Y
+
+```python
+  pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
+```
+
+* [typing.Tuple](https://docs.python.org/3/library/typing.html#typing.Tuple) - Tuple[X, Y] is the type of a tuple of two items with the first item of type X and the second of type Y.
+* Example: Tuple[int, float, str] is a tuple of an int, a float and a string.
 
 
 ```python
