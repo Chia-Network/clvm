@@ -27,7 +27,7 @@ class CLVMObject:
     __slots__ = ["atom", "pair"]
 
 ```
-[Optional[X]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[X, None]](https://docs.python.org/3/library/typing.html#typing.Union)`
+[Optional[X]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[X, None]](https://docs.python.org/3/library/typing.html#typing.Union) --> Union[X, Y] means either X or Y
 
 
 
