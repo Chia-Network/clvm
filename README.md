@@ -2,9 +2,11 @@ A fork of CLVM to add documentation and explanation.
 
 # CLVMObject 
 
+It appears as if the primary unit of the CLVM is the CLVMObject.
+
 A [CLVM object](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py#L2) is a:
 
-> minimal `SExp` type that defines how and where its contents are stored in the heap
+> minimal `SExp` type that defines how and where its contents are stored in the heap.
 
 SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf). 
 
@@ -14,28 +16,22 @@ An S-expression or Symbolic Expression is commonly understood as a way to repres
 
 *For further exploration see page 100 - 104 of the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf)*
 
-
-
-The CLVM object makes extensive use of the [typing library](https://docs.python.org/3/library/typing.html) for type hints. 
+Below we see the CLVMObject class in [CLVMObject.py](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py) and the extensive use of the [typing library](https://docs.python.org/3/library/typing.html) for type hints. 
 
 ```python
 
 class CLVMObject:
-
     atom: typing.Optional[bytes]
     pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
     __slots__ = ["atom", "pair"]
-
 ```
 
-line by line:
-
-```python
-    
+```python 
      atom: typing.Optional[bytes]
 ```
-* [Optional[X]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[X, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
-* Union[X, Y] means either X or Y
+* Create an instance of a CLVMObject that is an instance of an atom that is of type [bytes] or None.
+* [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
+   * Union[X, Y] means either X or Y
 
 ```python
   pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
