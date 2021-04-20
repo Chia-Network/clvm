@@ -26,6 +26,12 @@ class CLVMObject:
     pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
     __slots__ = ["atom", "pair"]
 
+``
+[Optional[X]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[X, None]](https://docs.python.org/3/library/typing.html#typing.Union)`
+
+
+
+```python
     def __new__(class_, v: "SExpType"):
         if isinstance(v, CLVMObject):
             return v
