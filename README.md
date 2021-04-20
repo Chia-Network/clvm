@@ -6,6 +6,15 @@ A [CLVM object](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py
 
 > minimal `SExp` type that defines how and where its contents are stored in the heap
 
+SExp (thanks to keybase user lucksparrow for clarifying) stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf). 
+
+An S-expression or Symbolic Expression is commonly understood as a way to represent a nested list though the [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf) tells us that symbolic expressions are:
+
+> data whose elementary parts can be arbitrary symbols rather than only numbers (p. 90) 
+
+*For further exploration see page 100 - 104 of the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf)*
+
+
 
 The CLVM object makes extensive use of the [typing library](https://docs.python.org/3/library/typing.html) for type hints. 
 
