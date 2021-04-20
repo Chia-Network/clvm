@@ -17,7 +17,7 @@ SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2
 
 *For further exploration see page 100 - 104 of the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf)*
 
-## CLVMObject Code
+### CLVMObject Class
 
 Below we see the CLVMObject class in [CLVMObject.py](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py) and the extensive use of the [typing library](https://docs.python.org/3/library/typing.html) for type hints. 
 
@@ -34,6 +34,7 @@ Line by line we find:
 ```python 
      atom: typing.Optional[bytes]
 ```
+* 
 * Create an instance of a CLVMObject that is an atom of type [bytes] or None (???) 
 * [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
    * Union[X, Y] means either X or Y
