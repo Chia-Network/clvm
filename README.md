@@ -20,6 +20,8 @@ LISP (LISt Processor) has been [credited to John McCarthy](http://www-formal.sta
 
 <img src="mccarthy.jpg" width="350" height="500" />
 
+A proponent of Church rather than Turing, he naturally gravitated towards the [Lambda calculus](https://iep.utm.edu/lambda-calculi/) and thus the LISP project which he spearheaded bent in the direction of functional programming.  
+
 SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf). An S-expression or Symbolic Expression is commonly understood as *a way to represent a nested list* though the [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf) tells us that symbolic expressions are:
 
 > data whose elementary parts can be arbitrary symbols rather than only numbers (p. 90) 
