@@ -66,7 +66,15 @@ Line by line we find:
   *  > my ultimate goal was performance
 *  The memory savings utilizing __slots__ has shown [varying amounts of memory optimization](https://stackoverflow.com/questions/472000/usage-of-slots)
 
+The code continues: 
+
 ```python
+
+class CLVMObject:
+    atom: typing.Optional[bytes]
+    pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
+    __slots__ = ["atom", "pair"]
+    
     def __new__(class_, v: "SExpType"):
         if isinstance(v, CLVMObject):
             return v
