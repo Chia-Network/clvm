@@ -19,6 +19,8 @@ SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2
 
 > data whose elementary parts can be arbitrary symbols rather than only numbers (p. 90) 
 
+The printed representation of both atoms and list
+
 *For further exploration see page 100 - 104 of the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf)*
 
 ### CLVMObject Class
@@ -40,7 +42,16 @@ Line by line we find:
 ```python 
      atom: typing.Optional[bytes]
 ```
+
+The definition of an atom is as confusing as the conflicting definitions available from cannonical sources. 
+
 In the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf) an atom is defined as "not a pair." 
+
+[GNU](https://www.gnu.org/software/emacs/manual/html_node/eintr/Lisp-Atoms.html#:~:text=In%20Lisp%2C%20what%20we%20have%20been%20calling%20words%20are%20called%20atoms.&text=Technically%20speaking%2C%20a%20list%20in,nothing%20in%20it%20at%20all.) waxes philosophically about the physics meaning of an atom but does not definitively define the term. Instead they tell us nobody uses the term even though they are making an attempt to define it:
+
+>  the word “atom” is not often used, because programmers usually try to be more specific about what kind of atom they are dealing with.
+
+
 * Create an instance of a CLVMObject that is an atom of type [bytes] or None (???) 
 * [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
    * Union[X, Y] means either X or Y
