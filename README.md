@@ -1,5 +1,7 @@
 A fork of CLVM to add documentation and explanation.
 
+![Parens](parens.gif)
+
 The CLVM is built upon primary concepts of LISP such as Atoms, Pairs, and S-expression so those are explained here in detail. 
 
 # CLVMObject 
