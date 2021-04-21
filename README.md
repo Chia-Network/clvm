@@ -13,7 +13,7 @@ A [CLVM object](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py
 > minimal `SExp` type that defines how and where its contents are stored in the heap.
 
 
-### Symbolic Expressions
+### What Is A Symbolic Expression?
 
 SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf). An S-expression or Symbolic Expression is commonly understood as *a way to represent a nested list* though the [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf) tells us that symbolic expressions are:
 
@@ -35,6 +35,8 @@ class CLVMObject:
 
 Line by line we find:
 
+### What is An Atom? 
+
 ```python 
      atom: typing.Optional[bytes]
 ```
@@ -43,12 +45,17 @@ Line by line we find:
 * [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
    * Union[X, Y] means either X or Y
 
+### What Is A Pair? 
+
 ```python
   pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
 ```
 * Create an instance of CLVMObject that is a pair of tuple of two CLVMObjects each with their own type (???) 
 * [typing.Tuple](https://docs.python.org/3/library/typing.html#typing.Tuple) - Tuple[X, Y] is the type of a tuple of two items with the first item of type X and the second of type Y.
 * Example: Tuple[int, float, str] is a tuple of an int, a float and a string.
+
+
+### Slots ???? 
 
 ```python
    __slots__ = ["atom", "pair"]
