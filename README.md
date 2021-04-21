@@ -19,6 +19,8 @@ SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2
 
 > data whose elementary parts can be arbitrary symbols rather than only numbers (p. 90) 
 
+![John Mccarthy](mccarthy.jpg)
+
 The printed representation of both atoms and list
 
 *For further exploration see page 100 - 104 of the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf)*
