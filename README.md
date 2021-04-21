@@ -11,7 +11,7 @@ A [CLVM object](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py
 
 ### Symbolic Expressions
 
-SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf). An S-expression or Symbolic Expression is commonly understood as a way to represent a nested list though the [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf) tells us that symbolic expressions are:
+SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf). An S-expression or Symbolic Expression is commonly understood as *a way to represent a nested list* though the [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf) tells us that symbolic expressions are:
 
 > data whose elementary parts can be arbitrary symbols rather than only numbers (p. 90) 
 
