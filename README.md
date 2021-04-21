@@ -39,7 +39,7 @@ Line by line we find:
 
 ### What is An Atom? 
 
-The definition of an atom is as confusing as the conflicting definitions available from cannonical sources. 
+The definition of an atom is as confusing as the conflicting definitions available from trusted sources. 
 
 ![Atom](atom.gif)
 
