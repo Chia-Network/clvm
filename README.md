@@ -39,10 +39,6 @@ Line by line we find:
 
 ### What is An Atom? 
 
-```python 
-     atom: typing.Optional[bytes]
-```
-
 The definition of an atom is as confusing as the conflicting definitions available from cannonical sources. 
 
 In the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf) an atom is defined as "not a pair." 
@@ -59,8 +55,13 @@ though we are given examples of LISP atoms:
 *   ‘foo’
 *   ‘forward-line’
 
-* Create an instance of a CLVMObject that is an atom of type [bytes] or None (???) 
-* [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
+```python 
+     atom: typing.Optional[bytes]
+```
+
+Create an instance of a CLVMObject that is an atom of type [bytes] or None (???) 
+
+[Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
    * Union[X, Y] means either X or Y
 
 ### What Is A Pair? 
