@@ -15,11 +15,13 @@ A [CLVM object](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py
 
 ### What Is A Symbolic Expression?
 
+LISP (LISt Processor) has been [credited to John McCarthy](http://www-formal.stanford.edu/jmc/recursive.pdf), a man of many opinions:
+
+![John Mccarthy](mccarthy.jpg)
+
 SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf). An S-expression or Symbolic Expression is commonly understood as *a way to represent a nested list* though the [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf) tells us that symbolic expressions are:
 
 > data whose elementary parts can be arbitrary symbols rather than only numbers (p. 90) 
-
-![John Mccarthy](mccarthy.jpg)
 
 The printed representation of both atoms and list
 
