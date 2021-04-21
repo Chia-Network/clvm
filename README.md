@@ -49,7 +49,11 @@ Line by line we find:
 ```python
    __slots__ = ["atom", "pair"]
 ```
-* The dunder method for 
+* According to [Guido](http://python-history.blogspot.com/2010/06/inside-story-on-new-style-classes.html) the dunder method __slots__:
+  *  > restricts the valid set of attribute names on an object to exactly those names listed 
+  *  > since the attributes are now fixed, it is no longer necessary to store attributes in an instance dictionary, so the __dict__ attribute is removed  
+  *  > my ultimate goal was performance
+*  The memory savings utilizing __slots__ has shown [varying amounts of memory optimization](https://stackoverflow.com/questions/472000/usage-of-slots)
 
 ```python
     def __new__(class_, v: "SExpType"):
