@@ -40,7 +40,7 @@ Line by line we find:
 ```python 
      atom: typing.Optional[bytes]
 ```
-* 
+In the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf) an atom is defined as "not a pair." 
 * Create an instance of a CLVMObject that is an atom of type [bytes] or None (???) 
 * [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
    * Union[X, Y] means either X or Y
@@ -50,6 +50,9 @@ Line by line we find:
 ```python
   pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
 ```
+A pair is a "general purpose building block" used to "create all sorts of complex data structure." 
+Objects constructed from pairs are often called "list-structured data." 
+
 * Create an instance of CLVMObject that is a pair of tuple of two CLVMObjects each with their own type (???) 
 * [typing.Tuple](https://docs.python.org/3/library/typing.html#typing.Tuple) - Tuple[X, Y] is the type of a tuple of two items with the first item of type X and the second of type Y.
 * Example: Tuple[int, float, str] is a tuple of an int, a float and a string.
