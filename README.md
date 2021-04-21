@@ -51,6 +51,13 @@ In the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf) an atom is defined as "n
 
 >  the word “atom” is not often used, because programmers usually try to be more specific about what kind of atom they are dealing with.
 
+though we are given examples of LISP atoms:
+*  37
+*  511
+*  1729
+*   ‘+’
+*   ‘foo’
+*   ‘forward-line’
 
 * Create an instance of a CLVMObject that is an atom of type [bytes] or None (???) 
 * [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
