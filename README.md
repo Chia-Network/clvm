@@ -41,6 +41,8 @@ Line by line we find:
 
 The definition of an atom is as confusing as the conflicting definitions available from cannonical sources. 
 
+![Atom](atom.gif)
+
 In the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf) an atom is defined as "not a pair." 
 
 [GNU](https://www.gnu.org/software/emacs/manual/html_node/eintr/Lisp-Atoms.html#:~:text=In%20Lisp%2C%20what%20we%20have%20been%20calling%20words%20are%20called%20atoms.&text=Technically%20speaking%2C%20a%20list%20in,nothing%20in%20it%20at%20all.) waxes philosophically about the physics meaning of an atom but does not definitively define the term. Instead they tell us nobody uses the term even though they are making an attempt to define it:
