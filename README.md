@@ -69,12 +69,13 @@ Line by line we find:
 The code continues: 
 
 ```python
-
+###########
 class CLVMObject:
     atom: typing.Optional[bytes]
     pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
     __slots__ = ["atom", "pair"]
-    
+###########
+
     def __new__(class_, v: "SExpType"):
         if isinstance(v, CLVMObject):
             return v
