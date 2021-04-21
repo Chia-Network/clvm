@@ -23,7 +23,7 @@ SExp stands for [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2
 
 ### CLVMObject Class
 
-Below we see the CLVMObject class in [CLVMObject.py](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py) and the extensive use of the [typing library](https://docs.python.org/3/library/typing.html) for type hints. 
+Below we see the CLVMObject class in [CLVMObject.py](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py) which makes extensive use of the [typing library](https://docs.python.org/3/library/typing.html) for type hints. 
 
 ```python
 
