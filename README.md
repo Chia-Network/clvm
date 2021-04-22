@@ -22,6 +22,8 @@ LISP (LISt Processor) has been [credited to John McCarthy](http://www-formal.sta
 
 A proponent of [Church over Turing](https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis#:~:text=The%20thesis%20is%20named%20after,paper%2Dand%2Dpencil%20methods.), he naturally gravitated towards the [Lambda calculus](https://iep.utm.edu/lambda-calculi/) and thus the LISP project, which he spearheaded, bent in the direction of [functional programming](https://www.freecodecamp.org/news/an-introduction-to-the-basic-principles-of-functional-programming-a2c2a15c84/).  
 
+LISP is mostly about(LISP is mostly about(LISP is mostly about(recursion))).
+
 The [S-expression](https://www.cs.unm.edu/~luger/ai-final2/LISP/CH%2011_S-expressions,%20The%20Syntax%20of%20Lisp.pdf), or SExp in Chia lingo, stands for the Symbolic Expression --  commonly understood as *a way to represent a nested list.* 
 
 The [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf), however, tells us that symbolic expressions are:
