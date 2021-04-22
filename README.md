@@ -20,7 +20,7 @@ LISP (LISt Processor) has been [credited to John McCarthy](http://www-formal.sta
 
 <img src="mccarthy.jpg" width="350" height="500" />
 
-A proponent of [Church over Turing](https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis#:~:text=The%20thesis%20is%20named%20after,paper%2Dand%2Dpencil%20methods.), he naturally gravitated towards the [Lambda calculus](https://iep.utm.edu/lambda-calculi/) and thus the LISP project, which he spearheaded, bent in the direction of [functional programming](https://www.freecodecamp.org/news/an-introduction-to-the-basic-principles-of-functional-programming-a2c2a15c84/).  
+A proponent of [Church over Turing](https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis#:~:text=The%20thesis%20is%20named%20after,paper%2Dand%2Dpencil%20methods.), he naturally gravitated towards the [Lambda calculus](https://iep.utm.edu/lambda-calculi/) and thus the LISP project, [which he spearheaded](https://youtu.be/hGY3uBHVVr4), bent in the direction of [functional programming](https://www.freecodecamp.org/news/an-introduction-to-the-basic-principles-of-functional-programming-a2c2a15c84/).  
 
 LISP is mostly about(LISP is mostly about(LISP is mostly about(recursion))).
 
