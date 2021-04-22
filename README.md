@@ -42,7 +42,7 @@ class CLVMObject:
     __slots__ = ["atom", "pair"]
 ```
 
-Line by line we find:
+Line by line we need to find:
 
 ### What is An Atom? 
 
