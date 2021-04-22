@@ -98,7 +98,7 @@ Objects constructed from pairs are often called "list-structured data."
 * Example: Tuple[int, float, str] is a tuple of an int, a float and a string.
 
 
-### Slots ???? 
+### Slots ???? These holes ain't loyal
 
 ```python
    __slots__ = ["atom", "pair"]
