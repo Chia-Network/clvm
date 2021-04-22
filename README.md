@@ -75,7 +75,7 @@ As McCarthy's love for recursion knows_no(knows_no) bounds he makes even the def
 
 Essentially everything in the universe is an S-Expression except for an Atom, which is an S-Expression!!!!
 
-Within the CLVMObject declration we first have: 
+Within the CLVMObject declaration we first have: 
 
 ```python 
      atom: typing.Optional[bytes]
@@ -83,7 +83,7 @@ Within the CLVMObject declration we first have:
 
 This creates an instance of a CLVMObject class object that is of type atom [bytes] or None. So it is either something that is "not a pair" or it is a [None Object](https://www.askpython.com/python/oops/python-none). (*we have to assume this is a python none rather than a LISP null as we are discussing a .py file*)
 
- Since [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) and Union[X, Y] means either X or Y, we know its of type[byte] or gtfo.
+ Since the typing library tells us that [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) and we then find that Union[X, Y] means either X or Y, we know that an instance of *atom* is of type[byte] or gtfo.
 
 ### What Is A Pair? 
 
