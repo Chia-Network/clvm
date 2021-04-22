@@ -64,16 +64,15 @@ though we are given examples of LISP atoms:
 *   ‘foo’
 *   ‘forward-line’
 
-Within the CLVMObject code we find: 
+Within the CLVMObject declration we first have: 
 
 ```python 
      atom: typing.Optional[bytes]
 ```
 
-This creates an instance of a CLVMObject class object that is of type atom [bytes] or None. 
+This creates an instance of a CLVMObject class object that is of type atom [bytes] or None. So it is either something that is "not a pair" or it is a [None Object](https://www.askpython.com/python/oops/python-none). (*we have to assume this is a python none rather than a LISP null as we are discussing a .py file*)
 
-[Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) 
-   * Union[X, Y] means either X or Y
+ Since [Optional[bytes]](https://docs.python.org/3/library/typing.html#typing.Optional) is equivalent to [Union[bytes, None]](https://docs.python.org/3/library/typing.html#typing.Union) and Union[X, Y] means either X or Y, we know its of type[byte] or gtfo.
 
 ### What Is A Pair? 
 
