@@ -32,6 +32,9 @@ The [Wizard](https://web.mit.edu/alexmv/6.037/sicp.pdf), however, tells us that 
 
 *For further exploration see page 100 - 104 of the [Wiz](https://web.mit.edu/alexmv/6.037/sicp.pdf)*
 
+McCarthy tells us that a class of symbolic expressions is composed of ordered pairs and lists. We will see this extensively in the CLVM.
+
+
 ### CLVMObject Class
 
 Below we see the CLVMObject class in [CLVMObject.py](https://github.com/b0mTrady/clvm/blob/develop/clvm/CLVMObject.py) which makes extensive use of the [typing library](https://docs.python.org/3/library/typing.html) for type hints. 
@@ -65,6 +68,12 @@ though we are given examples of LISP atoms:
 *   ‘+’
 *   ‘foo’
 *   ‘forward-line’
+
+As McCarthy's love for recursion knows_no(knows_no) bounds he makes even the definition of S-expressions and their atoms recursive:
+
+> An S-expression is then simply an ordered pair, the terms of which may be atomic symbols or simpler S-expressions...Atomic symbols are S-expressions.
+
+Essentially everything in the universe is an S-Expression except for an Atom, which is an S-Expression!!!!
 
 Within the CLVMObject declration we first have: 
 
