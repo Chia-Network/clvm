@@ -5,15 +5,15 @@ from .EvalError import EvalError
 
 from .costs import (
     ARITH_BASE_COST,
-    ARITH_COST_PER_LIMB_DIVIDER,
+    ARITH_COST_PER_BYTE,
     ARITH_COST_PER_ARG,
     MUL_BASE_COST,
     MUL_COST_PER_OP,
-    MUL_LINEAR_COST_PER_BYTE_DIVIDER,
+    MUL_LINEAR_COST_PER_BYTE,
     MUL_SQUARE_COST_PER_BYTE_DIVIDER,
     CONCAT_BASE_COST,
     CONCAT_COST_PER_ARG,
-    CONCAT_COST_PER_BYTE_DIVIDER,
+    CONCAT_COST_PER_BYTE,
 )
 
 
@@ -55,7 +55,7 @@ def args_len(op_name, args):
 # this means that unknown ops where cost_function is 1, 2, or 3, may still be
 # fatal errors if the arguments passed are not atoms.
 
-def handle_unknown_op_softfork_ready(op: bytes, args: CLVMObject) -> Tuple[int, CLVMObject]:
+def handle_unknown_op_softfork_ready(op: bytes, args: CLVMObject, max_cost: int) -> Tuple[int, CLVMObject]:
     # any opcode starting with ffff is reserved (i.e. fatal error)
     # opcodes are not allowed to be empty
     if len(op) == 0 or op[:2] == b"\xff\xff":

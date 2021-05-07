@@ -22,7 +22,9 @@ class ChainableMultiOpFn(MultiOpFn):
     op_lookup: OperatorDict
     unknown_op_handler: MultiOpFn
 
-    def __call__(self, op: bytes, arguments: CLVMObjectType, max_cost: int) -> Tuple[int, CLVMObjectType]:
+    def __call__(
+        self, op: bytes, arguments: CLVMObjectType, max_cost: Optional[int] = None
+    ) -> Tuple[int, CLVMObjectType]:
         f = self.op_lookup.get(op)
         if f:
             try:
@@ -47,7 +49,9 @@ class Dialect:
         unknown_callback: MultiOpFn,
     ):
         self.dialect_info = dialect_info
-        self.multi_op_fn = ChainableMultiOpFn(self.dialect_info.opcode_lookup, unknown_callback)
+        self.multi_op_fn = ChainableMultiOpFn(
+            self.dialect_info.opcode_lookup, unknown_callback
+        )
 
     def run_program(
         self,
@@ -65,5 +69,5 @@ class Dialect:
             self.dialect_info.quote_kw,
             self.dialect_info.apply_kw,
             max_cost,
-            pre_eval_f
+            pre_eval_f,
         )
