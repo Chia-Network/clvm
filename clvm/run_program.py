@@ -11,9 +11,19 @@ from .costs import (
     PATH_LOOKUP_COST_PER_LEG,
     PATH_LOOKUP_COST_PER_ZERO_BYTE
 )
+from .operators import KEYWORD_FROM_ATOM, OP_REWRITE
+
+try:
+    from clvm_rs import py_run_program, NativeOpLookup
+except ImportError:
+    py_run_program = None
+
+# py_run_program = None
 
 # the "Any" below should really be "OpStackType" but
 # recursive types aren't supported by mypy
+
+MultiOpFn = Callable[[bytes, SExp, int], Tuple[int, SExp]]
 
 OpCallable = Callable[[Any, "ValStackType"], int]
 
@@ -49,6 +59,54 @@ def run_program(
     program: CLVMObject,
     args: CLVMObject,
     operator_lookup: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]],
+    max_cost=None,
+    pre_eval_f=None,
+) -> Tuple[int, CLVMObject]:
+
+    if py_run_program:
+
+        def unknown_op_callback(op, sexp):
+            s = SExp.to(sexp)
+            cost, r = operator_lookup(op, s)
+            r = SExp.to(r)
+            return cost, r
+
+        default_native_opcodes = dict(
+            ("op_%s" % OP_REWRITE.get(k, k), op)
+            for op, k in KEYWORD_FROM_ATOM.items()
+            if k not in "qa."
+        )
+        op_lookup = NativeOpLookup(default_native_opcodes, unknown_op_callback)
+
+        cost, r = py_run_program(
+            program,
+            args,
+            operator_lookup["quote"][0],
+            operator_lookup["apply"][0],
+            max_cost or 0,
+            op_lookup,
+            pre_eval=pre_eval_f,
+        )
+        r = SExp.to(r)
+        return cost, r
+
+    return _run_program(
+        program,
+        args,
+        operator_lookup,
+        operator_lookup.quote_atom,
+        operator_lookup.apply_atom,
+        max_cost,
+        pre_eval_f,
+    )
+
+
+def _run_program(
+    program: CLVMObject,
+    args: CLVMObject,
+    operator_lookup: MultiOpFn,
+    quote_atom: bytes,
+    apply_atom: bytes,
     max_cost=None,
     pre_eval_f=None,
 ) -> Tuple[int, CLVMObject]:
@@ -137,7 +195,7 @@ def run_program(
 
         op = operator.as_atom()
         operand_list = sexp.rest()
-        if op == operator_lookup.quote_atom:
+        if op == quote_atom:
             value_stack.append(operand_list)
             return QUOTE_COST
 
@@ -160,7 +218,7 @@ def run_program(
             raise EvalError("internal error", operator)
 
         op = operator.as_atom()
-        if op == operator_lookup.apply_atom:
+        if op == apply_atom:
             if operand_list.list_len() != 2:
                 raise EvalError("apply requires exactly 2 parameters", operand_list)
             new_program = operand_list.first()
