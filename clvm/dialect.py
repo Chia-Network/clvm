@@ -18,7 +18,7 @@ OperatorDict = Dict[bytes, Callable[[CLVMObjectType, int], Tuple[int, CLVMObject
 
 
 @dataclass
-class ChainableMultiOpFn(MultiOpFn):
+class ChainableMultiOpFn:
     op_lookup: OperatorDict
     unknown_op_handler: MultiOpFn
 
@@ -45,13 +45,13 @@ class DialectInfo:
 class Dialect:
     def __init__(
         self,
-        dialect_info: DialectInfo,
-        unknown_callback: MultiOpFn,
+        quote_kw: bytes,
+        apply_kw: bytes,
+        multi_op_fn: MultiOpFn,
     ):
-        self.dialect_info = dialect_info
-        self.multi_op_fn = ChainableMultiOpFn(
-            self.dialect_info.opcode_lookup, unknown_callback
-        )
+        self.quote_kw = quote_kw
+        self.apply_kw = apply_kw
+        self.multi_op_fn = multi_op_fn
 
     def run_program(
         self,
@@ -66,8 +66,8 @@ class Dialect:
             program,
             env,
             self.multi_op_fn,
-            self.dialect_info.quote_kw,
-            self.dialect_info.apply_kw,
+            self.quote_kw,
+            self.apply_kw,
             max_cost,
             pre_eval_f,
         )
