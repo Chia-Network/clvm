@@ -1,9 +1,16 @@
+try:
+    from clvm_rs import native_opcodes_dict, Dialect as NativeDialect
+except ImportError:
+    NativeDialect = native_opcodes_dict = None
+
 from . import core_ops, more_ops
 
 from .casts import int_to_bytes
-from .dialect import DialectInfo
-from .op_utils import operators_for_module
-
+from .dialect import Dialect, DialectInfo
+from .handle_unknown_op import (
+    handle_unknown_op_softfork_ready,
+    handle_unknown_op_strict,
+)
 
 KEYWORDS = (
     # core opcodes 0x01-x08
@@ -48,7 +55,52 @@ OP_REWRITE = {
 }
 
 
-def chia_dialect_info():
-    op_lookup = operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE)
-    op_lookup.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRITE))
-    return DialectInfo(KEYWORD_TO_ATOM["q"], KEYWORD_TO_ATOM["a"], op_lookup)
+def op_table_for_module(mod):
+    return {k: v for k, v in mod.__dict__.items() if k.startswith("op_")}
+
+
+def chia_operator_table():
+    if native_opcodes_dict:
+        return native_opcodes_dict()
+    table = {}
+    table.update(op_table_for_module(core_ops))
+    table.update(op_table_for_module(more_ops))
+    return table
+
+
+def chia_dialect_info(keyword_to_atom, op_rewrite):
+    op_table = chia_operator_table()
+    op_lookup = {}
+    for op, bytecode in keyword_to_atom.items():
+        if op in "qa.":
+            continue
+        op_name = "op_%s" % op_rewrite.get(op, op)
+        op_f = op_table[op_name]
+        op_lookup[bytecode] = op_f
+    return DialectInfo(keyword_to_atom["q"], keyword_to_atom["a"], op_lookup)
+
+
+def chia_dialect_with_op_table(strict=True):
+    dialect_info = chia_dialect_info(KEYWORD_TO_ATOM, OP_REWRITE)
+    unknown_op_callback = (
+        handle_unknown_op_strict if strict else handle_unknown_op_softfork_ready
+    )
+    if NativeDialect:
+        dialect = NativeDialect(
+            dialect_info.quote_kw,
+            dialect_info.apply_kw,
+            dialect_info.opcode_lookup,
+            unknown_op_callback,
+        )
+    else:
+        dialect = Dialect(
+            dialect_info.quote_kw,
+            dialect_info.apply_kw,
+            dialect_info.opcode_lookup,
+            unknown_op_callback,
+        )
+    return dialect, dialect_info.opcode_lookup
+
+
+def chia_dialect(strict):
+    return chia_dialect_with_op_table(strict)[0]

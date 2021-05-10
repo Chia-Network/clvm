@@ -55,7 +55,10 @@ def args_len(op_name, args):
 # this means that unknown ops where cost_function is 1, 2, or 3, may still be
 # fatal errors if the arguments passed are not atoms.
 
-def handle_unknown_op_softfork_ready(op: bytes, args: CLVMObject, max_cost: int) -> Tuple[int, CLVMObject]:
+
+def handle_unknown_op_softfork_ready(
+    op: bytes, args: CLVMObject, max_cost: int
+) -> Tuple[int, CLVMObject]:
     # any opcode starting with ffff is reserved (i.e. fatal error)
     # opcodes are not allowed to be empty
     if len(op) == 0 or op[:2] == b"\xff\xff":

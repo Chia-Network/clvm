@@ -47,11 +47,12 @@ class Dialect:
         self,
         quote_kw: bytes,
         apply_kw: bytes,
+        opcode_lookup: OperatorDict,
         multi_op_fn: MultiOpFn,
     ):
         self.quote_kw = quote_kw
         self.apply_kw = apply_kw
-        self.multi_op_fn = multi_op_fn
+        self.multi_op_fn = ChainableMultiOpFn(opcode_lookup, multi_op_fn)
 
     def run_program(
         self,
