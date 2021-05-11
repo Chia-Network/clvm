@@ -1,5 +1,10 @@
 try:
-    from clvm_rs import native_opcodes_dict, Dialect as NativeDialect
+    from clvm_rs import (
+        native_opcodes_dict,
+        Dialect as NativeDialect,
+        NATIVE_OP_UNKNOWN_NON_STRICT,
+        NATIVE_OP_UNKNOWN_STRICT,
+    )
 except ImportError:
     NativeDialect = native_opcodes_dict = None
 
@@ -82,10 +87,10 @@ def chia_dialect_info(keyword_to_atom, op_rewrite):
 
 def chia_dialect_with_op_table(strict=True):
     dialect_info = chia_dialect_info(KEYWORD_TO_ATOM, OP_REWRITE)
-    unknown_op_callback = (
-        handle_unknown_op_strict if strict else handle_unknown_op_softfork_ready
-    )
     if NativeDialect:
+        unknown_op_callback = (
+            NATIVE_OP_UNKNOWN_STRICT if strict else NATIVE_OP_UNKNOWN_NON_STRICT
+        )
         dialect = NativeDialect(
             dialect_info.quote_kw,
             dialect_info.apply_kw,
@@ -93,6 +98,9 @@ def chia_dialect_with_op_table(strict=True):
             unknown_op_callback,
         )
     else:
+        unknown_op_callback = (
+            handle_unknown_op_strict if strict else handle_unknown_op_softfork_ready
+        )
         dialect = Dialect(
             dialect_info.quote_kw,
             dialect_info.apply_kw,

@@ -3,14 +3,15 @@ import unittest
 from clvm.chia_dialect import chia_dialect_info
 from clvm.handle_unknown_op import handle_unknown_op_softfork_ready
 from clvm.dialect import ChainableMultiOpFn
-from clvm.operators import KEYWORD_TO_ATOM
+from clvm.operators import KEYWORD_TO_ATOM, OP_REWRITE
 from clvm.EvalError import EvalError
 from clvm import SExp
 from clvm.costs import CONCAT_BASE_COST
 
 OPERATOR_LOOKUP = ChainableMultiOpFn(
-    chia_dialect_info().opcode_lookup, handle_unknown_op_softfork_ready
+    chia_dialect_info(KEYWORD_TO_ATOM, OP_REWRITE).opcode_lookup, handle_unknown_op_softfork_ready
 )
+MAX_COST = int(1e18)
 
 
 class OperatorsTest(unittest.TestCase):
@@ -27,7 +28,7 @@ class OperatorsTest(unittest.TestCase):
         self.assertRaises(
             EvalError, lambda: OPERATOR_LOOKUP(b"\xff\xff1337", SExp.to(1337), None)
         )
-        od = ChainableMultiOpFn(chia_dialect_info().opcode_lookup, self.unknown_handler)
+        od = ChainableMultiOpFn(chia_dialect_info(KEYWORD_TO_ATOM, OP_REWRITE).opcode_lookup, self.unknown_handler)
         cost, ret = od(b"\xff\xff1337", SExp.to(1337), None)
         self.assertTrue(self.handler_called)
         self.assertEqual(cost, 42)
@@ -36,7 +37,7 @@ class OperatorsTest(unittest.TestCase):
     def test_plus(self):
         print(OPERATOR_LOOKUP)
         self.assertEqual(
-            OPERATOR_LOOKUP(KEYWORD_TO_ATOM["+"], SExp.to([3, 4, 5]), None)[1],
+            OPERATOR_LOOKUP(KEYWORD_TO_ATOM["+"], SExp.to([3, 4, 5]), MAX_COST)[1],
             SExp.to(12),
         )
 
