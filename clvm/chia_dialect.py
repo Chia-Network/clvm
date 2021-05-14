@@ -11,7 +11,7 @@ except ImportError:
 from . import core_ops, more_ops
 
 from .casts import int_to_bytes
-from .dialect import Dialect, DialectInfo
+from .dialect import ConversionFn, Dialect
 from .handle_unknown_op import (
     handle_unknown_op_softfork_ready,
     handle_unknown_op_strict,
@@ -73,7 +73,7 @@ def chia_operator_table():
     return table
 
 
-def chia_dialect_info(keyword_to_atom, op_rewrite):
+def chia_dialect_op_lookup(keyword_to_atom, op_rewrite):
     op_table = chia_operator_table()
     op_lookup = {}
     for op, bytecode in keyword_to_atom.items():
@@ -82,33 +82,32 @@ def chia_dialect_info(keyword_to_atom, op_rewrite):
         op_name = "op_%s" % op_rewrite.get(op, op)
         op_f = op_table[op_name]
         op_lookup[bytecode] = op_f
-    return DialectInfo(keyword_to_atom["q"], keyword_to_atom["a"], op_lookup)
+    return op_lookup
 
 
-def chia_dialect_with_op_table(strict=True):
-    dialect_info = chia_dialect_info(KEYWORD_TO_ATOM, OP_REWRITE)
+def chia_dialect(strict: bool, to_python: ConversionFn) -> Dialect:
+    quote_kw = KEYWORD_TO_ATOM["q"]
+    apply_kw = KEYWORD_TO_ATOM["a"]
+    opcode_lookup = chia_dialect_op_lookup(KEYWORD_TO_ATOM, OP_REWRITE)
     if NativeDialect:
         unknown_op_callback = (
             NATIVE_OP_UNKNOWN_STRICT if strict else NATIVE_OP_UNKNOWN_NON_STRICT
         )
         dialect = NativeDialect(
-            dialect_info.quote_kw,
-            dialect_info.apply_kw,
-            dialect_info.opcode_lookup,
+            quote_kw,
+            apply_kw,
             unknown_op_callback,
+            to_python=to_python,
         )
     else:
         unknown_op_callback = (
             handle_unknown_op_strict if strict else handle_unknown_op_softfork_ready
         )
         dialect = Dialect(
-            dialect_info.quote_kw,
-            dialect_info.apply_kw,
-            dialect_info.opcode_lookup,
+            quote_kw,
+            apply_kw,
             unknown_op_callback,
+            to_python=to_python,
         )
-    return dialect, dialect_info.opcode_lookup
-
-
-def chia_dialect(strict):
-    return chia_dialect_with_op_table(strict)[0]
+    dialect.update(opcode_lookup)
+    return dialect
