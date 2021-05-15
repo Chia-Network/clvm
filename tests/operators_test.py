@@ -1,14 +1,14 @@
 import unittest
 
-from clvm.chia_dialect import chia_dialect_op_lookup
+from clvm.chainable_multi_op_fn import ChainableMultiOpFn
+from clvm.costs import CONCAT_BASE_COST
+from clvm.dialect import opcode_table_for_backend
 from clvm.handle_unknown_op import handle_unknown_op_softfork_ready
-from clvm.dialect import ChainableMultiOpFn
-from clvm.operators import KEYWORD_TO_ATOM, OP_REWRITE
+from clvm.operators import KEYWORD_TO_ATOM
 from clvm.EvalError import EvalError
 from clvm import SExp
-from clvm.costs import CONCAT_BASE_COST
 
-OPERATOR_LOOKUP = chia_dialect_op_lookup(KEYWORD_TO_ATOM, OP_REWRITE)
+OPERATOR_LOOKUP = opcode_table_for_backend(KEYWORD_TO_ATOM, backend=None)
 MAX_COST = int(1e18)
 
 
@@ -26,7 +26,10 @@ class OperatorsTest(unittest.TestCase):
         self.assertRaises(
             KeyError, lambda: OPERATOR_LOOKUP[b"\xff\xff1337"](SExp.to(1337), None)
         )
-        od = ChainableMultiOpFn(chia_dialect_op_lookup(KEYWORD_TO_ATOM, OP_REWRITE), self.unknown_handler)
+        od = ChainableMultiOpFn(
+            opcode_table_for_backend(KEYWORD_TO_ATOM, backend=None),
+            self.unknown_handler,
+        )
         cost, ret = od(b"\xff\xff1337", SExp.to(1337), None)
         self.assertTrue(self.handler_called)
         self.assertEqual(cost, 42)
@@ -80,6 +83,8 @@ class OperatorsTest(unittest.TestCase):
         for suffix in [b"\x3f", b"\x0f", b"\x00", b"\x2c"]:
             # the cost is unchanged by the last byte
             self.assertEqual(
-                handle_unknown_op_softfork_ready(b"\x3c" + suffix, SExp.null(), max_cost=None),
+                handle_unknown_op_softfork_ready(
+                    b"\x3c" + suffix, SExp.null(), max_cost=None
+                ),
                 (61, SExp.null()),
             )

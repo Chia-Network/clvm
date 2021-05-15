@@ -7,7 +7,8 @@ from . import core_ops, more_ops
 from .CLVMObject import CLVMObject
 from .op_utils import operators_for_module
 from .handle_unknown_op import handle_unknown_op_softfork_ready
-from .chia_dialect import KEYWORDS, OP_REWRITE, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM  # noqa
+from .chia_dialect import KEYWORDS, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM  # noqa
+from .dialect import OP_REWRITE
 
 
 class OperatorDict(dict):

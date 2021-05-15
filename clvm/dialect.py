@@ -1,40 +1,69 @@
-from dataclasses import dataclass
+from typing import Callable, Optional, Tuple
 
-from typing import Any, Callable, Dict, Optional, Tuple, Union
+try:
+    import clvm_rs
+except ImportError:
+    clvm_rs = None
 
+from . import core_ops, more_ops
+from .chainable_multi_op_fn import ChainableMultiOpFn
+from .handle_unknown_op import (
+    handle_unknown_op_softfork_ready,
+    handle_unknown_op_strict,
+)
 from .run_program import _run_program
-
-CLVMAtom = Any
-CLVMPair = Any
-
-CLVMObjectType = Union["CLVMAtom", "CLVMPair"]
+from .types import CLVMObjectType, ConversionFn, MultiOpFn, OperatorDict
 
 
-MultiOpFn = Callable[[bytes, CLVMObjectType, int], Tuple[int, CLVMObjectType]]
+OP_REWRITE = {
+    "+": "add",
+    "-": "subtract",
+    "*": "multiply",
+    "/": "div",
+    "i": "if",
+    "c": "cons",
+    "f": "first",
+    "r": "rest",
+    "l": "listp",
+    "x": "raise",
+    "=": "eq",
+    ">": "gr",
+    ">s": "gr_bytes",
+}
 
-ConversionFn = Callable[[CLVMObjectType], CLVMObjectType]
 
-OpFn = Callable[[CLVMObjectType, int], Tuple[int, CLVMObjectType]]
-
-OperatorDict = Dict[bytes, Callable[[CLVMObjectType, int], Tuple[int, CLVMObjectType]]]
+def op_table_for_module(mod):
+    return {k: v for k, v in mod.__dict__.items() if k.startswith("op_")}
 
 
-@dataclass
-class ChainableMultiOpFn:
-    op_lookup: OperatorDict
-    unknown_op_handler: MultiOpFn
+def op_imp_table_for_backend(backend):
+    if backend is None and clvm_rs:
+        backend = "native"
 
-    def __call__(
-        self, op: bytes, arguments: CLVMObjectType, max_cost: Optional[int] = None
-    ) -> Tuple[int, CLVMObjectType]:
-        f = self.op_lookup.get(op)
-        if f:
-            try:
-                return f(arguments)
-            except TypeError:
-                # some operators require `max_cost`
-                return f(arguments, max_cost)
-        return self.unknown_op_handler(op, arguments, max_cost)
+    if backend == "native":
+        if clvm_rs is None:
+            raise RuntimeError("native backend not installed")
+        return clvm_rs.native_opcodes_dict()
+
+    table = {}
+    table.update(op_table_for_module(core_ops))
+    table.update(op_table_for_module(more_ops))
+    return table
+
+
+def op_atom_to_imp_table(op_imp_table, keyword_to_atom, op_rewrite=OP_REWRITE):
+    op_atom_to_imp_table = {}
+    for op, bytecode in keyword_to_atom.items():
+        op_name = "op_%s" % op_rewrite.get(op, op)
+        op_f = op_imp_table.get(op_name)
+        if op_f:
+            op_atom_to_imp_table[bytecode] = op_f
+    return op_atom_to_imp_table
+
+
+def opcode_table_for_backend(keyword_to_atom, backend):
+    op_imp_table = op_imp_table_for_backend(backend)
+    return op_atom_to_imp_table(op_imp_table, keyword_to_atom)
 
 
 class Dialect:
@@ -76,3 +105,42 @@ class Dialect:
             pre_eval_f,
         )
         return cost, self.to_python(r)
+
+
+def native_new_dialect(
+    quote_kw: bytes, apply_kw: bytes, strict: bool, to_python: ConversionFn
+) -> Dialect:
+    unknown_op_callback = (
+        clvm_rs.NATIVE_OP_UNKNOWN_STRICT
+        if strict
+        else clvm_rs.NATIVE_OP_UNKNOWN_NON_STRICT
+    )
+    dialect = clvm_rs.Dialect(
+        quote_kw,
+        apply_kw,
+        unknown_op_callback,
+        to_python=to_python,
+    )
+    return dialect
+
+
+def python_new_dialect(
+    quote_kw: bytes, apply_kw: bytes, strict: bool, to_python: ConversionFn
+) -> Dialect:
+    unknown_op_callback = (
+        handle_unknown_op_strict if strict else handle_unknown_op_softfork_ready
+    )
+    dialect = Dialect(
+        quote_kw,
+        apply_kw,
+        unknown_op_callback,
+        to_python=to_python,
+    )
+    return dialect
+
+
+def new_dialect(quote_kw: bytes, apply_kw: bytes, strict: bool, to_python: ConversionFn, backend=None):
+    if backend is None:
+        backend = "python" if clvm_rs is None else "native"
+    backend_f = native_new_dialect if backend == "native" else python_new_dialect
+    return backend_f(quote_kw, apply_kw, strict, to_python)
