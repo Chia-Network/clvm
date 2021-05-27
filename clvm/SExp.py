@@ -76,6 +76,9 @@ def to_sexp_type(
             if v == []:
                 stack.append(NULL)
                 continue
+            if hasattr(v, "pair") and hasattr(v, "atom"):
+                stack.append(v.pair or v.atom)
+                continue
 
             if hasattr(v, "__iter__"):
                 target = len(stack)
