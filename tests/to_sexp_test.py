@@ -10,6 +10,7 @@ def validate_sexp(sexp):
         v = validate_stack.pop()
         assert isinstance(v, SExp)
         if v.pair:
+            assert isinstance(v.pair, tuple)
             v1, v2 = v.pair
             assert isinstance(v1, CLVMObject)
             assert isinstance(v2, CLVMObject)

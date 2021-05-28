@@ -1,4 +1,5 @@
 from .EvalError import EvalError
+from .SExp import SExp
 
 from .costs import (
     IF_COST,
@@ -11,7 +12,7 @@ from .costs import (
 )
 
 
-def op_if(args):
+def op_if(args: SExp):
     if args.list_len() != 3:
         raise EvalError("i takes exactly 3 arguments", args)
     r = args.rest()
@@ -20,35 +21,35 @@ def op_if(args):
     return IF_COST, r.first()
 
 
-def op_cons(args):
+def op_cons(args: SExp):
     if args.list_len() != 2:
         raise EvalError("c takes exactly 2 arguments", args)
     return CONS_COST, args.first().cons(args.rest().first())
 
 
-def op_first(args):
+def op_first(args: SExp):
     if args.list_len() != 1:
         raise EvalError("f takes exactly 1 argument", args)
     return FIRST_COST, args.first().first()
 
 
-def op_rest(args):
+def op_rest(args: SExp):
     if args.list_len() != 1:
         raise EvalError("r takes exactly 1 argument", args)
     return REST_COST, args.first().rest()
 
 
-def op_listp(args):
+def op_listp(args: SExp):
     if args.list_len() != 1:
         raise EvalError("l takes exactly 1 argument", args)
     return LISTP_COST, args.true if args.first().listp() else args.false
 
 
-def op_raise(args):
+def op_raise(args: SExp):
     raise EvalError("clvm raise", args)
 
 
-def op_eq(args):
+def op_eq(args: SExp):
     if args.list_len() != 2:
         raise EvalError("= takes exactly 2 arguments", args)
     a0 = args.first()
