@@ -1,47 +1,29 @@
-"""
-This is the minimal `SExp` type that defines how and where its contents are
-stored in the heap. The methods here are the only ones required for `run_program`.
-A native implementation of `run_program` should implement this base class.
-"""
-
 import typing
-
-# Set this to "1" to do a run-time type check
-# This may slow things down a bit
-
-TYPE_CHECK = 0
 
 
 class CLVMObject:
+    """
+    This class implements the CLVM Object protocol in the simplest possible way,
+    by just having an "atom" and a "pair" field
+    """
 
     atom: typing.Optional[bytes]
-    pair: typing.Optional[typing.Tuple["CLVMObject", "CLVMObject"]]
+
+    # this is always a 2-tuple of an object implementing the CLVM object
+    # protocol.
+    pair: typing.Optional[typing.Tuple[typing.Any, typing.Any]]
     __slots__ = ["atom", "pair"]
 
-    def __new__(class_, v: "SExpType"):
+    def __new__(class_, v):
         if isinstance(v, CLVMObject):
             return v
-        if TYPE_CHECK:
-            type_ok = (
-                isinstance(v, tuple)
-                and len(v) == 2
-                and isinstance(v[0], CLVMObject)
-                and isinstance(v[1], CLVMObject)
-            ) or isinstance(v, bytes)
-            # uncomment next line for debugging help
-            # if not type_ok: breakpoint()
-            assert type_ok
         self = super(CLVMObject, class_).__new__(class_)
         if isinstance(v, tuple):
+            if len(v) != 2:
+                raise ValueError("tuples must be of size 2, cannot create CLVMObject from: %s" % str(v))
             self.pair = v
             self.atom = None
         else:
             self.atom = v
             self.pair = None
         return self
-
-    def cons(self, right: "CLVMObject"):
-        return self.__class__((self, right))
-
-
-SExpType = typing.Union[bytes, typing.Tuple[CLVMObject, CLVMObject]]
