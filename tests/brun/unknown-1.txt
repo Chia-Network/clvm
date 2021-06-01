@@ -1,0 +1,2 @@
+brun -c '(a (q 0xfffffffff) (q ()))'
+FAIL: invalid operator 0x0fffffffff
