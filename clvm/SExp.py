@@ -23,7 +23,8 @@ CastableType = typing.Union[
     None,
     SExpType,
     G1Element,
-    typing.Tuple[typing.Any, typing.Any],
+    typing.Tuple["CastableType", "CastableType"],
+    typing.List["CastableType"]
 ]
 
 NULL = b""
