@@ -1,37 +1,86 @@
+from .SExp import SExp
 from .casts import int_to_bytes
-from .dialect import ConversionFn, Dialect, new_dialect, opcode_table_for_backend
+from .types import CLVMObjectType, ConversionFn, MultiOpFn, OperatorDict
+from .chainable_multi_op_fn import ChainableMultiOpFn
+from .handle_unknown_op import (
+    handle_unknown_op_softfork_ready,
+    handle_unknown_op_strict,
+)
+from .dialect import ConversionFn, Dialect, new_dialect, opcode_table_for_backend, python_new_dialect, native_new_dialect
+from .chia_dialect_constants import KEYWORDS, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM  # noqa
+from .operators import OPERATOR_LOOKUP
 
-KEYWORDS = (
-    # core opcodes 0x01-x08
-    ". q a i c f r l x "
-
-    # opcodes on atoms as strings 0x09-0x0f
-    "= >s sha256 substr strlen concat . "
-
-    # opcodes on atoms as ints 0x10-0x17
-    "+ - * / divmod > ash lsh "
-
-    # opcodes on atoms as vectors of bools 0x18-0x1c
-    "logand logior logxor lognot . "
-
-    # opcodes for bls 1381 0x1d-0x1f
-    "point_add pubkey_for_exp . "
-
-    # bool opcodes 0x20-0x23
-    "not any all . "
-
-    # misc 0x24
-    "softfork "
-).split()
-
-KEYWORD_FROM_ATOM = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}
-KEYWORD_TO_ATOM = {v: k for k, v in KEYWORD_FROM_ATOM.items()}
-
-
-def chia_dialect(strict: bool, to_python: ConversionFn, backend=None) -> Dialect:
+def configure_chia_dialect(dialect: Dialect, backend=None) -> Dialect:
     quote_kw = KEYWORD_TO_ATOM["q"]
     apply_kw = KEYWORD_TO_ATOM["a"]
-    dialect = new_dialect(quote_kw, apply_kw, strict, to_python, backend=backend)
     table = opcode_table_for_backend(KEYWORD_TO_ATOM, backend=backend)
     dialect.update(table)
     return dialect
+
+
+def chia_dialect(strict: bool, to_python: ConversionFn, backend=None) -> Dialect:
+    dialect = new_dialect(quote_kw, apply_kw, strict, to_python, backend=backend)
+    return configure_chia_dialect(dialect, backend)
+
+class DebugDialect(Dialect):
+    def __init__(
+        self,
+        quote_kw: bytes,
+        apply_kw: bytes,
+        multi_op_fn: MultiOpFn,
+        to_python: ConversionFn,
+    ):
+        super().__init__(quote_kw, apply_kw, multi_op_fn, to_python)
+        self.tracer = lambda x,y: None
+
+    def do_sha256_with_trace(self,prev):
+        def _run(value,max_cost=None):
+            try:
+                cost, result = prev(value)
+            except TypeError:
+                cost, result = prev(value,max_cost)
+
+            self.tracer(value,result)
+            return cost, result
+
+        return _run
+
+    def configure(self,**kwargs):
+        if 'sha256_tracer' in kwargs:
+            self.tracer = kwargs['sha256_tracer']
+
+
+def chia_python_new_dialect(
+    quote_kw: bytes, apply_kw: bytes, strict: bool, to_python: ConversionFn,
+    backend="python"
+) -> Dialect:
+    unknown_op_callback = (
+        handle_unknown_op_strict if strict else handle_unknown_op_softfork_ready
+    )
+
+    # Setup as a chia style clvm provider giving the chia operators.
+    return configure_chia_dialect(
+        DebugDialect(quote_kw,apply_kw,OPERATOR_LOOKUP,to_python),
+        backend
+    )
+
+
+# Dialect that can allow acausal tracing of sha256 hashes.
+def debug_new_dialect(
+    quote_kw: bytes, apply_kw: bytes, strict: bool, to_python: ConversionFn,
+    backend="python"
+) -> Dialect:
+    d = chia_python_new_dialect(quote_kw, apply_kw, strict, to_python, backend)
+
+    # Override operators we want to track.
+    std_op_table = opcode_table_for_backend(KEYWORD_TO_ATOM, backend="python")
+    table = { b'\x0b': d.do_sha256_with_trace(std_op_table[b'\x0b']) }
+    d.update(table)
+
+    return d
+
+dialect_factories = {
+    'python': chia_python_new_dialect,
+    'native': native_new_dialect,
+    'debug': debug_new_dialect,
+}

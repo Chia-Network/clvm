@@ -7,9 +7,8 @@ from . import core_ops, more_ops
 from .CLVMObject import CLVMObject
 from .op_utils import operators_for_module
 from .handle_unknown_op import handle_unknown_op_softfork_ready
-from .chia_dialect import KEYWORDS, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM  # noqa
 from .dialect import OP_REWRITE
-
+from .chia_dialect_constants import KEYWORDS, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM  # noqa
 
 class OperatorDict(dict):
     """
@@ -33,11 +32,11 @@ class OperatorDict(dict):
             self.unknown_op_handler = handle_unknown_op_softfork_ready
         return self
 
-    def __call__(self, op: bytes, arguments: CLVMObject) -> Tuple[int, CLVMObject]:
+    def __call__(self, op: bytes, arguments: CLVMObject, max_cost=None) -> Tuple[int, CLVMObject]:
         f = self.get(op)
         if f is None:
             try:
-                return self.unknown_op_handler(op, arguments, max_cost=None)
+                return self.unknown_op_handler(op, arguments, max_cost)
             except TypeError:
                 return self.unknown_op_handler(op, arguments)
         else:

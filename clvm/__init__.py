@@ -1,5 +1,6 @@
 from .SExp import SExp
-from .dialect import Dialect  # noqa
+from .dialect import Dialect
+from .chia_dialect import dialect_factories  # noqa
 from .operators import (  # noqa
     QUOTE_ATOM,  # deprecated
     KEYWORD_TO_ATOM,

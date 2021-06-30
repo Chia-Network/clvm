@@ -1,10 +1,11 @@
 from typing import Callable, Optional, Tuple
-
+from .SExp import SExp
 try:
     import clvm_rs
 except ImportError:
     clvm_rs = None
 
+import io
 from . import core_ops, more_ops
 from .chainable_multi_op_fn import ChainableMultiOpFn
 from .handle_unknown_op import (
@@ -13,6 +14,7 @@ from .handle_unknown_op import (
 )
 from .run_program import _run_program
 from .types import CLVMObjectType, ConversionFn, MultiOpFn, OperatorDict
+from clvm.serialize import sexp_from_stream, sexp_to_stream
 
 
 OP_REWRITE = {
@@ -79,6 +81,9 @@ class Dialect:
         self.opcode_lookup = dict()
         self.multi_op_fn = ChainableMultiOpFn(self.opcode_lookup, multi_op_fn)
         self.to_python = to_python
+
+    def configure(self, **kwargs):
+        pass
 
     def update(self, d: OperatorDict) -> None:
         self.opcode_lookup.update(d)
