@@ -5,6 +5,7 @@ from blspy import G1Element, PrivateKey
 
 from .EvalError import EvalError
 from .casts import limbs_for_int
+from .SExp import SExp
 
 from .costs import (
     ARITH_BASE_COST,
@@ -49,11 +50,11 @@ from .costs import (
 )
 
 
-def malloc_cost(cost, atom):
+def malloc_cost(cost, atom: SExp):
     return cost + len(atom.atom) * MALLOC_COST_PER_BYTE, atom
 
 
-def op_sha256(args):
+def op_sha256(args: SExp):
     cost = SHA256_BASE_COST
     arg_len = 0
     h = hashlib.sha256()
@@ -68,14 +69,14 @@ def op_sha256(args):
     return malloc_cost(cost, args.to(h.digest()))
 
 
-def args_as_ints(op_name, args):
+def args_as_ints(op_name, args: SExp):
     for arg in args.as_iter():
         if arg.pair:
             raise EvalError("%s requires int args" % op_name, arg)
         yield (arg.as_int(), len(arg.as_atom()))
 
 
-def args_as_int32(op_name, args):
+def args_as_int32(op_name, args: SExp):
     for arg in args.as_iter():
         if arg.pair:
             raise EvalError("%s requires int32 args" % op_name, arg)
@@ -109,7 +110,7 @@ def args_as_bool_list(op_name, args, count):
     return bool_list
 
 
-def op_add(args):
+def op_add(args: SExp):
     total = 0
     cost = ARITH_BASE_COST
     arg_size = 0
@@ -184,7 +185,7 @@ def op_gr(args):
     return cost, args.true if i0 > i1 else args.false
 
 
-def op_gr_bytes(args):
+def op_gr_bytes(args: SExp):
     arg_list = list(args.as_iter())
     if len(arg_list) != 2:
         raise EvalError(">s takes exactly 2 arguments", args)
@@ -211,7 +212,7 @@ def op_pubkey_for_exp(args):
         raise EvalError("problem in op_pubkey_for_exp: %s" % ex, args)
 
 
-def op_point_add(items):
+def op_point_add(items: SExp):
     cost = POINT_ADD_BASE_COST
     p = G1Element()
 
@@ -226,7 +227,7 @@ def op_point_add(items):
     return malloc_cost(cost, items.to(p))
 
 
-def op_strlen(args):
+def op_strlen(args: SExp):
     if args.list_len() != 1:
         raise EvalError("strlen takes exactly 1 argument", args)
     a0 = args.first()
@@ -237,7 +238,7 @@ def op_strlen(args):
     return malloc_cost(cost, args.to(size))
 
 
-def op_substr(args):
+def op_substr(args: SExp):
     arg_count = args.list_len()
     if arg_count not in (2, 3):
         raise EvalError("substr takes exactly 2 or 3 arguments", args)
@@ -260,7 +261,7 @@ def op_substr(args):
     return cost, args.to(s)
 
 
-def op_concat(args):
+def op_concat(args: SExp):
     cost = CONCAT_BASE_COST
     s = io.BytesIO()
     for arg in args.as_iter():
@@ -380,7 +381,7 @@ def op_all(args):
     return cost, args.to(r)
 
 
-def op_softfork(args):
+def op_softfork(args: SExp):
     if args.list_len() < 1:
         raise EvalError("softfork takes at least 1 argument", args)
     a = args.first()

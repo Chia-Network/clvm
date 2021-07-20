@@ -11,7 +11,7 @@ class dummy_class:
         self.i = 0
 
 
-def gen_tree(depth):
+def gen_tree(depth: int) -> SExp:
     if depth == 0:
         return SExp.to(1337)
     subtree = gen_tree(depth - 1)
@@ -58,6 +58,8 @@ class AsPythonTest(unittest.TestCase):
         v = SExp.to([1])
         self.assertEqual(type(v.pair[0]), CLVMObject)
         self.assertEqual(type(v.pair[1]), CLVMObject)
+        self.assertEqual(type(v.as_pair()[0]), SExp)
+        self.assertEqual(type(v.as_pair()[1]), SExp)
         self.assertEqual(v.pair[0].atom, b"\x01")
         self.assertEqual(v.pair[1].atom, b"")
 
@@ -162,13 +164,21 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(v.as_atom(), SExp.null())
 
     def test_invalid_type(self):
-        self.assertRaises(ValueError, lambda: SExp.to(dummy_class))
+        with self.assertRaises(ValueError):
+            s = SExp.to(dummy_class)
+            # conversions are deferred, this is where it will fail:
+            b = list(s.as_iter())
+            print(b)
 
     def test_invalid_tuple(self):
-        self.assertRaises(ValueError, lambda: SExp.to((dummy_class, dummy_class)))
-        self.assertRaises(
-            ValueError, lambda: SExp.to((dummy_class, dummy_class, dummy_class))
-        )
+        with self.assertRaises(ValueError):
+            s = SExp.to((dummy_class, dummy_class))
+            # conversions are deferred, this is where it will fail:
+            b = list(s.as_iter())
+            print(b)
+
+        with self.assertRaises(ValueError):
+            s = SExp.to((dummy_class, dummy_class, dummy_class))
 
     def test_clvm_object_tuple(self):
         o1 = CLVMObject(b"foo")
