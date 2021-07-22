@@ -26,3 +26,18 @@ KEYWORDS = (
 KEYWORD_FROM_ATOM = {int_to_bytes(k): v for k, v in enumerate(KEYWORDS)}
 KEYWORD_TO_ATOM = {v: k for k, v in KEYWORD_FROM_ATOM.items()}
 
+KEYWORD_TO_LONG_KEYWORD = {
+    "i": "op_if",
+    "c": "op_cons",
+    "f": "op_first",
+    "r": "op_rest",
+    "l": "op_listp",
+    "x": "op_raise",
+    "=": "op_eq",
+    "+": "op_add",
+    "-": "op_subtract",
+    "*": "op_multiply",
+    "/": "op_divmod",
+    ">": "op_gr",
+    ">s": "op_gr_bytes",
+}

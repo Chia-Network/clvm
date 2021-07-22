@@ -15,6 +15,7 @@ from .handle_unknown_op import (
 from .run_program import _run_program
 from .types import CLVMObjectType, ConversionFn, MultiOpFn, OperatorDict
 from clvm.serialize import sexp_from_stream, sexp_to_stream
+from .chia_dialect_constants import KEYWORD_FROM_ATOM, KEYWORD_TO_LONG_KEYWORD
 
 
 OP_REWRITE = {
@@ -112,6 +113,72 @@ class Dialect:
         return cost, self.to_python(r)
 
 
+class NativeDialect:
+    def __init__(
+            self,
+            quote_kw: bytes,
+            apply_kw: bytes,
+            multi_op_fn: MultiOpFn,
+            to_python: ConversionFn,
+    ):
+        native_dict = clvm_rs.native_opcodes_dict()
+        def get_native_op_for_kw(op, k):
+            kw = KEYWORD_TO_LONG_KEYWORD[k] if k in KEYWORD_TO_LONG_KEYWORD else "op_%s" % k
+            return (op, native_dict[kw])
+
+        native_opcode_names_by_opcode = dict(
+            get_native_op_for_kw(op, k)
+            for op, k in KEYWORD_FROM_ATOM.items()
+            if k not in "qa."
+        )
+
+        self.quote_kw = quote_kw
+        self.apply_kw = apply_kw
+        self.to_python = to_python
+        self.callbacks = multi_op_fn
+        self.held = clvm_rs.Dialect(
+            quote_kw,
+            apply_kw,
+            multi_op_fn,
+            to_python
+        )
+
+        self.held.update(native_opcode_names_by_opcode)
+
+
+    def update(self,d):
+        return self.held.update(d)
+
+
+    def clear(self) -> None:
+        return self.held.clear()
+
+
+    def run_program(
+        self,
+        program: CLVMObjectType,
+        env: CLVMObjectType,
+        max_cost: int,
+        pre_eval_f: Optional[
+            Callable[[CLVMObjectType, CLVMObjectType], Tuple[int, CLVMObjectType]]
+        ] = None,
+    ) -> Tuple[int, CLVMObjectType]:
+        prog = io.BytesIO()
+        e = io.BytesIO()
+        sexp_to_stream(program, prog)
+        sexp_to_stream(env, e)
+
+        return self.held.deserialize_and_run_program(
+            prog.getvalue(),
+            e.getvalue(),
+            max_cost,
+            pre_eval_f
+        )
+
+    def configure(self,**kwargs):
+        pass
+
+
 def native_new_dialect(
     quote_kw: bytes, apply_kw: bytes, strict: bool, to_python: ConversionFn
 ) -> Dialect:
@@ -120,7 +187,8 @@ def native_new_dialect(
         if strict
         else clvm_rs.NATIVE_OP_UNKNOWN_NON_STRICT
     )
-    dialect = clvm_rs.Dialect(
+
+    dialect = NativeDialect(
         quote_kw,
         apply_kw,
         unknown_op_callback,
@@ -135,6 +203,7 @@ def python_new_dialect(
     unknown_op_callback = (
         handle_unknown_op_strict if strict else handle_unknown_op_softfork_ready
     )
+
     dialect = Dialect(
         quote_kw,
         apply_kw,
