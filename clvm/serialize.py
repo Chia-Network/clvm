@@ -10,7 +10,7 @@
 # 0xe0-0xef is 3 bytes ((perform logical and of first byte with 0xf))
 # 0xf0-0xf7 is 4 bytes ((perform logical and of first byte with 0x7))
 # 0xf7-0xfb is 5 bytes ((perform logical and of first byte with 0x3))
-
+import io
 from .CLVMObject import CLVMObject
 
 
@@ -147,15 +147,15 @@ def _consume_atom(f, b):
 # that represent on S-expression tree, and returns them. This is more efficient
 # than parsing and returning a python S-expression tree.
 def sexp_buffer_from_stream(f):
-    ret = b''
+    ret = io.BytesIO()
 
     depth = 1
     while depth > 0:
         depth -= 1
         buf, d = _op_consume_sexp(f)
         depth += d
-        ret += buf
-    return ret
+        ret.write(buf)
+    return ret.getvalue()
 
 
 def _atom_from_stream(f, b, to_sexp):
