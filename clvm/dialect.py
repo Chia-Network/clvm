@@ -1,5 +1,6 @@
 from typing import Callable, Optional, Tuple
 from .SExp import SExp
+
 try:
     import clvm_rs
 except ImportError:
@@ -115,15 +116,20 @@ class Dialect:
 
 class NativeDialect:
     def __init__(
-            self,
-            quote_kw: bytes,
-            apply_kw: bytes,
-            multi_op_fn: MultiOpFn,
-            to_python: ConversionFn,
+        self,
+        quote_kw: bytes,
+        apply_kw: bytes,
+        multi_op_fn: MultiOpFn,
+        to_python: ConversionFn,
     ):
         native_dict = clvm_rs.native_opcodes_dict()
+
         def get_native_op_for_kw(op, k):
-            kw = KEYWORD_TO_LONG_KEYWORD[k] if k in KEYWORD_TO_LONG_KEYWORD else "op_%s" % k
+            kw = (
+                KEYWORD_TO_LONG_KEYWORD[k]
+                if k in KEYWORD_TO_LONG_KEYWORD
+                else "op_%s" % k
+            )
             return (op, native_dict[kw])
 
         native_opcode_names_by_opcode = dict(
@@ -136,23 +142,15 @@ class NativeDialect:
         self.apply_kw = apply_kw
         self.to_python = to_python
         self.callbacks = multi_op_fn
-        self.held = clvm_rs.Dialect(
-            quote_kw,
-            apply_kw,
-            multi_op_fn,
-            to_python
-        )
+        self.held = clvm_rs.Dialect(quote_kw, apply_kw, multi_op_fn, to_python)
 
         self.held.update(native_opcode_names_by_opcode)
 
-
-    def update(self,d):
+    def update(self, d):
         return self.held.update(d)
-
 
     def clear(self) -> None:
         return self.held.clear()
-
 
     def run_program(
         self,
@@ -169,13 +167,10 @@ class NativeDialect:
         sexp_to_stream(env, e)
 
         return self.held.deserialize_and_run_program(
-            prog.getvalue(),
-            e.getvalue(),
-            max_cost,
-            pre_eval_f
+            prog.getvalue(), e.getvalue(), max_cost, pre_eval_f
         )
 
-    def configure(self,**kwargs):
+    def configure(self, **kwargs):
         pass
 
 
@@ -213,7 +208,13 @@ def python_new_dialect(
     return dialect
 
 
-def new_dialect(quote_kw: bytes, apply_kw: bytes, strict: bool, to_python: ConversionFn, backend=None):
+def new_dialect(
+    quote_kw: bytes,
+    apply_kw: bytes,
+    strict: bool,
+    to_python: ConversionFn,
+    backend=None,
+):
     if backend is None:
         backend = "python" if clvm_rs is None else "native"
     backend_f = native_new_dialect if backend == "native" else python_new_dialect

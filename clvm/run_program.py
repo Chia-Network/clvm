@@ -9,7 +9,7 @@ from .costs import (
     QUOTE_COST,
     PATH_LOOKUP_BASE_COST,
     PATH_LOOKUP_COST_PER_LEG,
-    PATH_LOOKUP_COST_PER_ZERO_BYTE
+    PATH_LOOKUP_COST_PER_ZERO_BYTE,
 )
 
 # the "Any" below should really be "OpStackType" but

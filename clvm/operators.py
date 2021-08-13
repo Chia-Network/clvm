@@ -10,6 +10,7 @@ from .handle_unknown_op import handle_unknown_op_softfork_ready
 from .dialect import OP_REWRITE
 from .chia_dialect_constants import KEYWORDS, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM  # noqa
 
+
 class OperatorDict(dict):
     """
     This is a nice hack that adds `__call__` to a dictionary, so
@@ -32,7 +33,9 @@ class OperatorDict(dict):
             self.unknown_op_handler = handle_unknown_op_softfork_ready
         return self
 
-    def __call__(self, op: bytes, arguments: CLVMObject, max_cost=None) -> Tuple[int, CLVMObject]:
+    def __call__(
+        self, op: bytes, arguments: CLVMObject, max_cost=None
+    ) -> Tuple[int, CLVMObject]:
         f = self.get(op)
         if f is None:
             try:

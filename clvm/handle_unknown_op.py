@@ -118,7 +118,7 @@ def handle_unknown_op_softfork_ready(
         cost += length * CONCAT_COST_PER_BYTE
 
     cost *= cost_multiplier
-    if cost >= 2**32:
+    if cost >= 2 ** 32:
         raise EvalError("invalid operator", args.to(op))
 
     return (cost, args.to(b""))

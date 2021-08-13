@@ -10,6 +10,7 @@ class ChainableMultiOpFn:
     This structure handles clvm operators. Given an atom, it looks it up in a `dict`, then
     falls back to calling `unknown_op_handler`.
     """
+
     op_lookup: OperatorDict
     unknown_op_handler: MultiOpFn
 

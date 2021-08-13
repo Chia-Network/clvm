@@ -20,7 +20,10 @@ class CLVMObject:
         self = super(CLVMObject, class_).__new__(class_)
         if isinstance(v, tuple):
             if len(v) != 2:
-                raise ValueError("tuples must be of size 2, cannot create CLVMObject from: %s" % str(v))
+                raise ValueError(
+                    "tuples must be of size 2, cannot create CLVMObject from: %s"
+                    % str(v)
+                )
             self.pair = v
             self.atom = None
         else:
