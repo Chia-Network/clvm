@@ -88,7 +88,8 @@ def debug_new_dialect(
 
     # Override operators we want to track.
     std_op_table = opcode_table_for_backend(KEYWORD_TO_ATOM, backend="python")
-    table = {b"\x0b": d.do_sha256_with_trace(std_op_table[b"\x0b"])}
+    sha256_op = KEYWORD_TO_ATOM["sha256"]
+    table = {sha256_op: d.do_sha256_with_trace(std_op_table[sha256_op])}
     d.update(table)
 
     return d
