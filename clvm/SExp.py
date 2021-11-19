@@ -117,6 +117,8 @@ def to_sexp_type(
     return stack[0]
 
 
+_T_SExp = typing.TypeVar("_T_SExp", bound="SExp")
+
 class SExp:
     """
     SExp provides higher level API on top of any object implementing the CLVM
@@ -173,7 +175,7 @@ class SExp:
         return f.getvalue()
 
     @classmethod
-    def to(class_, v: CastableType) -> "SExp":
+    def to(class_: typing.Type[_T_SExp], v: CastableType) -> _T_SExp:
         if isinstance(v, class_):
             return v
 
