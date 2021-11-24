@@ -119,6 +119,7 @@ def to_sexp_type(
 
 _T_SExp = typing.TypeVar("_T_SExp", bound="SExp")
 
+
 class SExp:
     """
     SExp provides higher level API on top of any object implementing the CLVM
