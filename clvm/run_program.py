@@ -3,6 +3,7 @@ from typing import Any, Callable, List, Tuple
 from .CLVMObject import CLVMObject
 from .EvalError import EvalError
 from .SExp import SExp
+from .operators import OperatorDict
 
 from .costs import (
     APPLY_COST,
@@ -48,14 +49,14 @@ def msb_mask(byte):
 def run_program(
     program: CLVMObject,
     args: CLVMObject,
-    operator_lookup: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]],
+    operator_lookup: OperatorDict,
     max_cost=None,
     pre_eval_f=None,
-) -> Tuple[int, CLVMObject]:
+) -> Tuple[int, SExp]:
 
-    program = SExp.to(program)
+    _program = SExp.to(program)
     if pre_eval_f:
-        pre_eval_op = to_pre_eval_op(pre_eval_f, program.to)
+        pre_eval_op = to_pre_eval_op(pre_eval_f, _program.to)
     else:
         pre_eval_op = None
 
@@ -65,6 +66,8 @@ def run_program(
         if sexp.nullp():
             return cost, sexp.null()
 
+        if sexp.atom is None:
+            raise ValueError("Atom must have a non-None atom attribute")
         b = sexp.atom
 
         end_byte_cursor = 0
@@ -174,12 +177,12 @@ def run_program(
         return additional_cost
 
     op_stack: OpStackType = [eval_op]
-    value_stack: ValStackType = [program.cons(args)]
+    value_stack: ValStackType = [_program.cons(args)]
     cost: int = 0
 
     while op_stack:
         f = op_stack.pop()
         cost += f(op_stack, value_stack)
         if max_cost and cost > max_cost:
-            raise EvalError("cost exceeded", program.to(max_cost))
+            raise EvalError("cost exceeded", _program.to(max_cost))
     return cost, value_stack[-1]
