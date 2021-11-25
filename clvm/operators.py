@@ -1,10 +1,9 @@
-from typing import Dict, Tuple
+from typing import Tuple
 
 from typing_extensions import Protocol
 
 from . import core_ops, more_ops
 
-from .CLVMObject import CLVMObject
 from .SExp import SExp
 from .EvalError import EvalError
 
