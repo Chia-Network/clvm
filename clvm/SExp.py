@@ -117,7 +117,7 @@ def to_sexp_type(
     return stack[0]
 
 
-_T_SExp = typing.TypeVar("_T_SExp", bound="SExp")
+_T_SExp = typing.TypeVar("_T_SExp")
 
 
 class SExp:
