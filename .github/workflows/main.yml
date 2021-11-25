@@ -28,6 +28,8 @@ jobs:
           python -m pip install flake8
       - name: flake8
         run: flake8 clvm tests --max-line-length=120
+      - name: mypy
+        run: mypy
       - name: Test with pytest
         run: |
           py.test tests

@@ -1,5 +1,14 @@
 import typing
 
+from typing_extensions import Protocol
+
+
+class CLVMObjectLike(Protocol):
+    # It's not clear if it is possible to express the exclusivity without maybe
+    # restructuring all the classes.
+    atom: typing.Optional[bytes]
+    pair: typing.Optional[typing.Tuple["CLVMObjectLike", "CLVMObjectLike"]]
+
 
 class CLVMObject:
     """
@@ -11,7 +20,7 @@ class CLVMObject:
 
     # this is always a 2-tuple of an object implementing the CLVM object
     # protocol.
-    pair: typing.Optional[typing.Tuple[typing.Any, typing.Any]]
+    pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
     __slots__ = ["atom", "pair"]
 
     def __new__(class_, v):
