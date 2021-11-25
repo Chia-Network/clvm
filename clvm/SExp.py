@@ -4,7 +4,7 @@ import typing
 from blspy import G1Element
 
 from .as_python import as_python
-from .CLVMObject import CLVMObject
+from .CLVMObject import CLVMObject, CLVMObjectLike
 
 from .EvalError import EvalError
 
@@ -24,7 +24,7 @@ CastableType = typing.Union[
     None,
     G1Element,
     list,
-    typing.Tuple[typing.Any, typing.Any],
+    typing.Tuple["CastableType", "CastableType"],
 ]
 
 
@@ -60,13 +60,14 @@ def convert_atom_to_bytes(
 # returns a clvm-object like object
 def to_sexp_type(
     v: CastableType,
-):
+) -> CLVMObjectLike:
     stack = [v]
-    ops = [(0, None)]  # convert
+    ops: typing.List[typing.Tuple[int, typing.Optional[int]]] = [(0, None)]  # convert
 
     while len(ops) > 0:
         op, target = ops.pop()
-        # convert value
+        # convert valuefrom .operators import OperatorDict
+
         if op == 0:
             if looks_like_clvm_object(stack[-1]):
                 continue
@@ -140,14 +141,14 @@ class SExp:
 
     # this is a tuple of the otherlying CLVMObject-like objects. i.e. not
     # SExp objects with higher level functions, or None
-    pair: typing.Optional[typing.Tuple[typing.Any, typing.Any]]
+    pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
 
     def __init__(self, obj):
         self.atom = obj.atom
         self.pair = obj.pair
 
     # this returns a tuple of two SExp objects, or None
-    def as_pair(self) -> typing.Tuple["SExp", "SExp"]:
+    def as_pair(self) -> typing.Optional[typing.Tuple["SExp", "SExp"]]:
         pair = self.pair
         if pair is None:
             return pair

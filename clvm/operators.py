@@ -1,5 +1,7 @@
 from typing import Dict, Tuple
 
+from typing_extensions import Protocol
+
 from . import core_ops, more_ops
 
 from .CLVMObject import CLVMObject
@@ -65,7 +67,7 @@ OP_REWRITE = {
 }
 
 
-def args_len(op_name, args):
+def args_len(op_name, args: SExp):
     for arg in args.as_iter():
         if arg.pair:
             raise EvalError("%s requires int args" % op_name, arg)
@@ -99,7 +101,7 @@ def args_len(op_name, args):
 # this means that unknown ops where cost_function is 1, 2, or 3, may still be
 # fatal errors if the arguments passed are not atoms.
 
-def default_unknown_op(op: bytes, args: CLVMObject) -> Tuple[int, CLVMObject]:
+def default_unknown_op(op: bytes, args: SExp) -> Tuple[int, SExp]:
     # any opcode starting with ffff is reserved (i.e. fatal error)
     # opcodes are not allowed to be empty
     if len(op) == 0 or op[:2] == b"\xff\xff":
@@ -165,13 +167,21 @@ def default_unknown_op(op: bytes, args: CLVMObject) -> Tuple[int, CLVMObject]:
     return (cost, SExp.null())
 
 
+class DefaultOperator(Protocol):
+    def __call__(self, op: bytes, args: SExp) -> Tuple[int, SExp]: ...
+
+
 class OperatorDict(dict):
     """
     This is a nice hack that adds `__call__` to a dictionary, so
     operators can be added dynamically.
     """
 
-    def __new__(class_, d: Dict, *args, **kwargs):
+    unknown_op_handler: DefaultOperator
+    quote_atom: int
+    apply_atom: int
+
+    def __new__(class_, d: "OperatorDict", *args, **kwargs):
         """
         `quote_atom` and `apply_atom` must be set
         `unknown_op_handler` has a default implementation
@@ -187,7 +197,7 @@ class OperatorDict(dict):
             self.unknown_op_handler = default_unknown_op
         return self
 
-    def __call__(self, op: bytes, arguments: CLVMObject) -> Tuple[int, CLVMObject]:
+    def __call__(self, op: bytes, arguments: SExp) -> Tuple[int, SExp]:
         f = self.get(op)
         if f is None:
             return self.unknown_op_handler(op, arguments)

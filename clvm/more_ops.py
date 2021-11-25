@@ -51,6 +51,8 @@ from .costs import (
 
 
 def malloc_cost(cost, atom: SExp):
+    if atom.atom is None:
+        raise ValueError("Atom must have a non-None atom attribute")
     return cost + len(atom.atom) * MALLOC_COST_PER_BYTE, atom
 
 

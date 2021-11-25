@@ -7,11 +7,14 @@ with open("README.md", "rt") as fh:
 
 dependencies = [
     "blspy>=0.9",
+    "typing-extensions~=4.0.0",  # Backports of new typing module features
 ]
 
 dev_dependencies = [
     "clvm_tools>=0.4.2",
+    "mypy",
     "pytest",
+    "types-setuptools",
 ]
 
 setup(
