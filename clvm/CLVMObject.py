@@ -10,6 +10,9 @@ class CLVMObjectLike(Protocol):
     pair: typing.Optional[typing.Tuple["CLVMObjectLike", "CLVMObjectLike"]]
 
 
+_T_CLVMObject = typing.TypeVar("_T_CLVMObject")
+
+
 class CLVMObject:
     """
     This class implements the CLVM Object protocol in the simplest possible way,
@@ -23,13 +26,20 @@ class CLVMObject:
     pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
     __slots__ = ["atom", "pair"]
 
-    def __new__(class_, v):
-        if isinstance(v, CLVMObject):
+    @staticmethod
+    def __new__(
+        class_: typing.Type[_T_CLVMObject],
+        v: typing.Union["CLVMObject", typing.Tuple, bytes],
+    ) -> _T_CLVMObject:
+        if isinstance(v, class_):
             return v
         self = super(CLVMObject, class_).__new__(class_)
         if isinstance(v, tuple):
             if len(v) != 2:
-                raise ValueError("tuples must be of size 2, cannot create CLVMObject from: %s" % str(v))
+                raise ValueError(
+                    "tuples must be of size 2, cannot create CLVMObject from: %s"
+                    % str(v)
+                )
             self.pair = v
             self.atom = None
         else:
