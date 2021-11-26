@@ -13,14 +13,20 @@
 #   1000 0000 -> 0 bytes : nil
 #   0000 0000 -> 1 byte : zero (b'\x00')
 import io
+import typing
+
 from .CLVMObject import CLVMObject
+from .SExp import SExp
 
 
 MAX_SINGLE_BYTE = 0x7F
 CONS_BOX_MARKER = 0xFF
 
 
-def sexp_to_byte_iterator(sexp):
+T = typing.TypeVar("T")
+
+
+def sexp_to_byte_iterator(sexp: SExp) -> typing.Iterator[bytes]:
     todo_stack = [sexp]
     while todo_stack:
         sexp = todo_stack.pop()
@@ -33,7 +39,7 @@ def sexp_to_byte_iterator(sexp):
             yield from atom_to_byte_iterator(sexp.as_atom())
 
 
-def atom_to_byte_iterator(as_atom):
+def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
     size = len(as_atom)
     if size == 0:
         yield b"\x80"
@@ -68,18 +74,18 @@ def atom_to_byte_iterator(as_atom):
             ]
         )
     else:
-        raise ValueError("sexp too long %s" % as_atom)
+        raise ValueError(f"sexp too long {as_atom!r}")
 
     yield size_blob
     yield as_atom
 
 
-def sexp_to_stream(sexp, f):
+def sexp_to_stream(sexp: SExp, f: typing.BinaryIO) -> None:
     for b in sexp_to_byte_iterator(sexp):
         f.write(b)
 
 
-def _op_read_sexp(op_stack, val_stack, f, to_sexp):
+def _op_read_sexp(op_stack, val_stack, f: typing.BinaryIO, to_sexp) -> None:
     blob = f.read(1)
     if len(blob) == 0:
         raise ValueError("bad encoding")
@@ -92,13 +98,13 @@ def _op_read_sexp(op_stack, val_stack, f, to_sexp):
     val_stack.append(_atom_from_stream(f, b, to_sexp))
 
 
-def _op_cons(op_stack, val_stack, f, to_sexp):
+def _op_cons(op_stack, val_stack, f: typing.BinaryIO, to_sexp) -> None:
     right = val_stack.pop()
     left = val_stack.pop()
     val_stack.append(to_sexp((left, right)))
 
 
-def sexp_from_stream(f, to_sexp):
+def sexp_from_stream(f: typing.BinaryIO, to_sexp: typing.Callable[..., T]) -> T:
     op_stack = [_op_read_sexp]
     val_stack = []
 
@@ -108,7 +114,7 @@ def sexp_from_stream(f, to_sexp):
     return to_sexp(val_stack.pop())
 
 
-def _op_consume_sexp(f):
+def _op_consume_sexp(f: typing.BinaryIO) -> typing.Tuple[bytes, int]:
     blob = f.read(1)
     if len(blob) == 0:
         raise ValueError("bad encoding")
@@ -118,7 +124,7 @@ def _op_consume_sexp(f):
     return (_consume_atom(f, b), 0)
 
 
-def _consume_atom(f, b):
+def _consume_atom(f: typing.BinaryIO, b: int) -> bytes:
     if b == 0x80:
         return bytes([b])
     if b <= MAX_SINGLE_BYTE:
@@ -132,10 +138,10 @@ def _consume_atom(f, b):
         bit_mask >>= 1
     size_blob = bytes([ll])
     if bit_count > 1:
-        ll = f.read(bit_count - 1)
-        if len(ll) != bit_count - 1:
+        llb = f.read(bit_count - 1)
+        if len(llb) != bit_count - 1:
             raise ValueError("bad encoding")
-        size_blob += ll
+        size_blob += llb
     size = int.from_bytes(size_blob, "big")
     if size >= 0x400000000:
         raise ValueError("blob too large")
@@ -148,7 +154,7 @@ def _consume_atom(f, b):
 # instead of parsing the input stream, this function pulls out all the bytes
 # that represent on S-expression tree, and returns them. This is more efficient
 # than parsing and returning a python S-expression tree.
-def sexp_buffer_from_stream(f):
+def sexp_buffer_from_stream(f: typing.BinaryIO) -> bytes:
     ret = io.BytesIO()
 
     depth = 1
@@ -160,7 +166,7 @@ def sexp_buffer_from_stream(f):
     return ret.getvalue()
 
 
-def _atom_from_stream(f, b, to_sexp):
+def _atom_from_stream(f: typing.BinaryIO, b: int, to_sexp: typing.Callable[..., T]) -> T:
     if b == 0x80:
         return to_sexp(b"")
     if b <= MAX_SINGLE_BYTE:
@@ -173,10 +179,10 @@ def _atom_from_stream(f, b, to_sexp):
         bit_mask >>= 1
     size_blob = bytes([b])
     if bit_count > 1:
-        b = f.read(bit_count - 1)
-        if len(b) != bit_count - 1:
+        bb = f.read(bit_count - 1)
+        if len(bb) != bit_count - 1:
             raise ValueError("bad encoding")
-        size_blob += b
+        size_blob += bb
     size = int.from_bytes(size_blob, "big")
     if size >= 0x400000000:
         raise ValueError("blob too large")
