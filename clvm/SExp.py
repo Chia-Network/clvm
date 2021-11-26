@@ -118,9 +118,10 @@ def to_sexp_type(
     return stack[0]
 
 
-_T_SExp = typing.TypeVar("_T_SExp")
+_T_SExp = typing.TypeVar("_T_SExp", bound="SExp")
 
 
+# TODO: Maybe there is some way to track atom vs. pair SExps to help hinting out a bit
 class SExp:
     """
     SExp provides higher level API on top of any object implementing the CLVM
@@ -146,7 +147,7 @@ class SExp:
     # SExp objects with higher level functions, or None
     pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
 
-    def __init__(self, obj):
+    def __init__(self, obj: CLVMObjectLike) -> None:
         self.atom = obj.atom
         self.pair = obj.pair
 
@@ -158,20 +159,22 @@ class SExp:
         return (self.__class__(pair[0]), self.__class__(pair[1]))
 
     # TODO: deprecate this. Same as .atom property
-    def as_atom(self):
+    def as_atom(self) -> typing.Optional[bytes]:
         return self.atom
 
-    def listp(self):
+    def listp(self) -> bool:
         return self.pair is not None
 
-    def nullp(self):
+    def nullp(self) -> bool:
         v = self.atom
         return v is not None and len(v) == 0
 
-    def as_int(self):
+    def as_int(self) -> int:
+        if self.atom is None:
+            raise TypeError("Unable to convert a pair to an int")
         return int_from_bytes(self.atom)
 
-    def as_bin(self):
+    def as_bin(self) -> bytes:
         f = io.BytesIO()
         sexp_to_stream(self, f)
         return f.getvalue()
@@ -182,37 +185,38 @@ class SExp:
             return v
 
         if looks_like_clvm_object(v):
-            return class_(v)
+            # TODO: maybe this can be done more cleanly
+            return class_(typing.cast(CLVMObjectLike, v))
 
         # this will lazily convert elements
         return class_(to_sexp_type(v))
 
-    def cons(self, right):
+    def cons(self: _T_SExp, right) -> _T_SExp:
         return self.to((self, right))
 
-    def first(self):
+    def first(self: _T_SExp) -> _T_SExp:
         pair = self.pair
         if pair:
             return self.__class__(pair[0])
         raise EvalError("first of non-cons", self)
 
-    def rest(self):
+    def rest(self: _T_SExp) -> _T_SExp:
         pair = self.pair
         if pair:
             return self.__class__(pair[1])
         raise EvalError("rest of non-cons", self)
 
     @classmethod
-    def null(class_):
+    def null(class_) -> "SExp":
         return class_.__null__
 
-    def as_iter(self):
+    def as_iter(self: _T_SExp) -> typing.Iterable[_T_SExp]:
         v = self
         while not v.nullp():
             yield v.first()
             v = v.rest()
 
-    def __eq__(self, other: CastableType):
+    def __eq__(self, other: CastableType) -> bool:
         try:
             other = self.to(other)
             to_compare_stack = [(self, other)]
@@ -232,7 +236,7 @@ class SExp:
         except ValueError:
             return False
 
-    def list_len(self):
+    def list_len(self) -> int:
         v = self
         size = 0
         while v.listp():
@@ -243,10 +247,10 @@ class SExp:
     def as_python(self):
         return as_python(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.as_bin().hex()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, str(self))
 
 
