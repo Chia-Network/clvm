@@ -32,6 +32,9 @@ class AsPythonTest(unittest.TestCase):
     def test_null(self):
         self.check_as_python(b"")
 
+    def test_embedded_tuples(self):
+        self.check_as_python((b"10", ((b"200", b"300"), b"400")))
+
     def test_single_bytes(self):
         for _ in range(256):
             self.check_as_python(bytes([_]))
