@@ -174,7 +174,13 @@ def op_div(args):
     if i1 == 0:
         raise EvalError("div with 0", args.to(i0))
     cost += (l0 + l1) * DIV_COST_PER_BYTE
-    q = i0 // i1
+    q, r = divmod(i0, i1)
+
+    # this is to preserve a buggy behavior from the initial implementation
+    # of this operator.
+    if q == -1 and r != 0:
+        q += 1
+
     return malloc_cost(cost, args.to(q))
 
 
