@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.7', '3.8', '3.9' ]
+        python-version: [ '3.7', '3.8', '3.9', '3.10' ]
     name: Python ${{ matrix.python-version }} sample
     steps:
       - uses: actions/checkout@v2
@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
           # we need fetch-depth 0 so setuptools_scm can resolve tags
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
