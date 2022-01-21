@@ -91,11 +91,17 @@ class ToSExpTest(unittest.TestCase):
                 if self.depth == 0:
                     return None
                 new_depth: int = self.depth - 1
-                return (GeneratedTree(new_depth, self.val), GeneratedTree(new_depth, self.val + 2**new_depth))
+                return (
+                    GeneratedTree(new_depth, self.val),
+                    GeneratedTree(new_depth, self.val + 2 ** new_depth),
+                )
 
         tree = SExp.to(GeneratedTree(5, 0))
-        assert print_leaves(tree) == "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 " + \
-            "16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 "
+        assert (
+            print_leaves(tree)
+            == "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 "
+            + "16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 "
+        )
 
         tree = SExp.to(GeneratedTree(3, 0))
         assert print_leaves(tree) == "0 1 2 3 4 5 6 7 "

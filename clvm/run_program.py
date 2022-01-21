@@ -9,11 +9,13 @@ from .costs import (
     QUOTE_COST,
     PATH_LOOKUP_BASE_COST,
     PATH_LOOKUP_COST_PER_LEG,
-    PATH_LOOKUP_COST_PER_ZERO_BYTE
+    PATH_LOOKUP_COST_PER_ZERO_BYTE,
 )
 
 # the "Any" below should really be "OpStackType" but
 # recursive types aren't supported by mypy
+
+MultiOpFn = Callable[[bytes, SExp, int], Tuple[int, SExp]]
 
 OpCallable = Callable[[Any, "ValStackType"], int]
 
@@ -49,6 +51,27 @@ def run_program(
     program: CLVMObject,
     args: CLVMObject,
     operator_lookup: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]],
+    max_cost=None,
+    pre_eval_f=None,
+) -> Tuple[int, CLVMObject]:
+
+    return _run_program(
+        program,
+        args,
+        operator_lookup,
+        operator_lookup.quote_atom,
+        operator_lookup.apply_atom,
+        max_cost,
+        pre_eval_f,
+    )
+
+
+def _run_program(
+    program: CLVMObject,
+    args: CLVMObject,
+    operator_lookup: MultiOpFn,
+    quote_atom: bytes,
+    apply_atom: bytes,
     max_cost=None,
     pre_eval_f=None,
 ) -> Tuple[int, CLVMObject]:
@@ -137,7 +160,7 @@ def run_program(
 
         op = operator.as_atom()
         operand_list = sexp.rest()
-        if op == operator_lookup.quote_atom:
+        if op == quote_atom:
             value_stack.append(operand_list)
             return QUOTE_COST
 
@@ -160,7 +183,7 @@ def run_program(
             raise EvalError("internal error", operator)
 
         op = operator.as_atom()
-        if op == operator_lookup.apply_atom:
+        if op == apply_atom:
             if operand_list.list_len() != 2:
                 raise EvalError("apply requires exactly 2 parameters", operand_list)
             new_program = operand_list.first()

@@ -2,7 +2,11 @@ import io
 import unittest
 
 from clvm import to_sexp_f
-from clvm.serialize import (sexp_from_stream, sexp_buffer_from_stream, atom_to_byte_iterator)
+from clvm.serialize import (
+    sexp_from_stream,
+    sexp_buffer_from_stream,
+    atom_to_byte_iterator,
+)
 
 
 TEXT = b"the quick brown fox jumps over the lazy dogs"
@@ -13,12 +17,12 @@ class InfiniteStream(io.TextIOBase):
         self.buf = b
 
     def read(self, n):
-        ret = b''
+        ret = b""
         while n > 0 and len(self.buf) > 0:
             ret += self.buf[0:1]
             self.buf = self.buf[1:]
             n -= 1
-        ret += b' ' * n
+        ret += b" " * n
         return ret
 
 
@@ -79,7 +83,7 @@ class SerializeTest(unittest.TestCase):
     def test_blob_limit(self):
         with self.assertRaises(ValueError):
             for b in atom_to_byte_iterator(LargeAtom()):
-                print('%02x' % b)
+                print("%02x" % b)
 
     def test_very_long_blobs(self):
         for size in [0x40, 0x2000, 0x100000, 0x8000000]:
@@ -100,7 +104,7 @@ class SerializeTest(unittest.TestCase):
             self.check_serde(s)
 
     def test_deserialize_empty(self):
-        bytes_in = b''
+        bytes_in = b""
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
 
@@ -110,7 +114,7 @@ class SerializeTest(unittest.TestCase):
     def test_deserialize_truncated_size(self):
         # fe means the total number of bytes in the length-prefix is 7
         # one for each bit set. 5 bytes is too few
-        bytes_in = b'\xfe    '
+        bytes_in = b"\xfe    "
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
 
@@ -120,7 +124,7 @@ class SerializeTest(unittest.TestCase):
     def test_deserialize_truncated_blob(self):
         # this is a complete length prefix. The blob is supposed to be 63 bytes
         # the blob itself is truncated though, it's less than 63 bytes
-        bytes_in = b'\xbf   '
+        bytes_in = b"\xbf   "
 
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
@@ -134,7 +138,7 @@ class SerializeTest(unittest.TestCase):
         # we don't support blobs this large, and we should fail immediately when
         # exceeding the max blob size, rather than trying to read this many
         # bytes from the stream
-        bytes_in = b'\xfe' + b'\xff' * 6
+        bytes_in = b"\xfe" + b"\xff" * 6
 
         with self.assertRaises(ValueError):
             sexp_from_stream(InfiniteStream(bytes_in), to_sexp_f)

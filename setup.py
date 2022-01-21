@@ -7,6 +7,7 @@ with open("README.md", "rt") as fh:
 
 dependencies = [
     "blspy>=0.9",
+    "clvm_rs>=0.1.8"
 ]
 
 dev_dependencies = [

@@ -131,6 +131,7 @@ class SExp:
        elements implementing the CLVM object protocol.
     Exactly one of "atom" and "pair" must be None.
     """
+
     true: "SExp"
     false: "SExp"
     __null__: "SExp"
