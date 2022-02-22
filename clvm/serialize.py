@@ -4,14 +4,14 @@
 # if it's 0xff, it's a cons box. Read two items, build cons
 # otherwise, number of leading set bits is length in bytes to read size
 # For example, if bit fields of the reading first byte are:
-#   10xx xxxx -> 1byte is allocated for size_byte, and the value of the size is 00xx xxxx
-#   110x xxxx -> 2byte are allocated for size_byte, and the value of the size 000x xxxx xxxx xxxx
-#   1110 xxxx -> 3byte allocated. The size is 0000 xxxx xxxx xxxx xxxx xxxx
-#   1111 0xxx -> 4byte allocated.
-#   1111 10xx -> 5byte allocated.
+#   10xx xxxx -> 1 byte is allocated for size_byte, and the value of the size is 00xx xxxx
+#   110x xxxx -> 2 bytes are allocated for size_byte, and the value of the size 000x xxxx xxxx xxxx
+#   1110 xxxx -> 3 bytes allocated. The size is 0000 xxxx xxxx xxxx xxxx xxxx
+#   1111 0xxx -> 4 bytes allocated.
+#   1111 10xx -> 5 bytes allocated.
 # If the reading first byte is one of the following:
-#   1000 0000 -> 0byte : nil
-#   0000 0000 -> 1byte : zero (b'\x00')
+#   1000 0000 -> 0 bytes : nil
+#   0000 0000 -> 1 byte : zero (b'\x00')
 import io
 from .CLVMObject import CLVMObject
 
