@@ -3,13 +3,13 @@
 # if it's 0x80, it's nil (which might be same as 0)
 # if it's 0xff, it's a cons box. Read two items, build cons
 # otherwise, number of leading set bits is length in bytes to read size
-# For example, if bit fields of the reading first byte are:
+# For example, if the bit fields of the first byte read are:
 #   10xx xxxx -> 1 byte is allocated for size_byte, and the value of the size is 00xx xxxx
 #   110x xxxx -> 2 bytes are allocated for size_byte, and the value of the size 000x xxxx xxxx xxxx
 #   1110 xxxx -> 3 bytes allocated. The size is 0000 xxxx xxxx xxxx xxxx xxxx
 #   1111 0xxx -> 4 bytes allocated.
 #   1111 10xx -> 5 bytes allocated.
-# If the reading first byte is one of the following:
+# If the first byte read is one of the following:
 #   1000 0000 -> 0 bytes : nil
 #   0000 0000 -> 1 byte : zero (b'\x00')
 import io
