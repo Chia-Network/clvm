@@ -1,3 +1,3 @@
 brun -c '(*)'
-cost = 112
+cost = 103
 1
