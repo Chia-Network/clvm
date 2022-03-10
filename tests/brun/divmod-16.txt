@@ -1,3 +1,3 @@
 brun -n -c '(divmod (q . -10) (q . -70))'
-cost = 1188
+cost = 1179
 (() . -10)

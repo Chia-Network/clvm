@@ -1,3 +1,3 @@
 brun -c "(> (q . 0x493e0) (q . 0x5a))"
-cost = 556
+cost = 547
 1

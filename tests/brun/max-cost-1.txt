@@ -1,2 +1,2 @@
 brun -c -m 73 '(c (q . 100) (q . 200))'
-FAIL: cost exceeded 251
+FAIL: cost exceeded 73
