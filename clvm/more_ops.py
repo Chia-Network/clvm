@@ -176,10 +176,10 @@ def op_div(args):
     cost += (l0 + l1) * DIV_COST_PER_BYTE
     q, r = divmod(i0, i1)
 
-    # this is to preserve a buggy behavior from the initial implementation
-    # of this operator.
-    if q == -1 and r != 0:
-        q += 1
+    if i0 < 0:
+        raise EvalError("div with negative operand", args.to(i0))
+    if i1 < 0:
+        raise EvalError("div with negative operand", args.to(i1))
 
     return malloc_cost(cost, args.to(q))
 
