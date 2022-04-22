@@ -9,7 +9,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         python-version: [ '3.7', '3.8', '3.9', '3.10' ]
-    name: Python ${{ matrix.python-version }} sample
+    name: Python ${{ matrix.os }} ${{ matrix.python-version }} sample
     steps:
       - uses: actions/checkout@v2
         with:
