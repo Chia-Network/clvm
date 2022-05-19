@@ -4,7 +4,7 @@ from typing import Optional
 
 from clvm import to_sexp_f
 from clvm.SExp import CastableType
-from clvm.serialize import (sexp_from_stream, sexp_buffer_from_stream, atom_to_byte_iterator)
+from clvm.serialize import (_atom_from_stream, sexp_from_stream, sexp_buffer_from_stream, atom_to_byte_iterator)
 
 
 TEXT = b"the quick brown fox jumps over the lazy dogs"
@@ -26,6 +26,24 @@ class LargeAtom:
         return 0x400000001
 
 
+def has_backrefs(blob: bytes) -> bool:
+    """
+    Return `True` iff blob has a backref in it.
+    """
+    f = io.BytesIO(blob)
+    obj_count = 1
+    while obj_count > 0:
+        b = f.read(1)[0]
+        if b == 0xfe:
+            return True
+        if b == 0xff:
+            obj_count += 1
+        else:
+            _atom_from_stream(f, b, lambda x: x)
+            obj_count -= 1
+    return False
+
+
 class SerializeTest(unittest.TestCase):
     def check_serde(self, s: CastableType) -> None:
         v = to_sexp_f(s)
@@ -42,6 +60,23 @@ class SerializeTest(unittest.TestCase):
         # of it
         buf = sexp_buffer_from_stream(io.BytesIO(b))
         self.assertEqual(buf, b)
+
+        # now turn on backrefs and make sure everything still works
+
+        b2 = v.as_bin(allow_backrefs=True)
+        self.assertTrue(len(b2) <= len(b))
+        if has_backrefs(b2) or len(b2) < len(b):
+            # if we have any backrefs, ensure they actually save space
+            self.assertTrue(len(b2) < len(b))
+            print("%d bytes before %d after %d saved" % (len(b), len(b2), len(b) - len(b2)))
+            io_b2 = io.BytesIO(b2)
+            self.assertRaises(ValueError, lambda: sexp_from_stream(io_b2, to_sexp_f))
+            io_b2 = io.BytesIO(b2)
+            v2 = sexp_from_stream(io_b2, to_sexp_f, allow_backrefs=True)
+            self.assertEqual(v2, s)
+            b3 = v2.as_bin()
+            self.assertEqual(b, b3)
+        return b2
 
     def test_zero(self) -> None:
         v = to_sexp_f(b"\x00")
@@ -145,3 +180,9 @@ class SerializeTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             sexp_buffer_from_stream(InfiniteStream(bytes_in))
+
+    def test_deserialize_generator(self):
+        blob = bytes.fromhex(open("tests/generator.hex").read())
+        s = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
+        b = self.check_serde(s)
+        assert len(b) == 19124
