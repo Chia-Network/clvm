@@ -1,0 +1,76 @@
+import hashlib
+
+
+class ObjectCache:
+    """
+    `ObjectCache` provides a way to calculate and cache values for each node
+    in a clvm object tree. It can be used to calculate the sha256 tree hash
+    for an object and save the hash for all the child objects for building
+    usage tables, for example.
+    """
+    def __init__(self, f):
+        self.f = f
+        self.lookup = dict()
+
+    def get(self, obj):
+        obj_id = id(obj)
+        if obj_id not in self.lookup:
+            obj_list = [obj]
+            while obj_list:
+                node = obj_list.pop()
+                node_id = id(node)
+                if node_id not in self.lookup:
+                    v = self.f(self, node)
+                    if v is None:
+                        if node.pair is None:
+                            raise ValueError("f returned None for atom", node)
+                        obj_list.append(node)
+                        obj_list.append(node.pair[0])
+                        obj_list.append(node.pair[1])
+                    else:
+                        self.lookup[node_id] = (v, node)
+        return self.lookup[obj_id][0]
+
+    def contains(self, obj):
+        return id(obj) in self.lookup
+
+
+def treehash(cache, obj):
+    """
+    This function can be fed to `ObjectCache` to calculate the sha256 tree
+    hash for all objects in a tree.
+    """
+    if obj.pair:
+        left, right = obj.pair
+        if cache.contains(left) and cache.contains(right):
+            left_hash = cache.get(left)
+            right_hash = cache.get(right)
+            return hashlib.sha256(b"\2" + left_hash + right_hash).digest()
+        return None
+    return hashlib.sha256(b"\1" + obj.atom).digest()
+
+
+def serialized_length(cache, obj):
+    """
+    This function can be fed to `ObjectCache` to calculate the serialized
+    length for all objects in a tree.
+    """
+    if obj.pair:
+        left, right = obj.pair
+        if cache.contains(left) and cache.contains(right):
+            left_length = cache.get(left)
+            right_length = cache.get(right)
+            return 1 + left_length + right_length
+        return None
+    lb = len(obj.atom)
+    if lb == 0 or (lb == 1 and obj.atom[0] < 128):
+        return 1
+    if lb < 0x40:
+        return 1 + lb
+    if lb < 0x2000:
+        return 2 + lb
+    if lb < 0x100000:
+        return 3 + lb
+    if lb < 0x8000000:
+        return 4 + lb
+    return 5 + lb
