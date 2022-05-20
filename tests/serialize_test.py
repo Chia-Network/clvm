@@ -4,7 +4,12 @@ from typing import Optional
 
 from clvm import to_sexp_f
 from clvm.SExp import CastableType
-from clvm.serialize import (_atom_from_stream, sexp_from_stream, sexp_buffer_from_stream, atom_to_byte_iterator)
+from clvm.serialize import (
+    _atom_from_stream,
+    sexp_from_stream,
+    sexp_buffer_from_stream,
+    atom_to_byte_iterator,
+)
 
 
 TEXT = b"the quick brown fox jumps over the lazy dogs"
@@ -34,9 +39,9 @@ def has_backrefs(blob: bytes) -> bool:
     obj_count = 1
     while obj_count > 0:
         b = f.read(1)[0]
-        if b == 0xfe:
+        if b == 0xFE:
             return True
-        if b == 0xff:
+        if b == 0xFF:
             obj_count += 1
         else:
             _atom_from_stream(f, b, lambda x: x)
@@ -68,7 +73,6 @@ class SerializeTest(unittest.TestCase):
         if has_backrefs(b2) or len(b2) < len(b):
             # if we have any backrefs, ensure they actually save space
             self.assertTrue(len(b2) < len(b))
-            print("%d bytes before %d after %d saved" % (len(b), len(b2), len(b) - len(b2)))
             io_b2 = io.BytesIO(b2)
             self.assertRaises(ValueError, lambda: sexp_from_stream(io_b2, to_sexp_f))
             io_b2 = io.BytesIO(b2)
@@ -139,7 +143,7 @@ class SerializeTest(unittest.TestCase):
             self.check_serde(s)
 
     def test_deserialize_empty(self) -> None:
-        bytes_in = b''
+        bytes_in = b""
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
 
@@ -149,7 +153,7 @@ class SerializeTest(unittest.TestCase):
     def test_deserialize_truncated_size(self) -> None:
         # fe means the total number of bytes in the length-prefix is 7
         # one for each bit set. 5 bytes is too few
-        bytes_in = b'\xfe    '
+        bytes_in = b"\xfe    "
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
 
@@ -159,7 +163,7 @@ class SerializeTest(unittest.TestCase):
     def test_deserialize_truncated_blob(self) -> None:
         # this is a complete length prefix. The blob is supposed to be 63 bytes
         # the blob itself is truncated though, it's less than 63 bytes
-        bytes_in = b'\xbf   '
+        bytes_in = b"\xbf   "
 
         with self.assertRaises(ValueError):
             sexp_from_stream(io.BytesIO(bytes_in), to_sexp_f)
@@ -173,7 +177,7 @@ class SerializeTest(unittest.TestCase):
         # we don't support blobs this large, and we should fail immediately when
         # exceeding the max blob size, rather than trying to read this many
         # bytes from the stream
-        bytes_in = b'\xfe' + b'\xff' * 6
+        bytes_in = b"\xfe" + b"\xff" * 6
 
         with self.assertRaises(ValueError):
             sexp_from_stream(InfiniteStream(bytes_in), to_sexp_f)
@@ -188,7 +192,6 @@ class SerializeTest(unittest.TestCase):
         assert len(b) == 19124
 
     def test_deserialize_bomb(self):
-
         def make_bomb(depth):
             bomb = TEXT
             for _ in range(depth):
