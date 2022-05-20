@@ -186,3 +186,31 @@ class SerializeTest(unittest.TestCase):
         s = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
         b = self.check_serde(s)
         assert len(b) == 19124
+
+    def test_deserialize_bomb(self):
+
+        def make_bomb(depth):
+            bomb = TEXT
+            for _ in range(depth):
+                bomb = to_sexp_f((bomb, bomb))
+            return bomb
+
+        bomb_10 = make_bomb(10)
+        b10_1 = bomb_10.as_bin(allow_backrefs=False)
+        b10_2 = bomb_10.as_bin(allow_backrefs=True)
+        self.assertEqual(len(b10_1), 47103)
+        self.assertEqual(len(b10_2), 75)
+
+        bomb_20 = make_bomb(20)
+        b20_1 = bomb_20.as_bin(allow_backrefs=False)
+        b20_2 = bomb_20.as_bin(allow_backrefs=True)
+        self.assertEqual(len(b20_1), 48234495)
+        self.assertEqual(len(b20_2), 105)
+
+        bomb_30 = make_bomb(30)
+        # do not uncomment the next line unless you want to run out of memory
+        # b30_1 = bomb_30.as_bin(allow_backrefs=False)
+        b30_2 = bomb_30.as_bin(allow_backrefs=True)
+
+        # self.assertEqual(len(b30_1), 1)
+        self.assertEqual(len(b30_2), 135)
