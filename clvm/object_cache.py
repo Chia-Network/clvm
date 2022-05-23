@@ -7,8 +7,23 @@ class ObjectCache:
     in a clvm object tree. It can be used to calculate the sha256 tree hash
     for an object and save the hash for all the child objects for building
     usage tables, for example.
+
+    It also allows a function that's defined recursively on a clvm tree to
+    have a non-recursive implementation (as it keeps a stack of uncached
+    objects locally).
     """
     def __init__(self, f):
+        """
+        `f`: Callable[ObjectCache, CLVMObject] -> Union[None, T]
+
+        The function `f` is expected to calculate its T value recursively based
+        on the T values for the left and right child for a pair. For an atom, the
+        function f must calculate the T value directly.
+
+        If a pair is passed and one of the children does not have its T value cached
+        in `ObjectCache` yet, return `None` and f will be called with each child in turn.
+        Don't recurse in f; that's part of the point of this function.
+        """
         self.f = f
         self.lookup = dict()
 
@@ -42,6 +57,8 @@ def treehash(cache, obj):
     """
     if obj.pair:
         left, right = obj.pair
+
+        # ensure both `left` and `right` have cached values
         if cache.contains(left) and cache.contains(right):
             left_hash = cache.get(left)
             right_hash = cache.get(right)
@@ -57,6 +74,8 @@ def serialized_length(cache, obj):
     """
     if obj.pair:
         left, right = obj.pair
+
+        # ensure both `left` and `right` have cached values
         if cache.contains(left) and cache.contains(right):
             left_length = cache.get(left)
             right_length = cache.get(right)

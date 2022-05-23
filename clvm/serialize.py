@@ -26,9 +26,6 @@ MAX_SINGLE_BYTE = 0x7F
 BACK_REFERENCE = 0xFE
 CONS_BOX_MARKER = 0xFF
 
-if typing.TYPE_CHECKING:
-    from .SExp import CastableType, SExp
-
 T = typing.TypeVar("T")
 
 ToCLVMStorage = typing.Callable[
@@ -43,7 +40,7 @@ ValStackType = typing.List[CLVMStorage]
 OpStackType = typing.List[OpCallable]
 
 
-def sexp_to_byte_iterator(sexp: CLVMStorage, /, allow_backrefs: bool = False) -> typing.Iterator[bytes]:
+def sexp_to_byte_iterator(sexp: CLVMStorage, *, allow_backrefs: bool = False) -> typing.Iterator[bytes]:
     if allow_backrefs:
         yield from sexp_to_byte_iterator_with_backrefs(sexp)
         return
@@ -142,7 +139,7 @@ def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
     yield as_atom
 
 
-def sexp_to_stream(sexp: CLVMStorage, f: typing.BinaryIO, /, allow_backrefs: bool = False) -> None:
+def sexp_to_stream(sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False) -> None:
     for b in sexp_to_byte_iterator(sexp, allow_backrefs=allow_backrefs):
         f.write(b)
 
@@ -230,9 +227,9 @@ def _op_read_sexp_allow_backrefs(op_stack, val_stack, f, to_sexp):
     return to_sexp((_atom_from_stream(f, b, to_sexp), val_stack))
 
 
-def sexp_from_stream(f: typing.BinaryIO, to_sexp: ToCLVMStorage, /, allow_backrefs=False) -> CLVMStorage:
-    op_stack: OpStackType = [_op_read_sexp_allow_backrefs if allow_backrefs else _op_read_sexp]
-    val_stack: SExp = to_sexp(b"")
+def sexp_from_stream(f: typing.BinaryIO, to_sexp: ToCLVMStorage, *, allow_backrefs=False) -> CLVMStorage:
+    op_stack = [_op_read_sexp_allow_backrefs if allow_backrefs else _op_read_sexp]
+    val_stack = to_sexp(b"")
 
     while op_stack:
         func = op_stack.pop()
