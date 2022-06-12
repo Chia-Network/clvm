@@ -1,0 +1,3 @@
+brun -c '(logior (q . -128) (q . 0x7ffff))'
+cost = 691
+-1

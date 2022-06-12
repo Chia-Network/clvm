@@ -1,3 +1,3 @@
 brun -c '(concat (q . foo) (q . bar))'
-cost = 540
+cost = 531
 "foobar"

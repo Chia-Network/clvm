@@ -1,15 +1,18 @@
 # decoding:
 # read a byte
-# if it's 0xfe, it's nil (which might be same as 0)
+# if it's 0x80, it's nil (which might be same as 0)
 # if it's 0xff, it's a cons box. Read two items, build cons
 # otherwise, number of leading set bits is length in bytes to read size
-# 0-0x7f are literal one byte values
-# leading bits is the count of bytes to read of size
-# 0x80-0xbf is a size of one byte (perform logical and of first byte with 0x3f to get size)
-# 0xc0-0xdf is a size of two bytes (perform logical and of first byte with 0x1f)
-# 0xe0-0xef is 3 bytes ((perform logical and of first byte with 0xf))
-# 0xf0-0xf7 is 4 bytes ((perform logical and of first byte with 0x7))
-# 0xf7-0xfb is 5 bytes ((perform logical and of first byte with 0x3))
+# For example, if the bit fields of the first byte read are:
+#   10xx xxxx -> 1 byte is allocated for size_byte, and the value of the size is 00xx xxxx
+#   110x xxxx -> 2 bytes are allocated for size_byte, and the value of the size 000x xxxx xxxx xxxx
+#   1110 xxxx -> 3 bytes allocated. The size is 0000 xxxx xxxx xxxx xxxx xxxx
+#   1111 0xxx -> 4 bytes allocated.
+#   1111 10xx -> 5 bytes allocated.
+# If the first byte read is one of the following:
+#   1000 0000 -> 0 bytes : nil
+#   0000 0000 -> 1 byte : zero (b'\x00')
+import io
 import typing
 
 from .CLVMObject import CLVMObject
@@ -152,15 +155,15 @@ def _consume_atom(f: typing.BinaryIO, b: int) -> bytes:
 # that represent on S-expression tree, and returns them. This is more efficient
 # than parsing and returning a python S-expression tree.
 def sexp_buffer_from_stream(f: typing.BinaryIO) -> bytes:
-    ret = b''
+    ret = io.BytesIO()
 
     depth = 1
     while depth > 0:
         depth -= 1
         buf, d = _op_consume_sexp(f)
         depth += d
-        ret += buf
-    return ret
+        ret.write(buf)
+    return ret.getvalue()
 
 
 def _atom_from_stream(f: typing.BinaryIO, b: int, to_sexp: typing.Callable[..., T]) -> T:
