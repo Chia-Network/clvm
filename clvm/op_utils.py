@@ -1,4 +1,7 @@
 def operators_for_dict(keyword_to_atom, op_dict, op_name_lookup={}):
+    # NOTE: Do _not_ modify `op_name_lookup`.  The present empty dict default shares
+    #       the instance between any calls where the parameter is not passed.  Any
+    #       mutations will persist into future calls.
     d = {}
     for op in keyword_to_atom.keys():
         op_name = "op_%s" % op_name_lookup.get(op, op)
