@@ -60,6 +60,8 @@ def run_program(
         pre_eval_op = None
 
     def traverse_path(sexp: SExp, env: SExp) -> Tuple[int, SExp]:
+        original_env = SExp(env)
+
         cost = PATH_LOOKUP_BASE_COST
         cost += PATH_LOOKUP_COST_PER_LEG
         if sexp.nullp():
@@ -83,7 +85,7 @@ def run_program(
         bitmask = 0x01
         while byte_cursor > end_byte_cursor or bitmask < end_bitmask:
             if env.pair is None:
-                raise EvalError("path into atom", env)
+                raise EvalError("path into atom while running traverse_path '%s' on" % sexp, original_env)
             if b[byte_cursor] & bitmask:
                 env = env.rest()
             else:
