@@ -21,16 +21,13 @@ CONS_BOX_MARKER = 0xFF
 
 
 def sexp_to_byte_iterator(sexp):
-    todo_stack = [sexp]
-    while todo_stack:
-        sexp = todo_stack.pop()
-        pair = sexp.as_pair()
-        if pair:
-            yield bytes([CONS_BOX_MARKER])
-            todo_stack.append(pair[1])
-            todo_stack.append(pair[0])
-        else:
-            yield from atom_to_byte_iterator(sexp.as_atom())
+    pair = sexp.as_pair()
+    if pair:
+        yield bytes([CONS_BOX_MARKER])
+        yield pair[0].as_bin()
+        yield pair[1].as_bin()
+    else:
+        yield from atom_to_byte_iterator(sexp.as_atom())
 
 
 def atom_to_byte_iterator(as_atom):
