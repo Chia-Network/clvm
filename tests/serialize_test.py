@@ -1,3 +1,4 @@
+import gzip
 import io
 import unittest
 from typing import Optional
@@ -182,7 +183,7 @@ class SerializeTest(unittest.TestCase):
             sexp_buffer_from_stream(InfiniteStream(bytes_in))
 
     def test_deserialize_generator(self):
-        blob = bytes.fromhex(open("tests/generator.hex").read())
+        blob = gzip.GzipFile("tests/generator.bin.gz").read()
         s = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
         b = self.check_serde(s)
         assert len(b) == 19124
