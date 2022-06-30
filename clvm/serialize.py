@@ -1,7 +1,7 @@
 # decoding:
 # read a byte
 # if it's 0x80, it's nil (which might be same as 0)
-# if it's 0xfe, it's a back-reference. Read an atom, and treat it as a path to the cache tree.
+# if it's 0xfe, it's a back-reference. Read an atom, and treat it as a path in the cache tree.
 # if it's 0xff, it's a cons box. Read two items, build cons
 # otherwise, number of leading set bits is length in bytes to read size
 # For example, if the bit fields of the first byte read are:
