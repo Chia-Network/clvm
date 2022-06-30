@@ -1,19 +1,8 @@
-import io
 import unittest
 
-from clvm import to_sexp_f
 from clvm.object_cache import ObjectCache, treehash, serialized_length
-from clvm.serialize import sexp_from_stream
 
 from clvm_tools.binutils import assemble
-
-TEXT = b"the quick brown fox jumps over the lazy dogs"
-
-
-def obj_from_hex(h):
-    b = bytes.fromhex(h)
-    f = io.BytesIO(b)
-    return sexp_from_stream(f, to_sexp_f)
 
 
 class ObjectCacheTest(unittest.TestCase):
