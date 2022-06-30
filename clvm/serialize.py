@@ -54,12 +54,18 @@ def sexp_to_byte_iterator(sexp: CLVMStorage, *, allow_backrefs: bool = False) ->
             todo_stack.append(pair[1])
             todo_stack.append(pair[0])
         else:
+            assert sexp.atom is not None
             yield from atom_to_byte_iterator(sexp.atom)
 
 
-def sexp_to_byte_iterator_with_backrefs(sexp) -> typing.Iterator[bytes]:
+def sexp_to_byte_iterator_with_backrefs(sexp: CLVMStorage) -> typing.Iterator[bytes]:
+
+    # in `read_op_stack`:
+    #  "P" = "push"
+    #  "C" = "pop two objects, create and push a new cons with them"
 
     read_op_stack = ["P"]
+
     write_stack = [sexp]
 
     read_cache_lookup = ReadCacheLookup()
@@ -90,6 +96,7 @@ def sexp_to_byte_iterator_with_backrefs(sexp) -> typing.Iterator[bytes]:
             read_op_stack.append("P")
         else:
             atom = node_to_write.atom
+            assert atom is not None
             yield from atom_to_byte_iterator(atom)
             read_cache_lookup.push(node_tree_hash)
 
@@ -151,33 +158,18 @@ def msb_mask(byte: int) -> int:
     return (byte + 1) >> 1
 
 
-def traverse_path(val_stack: CLVMStorage, path: bytes, to_sexp: ToCLVMStorage) -> CLVMStorage:
-    b = path
-    env = val_stack
-
-    end_byte_cursor = 0
-    while end_byte_cursor < len(b) and b[end_byte_cursor] == 0:
-        end_byte_cursor += 1
-
-    if end_byte_cursor == len(b):
+def traverse_path(obj: CLVMStorage, path: bytes, to_sexp: ToCLVMStorage) -> CLVMStorage:
+    path_as_int = int.from_bytes(path, "big")
+    if path_as_int == 0:
         return to_sexp(b"")
 
-    # create a bitmask for the most significant *set* bit
-    # in the last non-zero byte
-    end_bitmask = msb_mask(b[end_byte_cursor])
+    while path_as_int > 1:
+        if obj.pair is None:
+            raise ValueError("path into atom", obj)
+        obj = obj.pair[path_as_int & 1]
+        path_as_int >>= 1
 
-    byte_cursor = len(b) - 1
-    bitmask = 0x01
-
-    while byte_cursor > end_byte_cursor or bitmask < end_bitmask:
-        if env.pair is None:
-            raise ValueError("path into atom", env)
-        env = env.pair[1 if b[byte_cursor] & bitmask else 0]
-        bitmask <<= 1
-        if bitmask == 0x100:
-            byte_cursor -= 1
-            bitmask = 0x01
-    return env
+    return obj
 
 
 def _op_cons(op_stack: OpStackType, val_stack: CLVMStorage, f: typing.BinaryIO, to_sexp: ToCLVMStorage) -> CLVMStorage:
@@ -291,11 +283,11 @@ def sexp_buffer_from_stream(f: typing.BinaryIO) -> bytes:
 
 def _atom_from_stream(
     f: typing.BinaryIO, b: int, to_sexp: ToCLVMStorage
-) -> CLVMStorage:
+) -> bytes:
     if b == 0x80:
-        return to_sexp(b"")
+        return b""
     if b <= MAX_SINGLE_BYTE:
-        return to_sexp(bytes([b]))
+        return bytes([b])
     bit_count = 0
     bit_mask = 0x80
     while b & bit_mask:
@@ -314,4 +306,4 @@ def _atom_from_stream(
     blob = f.read(size)
     if len(blob) != size:
         raise ValueError("bad encoding")
-    return to_sexp(blob)
+    return blob
