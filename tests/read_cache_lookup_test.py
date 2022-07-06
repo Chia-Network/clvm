@@ -4,8 +4,6 @@ from clvm import to_sexp_f
 from clvm.read_cache_lookup import ReadCacheLookup
 from clvm.object_cache import ObjectCache, treehash
 
-from clvm_tools.binutils import assemble
-
 
 class ObjectCacheTest(unittest.TestCase):
     def test_various(self):
