@@ -120,8 +120,7 @@ class ReadCacheLookup:
             new_partial_paths = []
             for (node, path) in partial_paths:
                 if node == self.root_hash:
-                    path.reverse()
-                    valid_paths.add(path_to_bytes(path))
+                    valid_paths.add(reversed_path_to_bytes(path))
                     continue
 
                 parent_paths = self.parent_paths_for_child.get(node)
@@ -146,7 +145,7 @@ class ReadCacheLookup:
         return min(r) if len(r) > 0 else None
 
 
-def path_to_bytes(path: List[int]) -> bytes:
+def reversed_path_to_bytes(path: List[int]) -> bytes:
     """
     Convert a list of 0/1 values to a path expected by clvm.
 
@@ -156,18 +155,18 @@ def path_to_bytes(path: List[int]) -> bytes:
     [0] => bytes([0b10])
     [1] => bytes([0b11])
     [0, 0] => bytes([0b100])
-    [0, 1] => bytes([0b110])
-    [1, 0] => bytes([0b101])
+    [0, 1] => bytes([0b101])
+    [1, 0] => bytes([0b110])
     [1, 1] => bytes([0b111])
-    [1, 0, 0] => bytes([0b1001])
-    [1, 0, 0, 0, 0, 1, 1, 1, 1] => bytes([0b11, 0b11100001])
+    [0, 0, 1] => bytes([0b1001])
+    [1, 1, 1, 1, 0, 0, 0, 0, 1] => bytes([0b11, 0b11100001])
     """
 
     byte_count = (len(path) + 1 + 7) >> 3
     v = bytearray(byte_count)
     index = byte_count - 1
     mask = 1
-    for p in path:
+    for p in reversed(path):
         if p:
             v[index] |= mask
         if mask == 0x80:
