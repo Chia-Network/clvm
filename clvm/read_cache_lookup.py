@@ -1,5 +1,5 @@
 from collections import Counter
-from typing import Optional, List, Tuple
+from typing import Optional, List, Set, Tuple
 
 import hashlib
 
@@ -96,13 +96,14 @@ class ReadCacheLookup:
         )
         self.push(new_root_hash)
 
-    def find_path(self, obj_hash: bytes, serialized_length: int) -> Optional[bytes]:
+    def find_paths(self, obj_hash: bytes, serialized_length: int) -> Set[bytes]:
         """
         This function looks for a path from the root to a child node with a given hash
         by using the read cache.
         """
+        valid_paths = set()
         if serialized_length < 3:
-            return None
+            return valid_paths
 
         seen_ids = set()
 
@@ -115,11 +116,13 @@ class ReadCacheLookup:
         partial_paths = [(obj_hash, [])]
 
         while partial_paths:
+            new_seen_ids = set(seen_ids)
             new_partial_paths = []
             for (node, path) in partial_paths:
                 if node == self.root_hash:
                     path.reverse()
-                    return path_to_bytes(path)
+                    valid_paths.add(path_to_bytes(path))
+                    continue
 
                 parent_paths = self.parent_paths_for_child.get(node)
 
@@ -129,11 +132,18 @@ class ReadCacheLookup:
                             new_path = list(path)
                             new_path.append(direction)
                             if len(new_path) > max_path_length:
-                                return None
+                                return set()
                             new_partial_paths.append((parent, new_path))
-                        seen_ids.add(parent)
+                        new_seen_ids.add(parent)
             partial_paths = new_partial_paths
-        return None
+            if valid_paths:
+                return valid_paths
+            seen_ids = frozenset(new_seen_ids)
+        return valid_paths
+
+    def find_path(self, obj_hash: bytes, serialized_length: int) -> Optional[bytes]:
+        r = self.find_paths(obj_hash, serialized_length)
+        return min(r) if len(r) > 0 else None
 
 
 def path_to_bytes(path: List[int]) -> bytes:
