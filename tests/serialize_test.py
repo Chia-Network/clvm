@@ -218,3 +218,17 @@ class SerializeTest(unittest.TestCase):
 
         # self.assertEqual(len(b30_1), 1)
         self.assertEqual(len(b30_2), 135)
+
+    def test_specific_tree(self):
+        sexp1 = to_sexp_f((("AAA", "BBB"), ("CCC", "AAA")))
+        serialized_sexp1_v1 = sexp1.as_bin(allow_backrefs=False)
+        serialized_sexp1_v2 = sexp1.as_bin(allow_backrefs=True)
+        self.assertEqual(len(serialized_sexp1_v1), 19)
+        self.assertEqual(len(serialized_sexp1_v2), 17)
+        deserialized_sexp1_v1 = sexp_from_stream(
+            io.BytesIO(serialized_sexp1_v1), to_sexp_f, allow_backrefs=False
+        )
+        deserialized_sexp1_v2 = sexp_from_stream(
+            io.BytesIO(serialized_sexp1_v2), to_sexp_f, allow_backrefs=True
+        )
+        self.assertTrue(deserialized_sexp1_v1 == deserialized_sexp1_v2)
