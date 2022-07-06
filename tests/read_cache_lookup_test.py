@@ -50,6 +50,7 @@ class ObjectCacheTest(unittest.TestCase):
         self.assertEqual(
             rcl.find_path(current_stack_hash, serialized_length=20), bytes([1])
         )
+        self.assertEqual(rcl.count[foo_list_hash], 1)
 
         rcl.pop2_and_cons()
         # rcl = ((foo . bar) . 0)
