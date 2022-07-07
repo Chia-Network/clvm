@@ -12,6 +12,7 @@ class ObjectCache:
     have a non-recursive implementation (as it keeps a stack of uncached
     objects locally).
     """
+
     def __init__(self, f):
         """
         `f`: Callable[ObjectCache, CLVMObject] -> Union[None, T]
@@ -92,4 +93,6 @@ def serialized_length(cache, obj):
         return 3 + lb
     if lb < 0x8000000:
         return 4 + lb
-    return 5 + lb
+    if lb < 0x400000000:
+        return 5 + lb
+    raise ValueError("atom of size %d too long" % lb)

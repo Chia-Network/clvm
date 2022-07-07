@@ -147,7 +147,7 @@ class ReadCacheLookup:
 
 def reversed_path_to_bytes(path: List[int]) -> bytes:
     """
-    Convert a list of 0/1 values to a path expected by clvm.
+    Convert a list of 0/1 (for left/right) values to a path expected by clvm.
 
     Reverse the list; convert to a binary number; prepend a 1; break into bytes.
 
