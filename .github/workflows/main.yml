@@ -16,9 +16,9 @@ jobs:
           fetch-depth: 0
           # we need fetch-depth 0 so setuptools_scm can resolve tags
       - name: Setup python
-        uses: actions/setup-python@v2
+        uses: chia-network/actions/setup-python@main
         with:
-          python-version: ${{ format('{0}.0-alpha - {0}.X', matrix.python-version) }}
+          python-version: ${{ matrix.python-version }}
           architecture: x64
       - name: Install dependencies
         run: |
