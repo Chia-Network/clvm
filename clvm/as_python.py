@@ -1,4 +1,7 @@
-def as_python(sexp):
+from clvm.SExp import SExp
+
+
+def as_python(sexp: SExp):
     def _roll(op_stack, val_stack):
         v1 = val_stack.pop()
         v2 = val_stack.pop()

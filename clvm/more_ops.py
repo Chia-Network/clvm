@@ -339,7 +339,7 @@ def binop_reduction(op_name: str, initial_value: int, args: _T_SExp, op_f: typin
     return malloc_cost(cost, args.to(total))
 
 
-def op_logand(args):
+def op_logand(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     def binop(a, b):
         a &= b
         return a
@@ -347,7 +347,7 @@ def op_logand(args):
     return binop_reduction("logand", -1, args, binop)
 
 
-def op_logior(args):
+def op_logior(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     def binop(a, b):
         a |= b
         return a
@@ -355,7 +355,7 @@ def op_logior(args):
     return binop_reduction("logior", 0, args, binop)
 
 
-def op_logxor(args):
+def op_logxor(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     def binop(a, b):
         a ^= b
         return a
@@ -363,13 +363,13 @@ def op_logxor(args):
     return binop_reduction("logxor", 0, args, binop)
 
 
-def op_lognot(args):
+def op_lognot(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     (i0, l0), = args_as_int_list("lognot", args, 1)
     cost = LOGNOT_BASE_COST + l0 * LOGNOT_COST_PER_BYTE
     return malloc_cost(cost, args.to(~i0))
 
 
-def op_not(args):
+def op_not(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     (i0,) = args_as_bool_list("not", args, 1)
     if i0.as_atom() == b"":
         r = args.true
@@ -379,7 +379,7 @@ def op_not(args):
     return cost, args.to(r)
 
 
-def op_any(args):
+def op_any(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     items = list(args_as_bools("any", args))
     cost = BOOL_BASE_COST + len(items) * BOOL_COST_PER_ARG
     r = args.false
@@ -390,7 +390,7 @@ def op_any(args):
     return cost, args.to(r)
 
 
-def op_all(args):
+def op_all(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     items = list(args_as_bools("all", args))
     cost = BOOL_BASE_COST + len(items) * BOOL_COST_PER_ARG
     r = args.true
@@ -401,7 +401,7 @@ def op_all(args):
     return cost, args.to(r)
 
 
-def op_softfork(args: SExp):
+def op_softfork(args: SExp) -> typing.Tuple[int, bool]:
     if args.list_len() < 1:
         raise EvalError("softfork takes at least 1 argument", args)
     a = args.first()

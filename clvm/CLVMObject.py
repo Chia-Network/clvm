@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 
 from typing_extensions import Protocol
@@ -7,10 +9,10 @@ class CLVMObjectLike(Protocol):
     # It's not clear if it is possible to express the exclusivity without maybe
     # restructuring all the classes.
     atom: typing.Optional[bytes]
-    pair: typing.Optional[typing.Tuple["CLVMObjectLike", "CLVMObjectLike"]]
+    pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
 
 
-_T_CLVMObject = typing.TypeVar("_T_CLVMObject")
+_T_CLVMObject = typing.TypeVar("_T_CLVMObject", bound="CLVMObject")
 
 
 class CLVMObject:
@@ -29,7 +31,8 @@ class CLVMObject:
     @staticmethod
     def __new__(
         class_: typing.Type[_T_CLVMObject],
-        v: typing.Union["CLVMObject", typing.Tuple, bytes],
+        # v: typing.Union[CLVMObject, CLVMObjectLike, typing.Tuple[CLVMObject, CLVMObject], bytes],
+        v: typing.Union[typing.Tuple[CLVMObject, CLVMObject], bytes],
     ) -> _T_CLVMObject:
         if isinstance(v, class_):
             return v
