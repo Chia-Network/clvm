@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 from .CLVMObject import CLVMObject
 from .EvalError import EvalError
@@ -22,7 +22,7 @@ ValStackType = List[SExp]
 OpStackType = List[OpCallable]
 
 
-def to_pre_eval_op(pre_eval_f, to_sexp_f):
+def to_pre_eval_op(pre_eval_f, to_sexp_f) -> Callable[[OpStackType, ValStackType], None]:
     def my_pre_eval_op(op_stack: OpStackType, value_stack: ValStackType) -> None:
         v = to_sexp_f(value_stack[-1])
         context = pre_eval_f(v.first(), v.rest())
@@ -50,7 +50,7 @@ def run_program(
     program: CLVMObject,
     args: CLVMObject,
     operator_lookup: OperatorDict,
-    max_cost=None,
+    max_cost: Optional[int] = None,
     pre_eval_f=None,
 ) -> Tuple[int, SExp]:
 

@@ -4,7 +4,7 @@ from clvm.operators import OperatorDict
 
 
 class OperatorDictTest(unittest.TestCase):
-    def test_operatordict_constructor(self):
+    def test_operatordict_constructor(self) -> None:
         """Constructing should fail if quote or apply are not specified,
            either by object property or by keyword argument.
            Note that they cannot be specified in the operator dictionary itself.
