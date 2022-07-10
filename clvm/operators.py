@@ -1,4 +1,6 @@
-from typing import Tuple
+from __future__ import annotations
+
+from typing import Tuple, Type, TypeVar
 
 from typing_extensions import Protocol
 
@@ -170,6 +172,8 @@ class DefaultOperator(Protocol):
     def __call__(self, op: bytes, args: SExp) -> Tuple[int, SExp]: ...
 
 
+_T_OperatorDict = TypeVar("_T_OperatorDict", bound="OperatorDict")
+
 class OperatorDict(dict):
     """
     This is a nice hack that adds `__call__` to a dictionary, so
@@ -180,7 +184,8 @@ class OperatorDict(dict):
     quote_atom: int
     apply_atom: int
 
-    def __new__(class_, d: "OperatorDict", *args, **kwargs):
+    # TODO: how do you create an instance if that requires passing in an instance?
+    def __new__(class_: Type[_T_OperatorDict], d: "OperatorDict", *args: object, **kwargs) -> _T_OperatorDict:
         """
         `quote_atom` and `apply_atom` must be set
         `unknown_op_handler` has a default implementation
