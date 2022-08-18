@@ -118,6 +118,9 @@ def to_sexp_type(
     return stack[0]
 
 
+_T_SExp = typing.TypeVar("_T_SExp")
+
+
 # TODO: Maybe there is some way to track atom vs. pair SExps to help hinting out a bit
 class SExp:
     """

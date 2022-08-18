@@ -174,6 +174,7 @@ class DefaultOperator(Protocol):
 
 _T_OperatorDict = TypeVar("_T_OperatorDict", bound="OperatorDict")
 
+
 class OperatorDict(dict):
     """
     This is a nice hack that adds `__call__` to a dictionary, so

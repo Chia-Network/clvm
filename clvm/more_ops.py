@@ -220,7 +220,7 @@ def op_gr_bytes(args: SExp) -> typing.Tuple[int, SExp]:
     b1 = a1.as_atom()
     cost = GRS_BASE_COST
     if b0 is None or b1 is None:
-        raise TypeError(f"Internal error, both operands must not be None")
+        raise TypeError("Internal error, both operands must not be None")
     cost += (len(b0) + len(b1)) * GRS_COST_PER_BYTE
     return cost, args.true if b0 > b1 else args.false
 
@@ -333,7 +333,12 @@ def op_lsh(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     return malloc_cost(cost, args.to(r))
 
 
-def binop_reduction(op_name: str, initial_value: int, args: _T_SExp, op_f: typing.Callable[[int, int], int]) -> typing.Tuple[int, _T_SExp]:
+def binop_reduction(
+    op_name: str,
+    initial_value: int,
+    args: _T_SExp,
+    op_f: typing.Callable[[int, int], int],
+) -> typing.Tuple[int, _T_SExp]:
     total = initial_value
     arg_size = 0
     cost = LOG_BASE_COST

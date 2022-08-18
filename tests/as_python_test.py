@@ -7,7 +7,7 @@ from clvm.EvalError import EvalError
 
 
 class dummy_class:
-    def __init__(self)-> None:
+    def __init__(self) -> None:
         self.i = 0
 
 
@@ -29,13 +29,13 @@ class AsPythonTest(unittest.TestCase):
         p1 = v.as_python()
         self.assertEqual(p, p1)
 
-    def test_null(self)-> None:
+    def test_null(self) -> None:
         self.check_as_python(b"")
 
-    def test_embedded_tuples(self)-> None:
+    def test_embedded_tuples(self) -> None:
         self.check_as_python((b"10", ((b"200", b"300"), b"400")))
 
-    def test_single_bytes(self)-> None:
+    def test_single_bytes(self) -> None:
         for _ in range(256):
             self.check_as_python(bytes([_]))
 
@@ -109,17 +109,17 @@ class AsPythonTest(unittest.TestCase):
             v = SExp.to((42, v))
         self.assertEqual(v.list_len(), 100)
 
-    def test_list_len_atom(self)-> None:
+    def test_list_len_atom(self) -> None:
         v = SExp.to(42)
         self.assertEqual(v.list_len(), 0)
 
-    def test_as_int(self)-> None:
+    def test_as_int(self) -> None:
         self.assertEqual(SExp.to(fh("80")).as_int(), -128)
         self.assertEqual(SExp.to(fh("ff")).as_int(), -1)
         self.assertEqual(SExp.to(fh("0080")).as_int(), 128)
         self.assertEqual(SExp.to(fh("00ff")).as_int(), 255)
 
-    def test_cons(self)-> None:
+    def test_cons(self) -> None:
         # list
         self.assertEqual(
             SExp.to(H01).cons(SExp.to(H02).cons(SExp.null())).as_python(),
@@ -128,10 +128,10 @@ class AsPythonTest(unittest.TestCase):
         # cons-box of two values
         self.assertEqual(SExp.to(H01).cons(SExp.to(H02).as_python()), (H01, H02))
 
-    def test_string(self)-> None:
+    def test_string(self) -> None:
         self.assertEqual(SExp.to("foobar").as_atom(), b"foobar")
 
-    def test_deep_recursion(self)-> None:
+    def test_deep_recursion(self) -> None:
         d = b"2"
         for i in range(1000):
             d = [d]
@@ -144,7 +144,7 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(v.as_atom(), b"2")
         self.assertEqual(d, b"2")
 
-    def test_long_linked_list(self)-> None:
+    def test_long_linked_list(self) -> None:
         d = b""
         for i in range(1000):
             d = (b"2", d)
@@ -157,7 +157,7 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(v.as_atom(), SExp.null())
         self.assertEqual(d, b"")
 
-    def test_long_list(self)-> None:
+    def test_long_list(self) -> None:
         d = [1337] * 1000
         v = SExp.to(d)
         for i in range(1000 - 1):
@@ -166,14 +166,14 @@ class AsPythonTest(unittest.TestCase):
 
         self.assertEqual(v.as_atom(), SExp.null())
 
-    def test_invalid_type(self)-> None:
+    def test_invalid_type(self) -> None:
         with self.assertRaises(ValueError):
             s = SExp.to(dummy_class)
             # conversions are deferred, this is where it will fail:
             b = list(s.as_iter())
             print(b)
 
-    def test_invalid_tuple(self)-> None:
+    def test_invalid_tuple(self) -> None:
         with self.assertRaises(ValueError):
             s = SExp.to((dummy_class, dummy_class))
             # conversions are deferred, this is where it will fail:
@@ -183,24 +183,24 @@ class AsPythonTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             s = SExp.to((dummy_class, dummy_class, dummy_class))
 
-    def test_clvm_object_tuple(self)-> None:
+    def test_clvm_object_tuple(self) -> None:
         o1 = CLVMObject(b"foo")
         o2 = CLVMObject(b"bar")
         self.assertEqual(SExp.to((o1, o2)), (o1, o2))
 
-    def test_first(self)-> None:
+    def test_first(self) -> None:
         val = SExp.to(1)
         self.assertRaises(EvalError, lambda: val.first())
         val = SExp.to((42, val))
         self.assertEqual(val.first(), SExp.to(42))
 
-    def test_rest(self)-> None:
+    def test_rest(self) -> None:
         val = SExp.to(1)
         self.assertRaises(EvalError, lambda: val.rest())
         val = SExp.to((42, val))
         self.assertEqual(val.rest(), SExp.to(1))
 
-    def test_as_iter(self)-> None:
+    def test_as_iter(self) -> None:
         val = list(SExp.to((1, (2, (3, (4, b""))))).as_iter())
         self.assertEqual(val, [1, 2, 3, 4])
 
@@ -216,7 +216,7 @@ class AsPythonTest(unittest.TestCase):
             EvalError, lambda: list(SExp.to((1, (2, (3, (4, 5))))).as_iter())
         )
 
-    def test_eq(self)-> None:
+    def test_eq(self) -> None:
         val = SExp.to(1)
 
         self.assertTrue(val == 1)
@@ -228,7 +228,7 @@ class AsPythonTest(unittest.TestCase):
         self.assertFalse(val == (1, 2))
         self.assertFalse(val == (dummy_class, dummy_class))
 
-    def test_eq_tree(self)-> None:
+    def test_eq_tree(self) -> None:
         val1 = gen_tree(2)
         val2 = gen_tree(2)
         val3 = gen_tree(3)
@@ -238,14 +238,14 @@ class AsPythonTest(unittest.TestCase):
         self.assertFalse(val1 == val3)
         self.assertFalse(val3 == val1)
 
-    def test_str(self)-> None:
+    def test_str(self) -> None:
         self.assertEqual(str(SExp.to(1)), "01")
         self.assertEqual(str(SExp.to(1337)), "820539")
         self.assertEqual(str(SExp.to(-1)), "81ff")
         self.assertEqual(str(gen_tree(1)), "ff820539820539")
         self.assertEqual(str(gen_tree(2)), "ffff820539820539ff820539820539")
 
-    def test_repr(self)-> None:
+    def test_repr(self) -> None:
         self.assertEqual(repr(SExp.to(1)), "SExp(01)")
         self.assertEqual(repr(SExp.to(1337)), "SExp(820539)")
         self.assertEqual(repr(SExp.to(-1)), "SExp(81ff)")

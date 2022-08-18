@@ -68,7 +68,12 @@ class TestCmds(unittest.TestCase):
         return v, stdout_buffer.getvalue(), stderr_buffer.getvalue()
 
 
-def make_f(cmd_lines: List[str], expected_output: object, comments: Iterable[str], path: str) -> Callable[[TestCmds], None]:
+def make_f(
+    cmd_lines: List[str],
+    expected_output: object,
+    comments: Iterable[str],
+    path: str,
+) -> Callable[[TestCmds], None]:
     def f(self: TestCmds) -> None:
         cmd = "".join(cmd_lines)
         for c in cmd.split(";"):
