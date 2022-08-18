@@ -31,6 +31,7 @@ class CLVMObject:
     @staticmethod
     def __new__(
         class_: typing.Type[_T_CLVMObject],
+        # TODO: which?  review?
         # v: typing.Union[CLVMObject, CLVMObjectLike, typing.Tuple[CLVMObject, CLVMObject], bytes],
         v: typing.Union[typing.Tuple[CLVMObject, CLVMObject], bytes],
     ) -> _T_CLVMObject:
@@ -39,10 +40,7 @@ class CLVMObject:
         self = super(CLVMObject, class_).__new__(class_)
         if isinstance(v, tuple):
             if len(v) != 2:
-                raise ValueError(
-                    "tuples must be of size 2, cannot create CLVMObject from: %s"
-                    % str(v)
-                )
+                raise ValueError("tuples must be of size 2, cannot create CLVMObject from: %s" % str(v))
             self.pair = v
             self.atom = None
         else:
