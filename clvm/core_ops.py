@@ -46,7 +46,10 @@ def op_listp(args: SExp):
 
 
 def op_raise(args: SExp):
-    raise EvalError("clvm raise", args)
+    if args.list_len() == 1 and not args.first().listp():
+        raise EvalError("clvm raise", args.first())
+    else:
+        raise EvalError("clvm raise", args)
 
 
 def op_eq(args: SExp):
