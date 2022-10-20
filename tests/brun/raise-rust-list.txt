@@ -1,2 +1,0 @@
-brun --backend=rust '(x (q 99 101))'
-FAIL: clvm raise ((99 101))
