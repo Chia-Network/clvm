@@ -141,11 +141,11 @@ class SExp:
     # SExp objects with higher level functions, or None
     pair: typing.Optional[typing.Tuple[typing.Any, typing.Any]]
 
-    def __init__(self, obj):
+    def __init__(self, obj, _bin=None):
         self.atom = obj.atom
         self.pair = obj.pair
 
-        self._bin = None
+        self._bin = _bin
 
     # this returns a tuple of two SExp objects, or None
     def as_pair(self) -> typing.Tuple["SExp", "SExp"]:
@@ -213,7 +213,10 @@ class SExp:
             v = v.rest()
 
     def __eq__(self, other: CastableType):
-        return self.as_bin() == self.to(other).as_bin()
+        try:
+            return self.as_bin() == self.to(other).as_bin()
+        except ValueError:
+            return False
 
     def list_len(self):
         v = self
