@@ -16,7 +16,6 @@ dev_dependencies = [
 
 setup(
     name="clvm",
-    version="0.9.7",
     packages=["clvm",],
     author="Chia Network, Inc.",
     author_email="hello@chia.net",
