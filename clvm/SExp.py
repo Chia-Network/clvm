@@ -56,64 +56,29 @@ def convert_atom_to_bytes(
     raise ValueError("can't cast %s (%s) to bytes" % (type(v), v))
 
 
-# returns a clvm-object like object
 def to_sexp_type(
     v: CastableType,
 ):
-    stack = [v]
-    ops = [(0, None)]  # convert
 
-    while len(ops) > 0:
-        op, target = ops.pop()
-        # convert value
-        if op == 0:
-            if looks_like_clvm_object(stack[-1]):
-                continue
-            v = stack.pop()
-            if isinstance(v, tuple):
-                if len(v) != 2:
-                    raise ValueError("can't cast tuple of size %d" % len(v))
-                left, right = v
-                target = len(stack)
-                stack.append(CLVMObject((left, right)))
-                if not looks_like_clvm_object(right):
-                    stack.append(right)
-                    ops.append((2, target))  # set right
-                    ops.append((0, None))  # convert
-                if not looks_like_clvm_object(left):
-                    stack.append(left)
-                    ops.append((1, target))  # set left
-                    ops.append((0, None))  # convert
-                continue
-            if isinstance(v, list):
-                target = len(stack)
-                stack.append(CLVMObject(NULL))
-                for _ in v:
-                    stack.append(_)
-                    ops.append((3, target))  # prepend list
-                    # we only need to convert if it's not already the right
-                    # type
-                    if not looks_like_clvm_object(_):
-                        ops.append((0, None))  # convert
-                continue
-            stack.append(CLVMObject(convert_atom_to_bytes(v)))
-            continue
+    if isinstance(v, (SExp, CLVMObject)):
+        return v
 
-        if op == 1:  # set left
-            stack[target].pair = (CLVMObject(stack.pop()), stack[target].pair[1])
-            continue
-        if op == 2:  # set right
-            stack[target].pair = (stack[target].pair[0], CLVMObject(stack.pop()))
-            continue
-        if op == 3:  # prepend list
-            stack[target] = CLVMObject((stack.pop(), stack[target]))
-            continue
-    # there's exactly one item left at this point
-    if len(stack) != 1:
-        raise ValueError("internal error")
+    if isinstance(v, tuple):
+        return CLVMObject((
+            to_sexp_type(v[0]),
+            to_sexp_type(v[1]),
+        ))
 
-    # stack[0] implements the clvm object protocol and can be wrapped by an SExp
-    return stack[0]
+    if isinstance(v, list):
+        if len(v):
+            return CLVMObject((
+                to_sexp_type(v[0]),
+                to_sexp_type(v[1:]),
+            ))
+        else:
+            return CLVMObject(NULL)
+
+    return CLVMObject(convert_atom_to_bytes(v))
 
 
 class SExp:
