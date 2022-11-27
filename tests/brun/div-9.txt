@@ -1,3 +1,2 @@
 brun -c '(/ (q . -3) (q . -10))'
-cost = 1037
-()
+FAIL: div with negative operand -3
