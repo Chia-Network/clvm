@@ -1,5 +1,6 @@
+from ..SExp import SExp
+
 from .EvalError import EvalError
-from .SExp import SExp
 
 from .costs import (
     IF_COST,
