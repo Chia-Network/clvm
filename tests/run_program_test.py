@@ -1,6 +1,6 @@
 import unittest
 
-from clvm.run_program import msb_mask
+from clvm.run.run_program import msb_mask
 
 
 class BitTest(unittest.TestCase):

@@ -6,9 +6,9 @@ from blspy import G1Element
 from .as_python import as_python
 from .CLVMObject import CLVMObject
 
-from .EvalError import EvalError
+from .run.EvalError import EvalError
 
-from .casts import (
+from .run.casts import (
     int_from_bytes,
     int_to_bytes,
 )

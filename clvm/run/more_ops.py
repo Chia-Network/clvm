@@ -5,7 +5,7 @@ from blspy import G1Element, PrivateKey
 
 from .EvalError import EvalError
 from .casts import limbs_for_int
-from .SExp import SExp
+from ..SExp import SExp
 
 from .costs import (
     ARITH_BASE_COST,

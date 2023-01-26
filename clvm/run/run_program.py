@@ -1,8 +1,8 @@
 from typing import Any, Callable, List, Tuple
 
-from .CLVMObject import CLVMObject
+from ..CLVMObject import CLVMObject
+from ..SExp import SExp
 from .EvalError import EvalError
-from .SExp import SExp
 
 from .costs import (
     APPLY_COST,
