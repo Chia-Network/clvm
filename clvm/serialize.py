@@ -12,11 +12,16 @@
 # If the first byte read is one of the following:
 #   1000 0000 -> 0 bytes : nil
 #   0000 0000 -> 1 byte : zero (b'\x00')
+from __future__ import annotations
+
 import io
 import typing
 
 from .CLVMObject import CLVMObject
-from .SExp import SExp
+
+
+if typing.TYPE_CHECKING:
+    from .SExp import SExp
 
 
 MAX_SINGLE_BYTE = 0x7F

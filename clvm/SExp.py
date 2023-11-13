@@ -16,7 +16,7 @@ from .serialize import sexp_to_stream
 
 CastableType = typing.Union[
     "SExp",
-    "CLVMObject",
+    CLVMObjectLike,
     bytes,
     str,
     int,
@@ -36,7 +36,7 @@ def looks_like_clvm_object(o: typing.Any) -> bool:
 
 # this function recognizes some common types and turns them into plain bytes,
 def convert_atom_to_bytes(
-    v: typing.Union[bytes, str, int, None, list],
+    v: typing.Union[bytes, str, int, None, typing.List, typing.SupportsBytes],
 ) -> bytes:
 
     if isinstance(v, bytes):
@@ -116,7 +116,7 @@ def to_sexp_type(
     return stack[0]
 
 
-_T_SExp = typing.TypeVar("_T_SExp")
+_T_SExp = typing.TypeVar("_T_SExp", bound="SExp")
 
 
 # TODO: Maybe there is some way to track atom vs. pair SExps to help hinting out a bit

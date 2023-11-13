@@ -1,9 +1,9 @@
 import unittest
 from dataclasses import dataclass
 
-from typing import Optional, Tuple, Any
+from typing import ClassVar, Optional, TYPE_CHECKING, Tuple, cast
 from clvm.SExp import SExp, looks_like_clvm_object, convert_atom_to_bytes
-from clvm.CLVMObject import CLVMObject
+from clvm.CLVMObject import CLVMObject, CLVMObjectLike
 
 
 def validate_sexp(sexp: SExp) -> None:
@@ -16,7 +16,9 @@ def validate_sexp(sexp: SExp) -> None:
             v1, v2 = v.pair
             assert looks_like_clvm_object(v1)
             assert looks_like_clvm_object(v2)
-            s1, s2 = v.as_pair()
+            from_as_pair = v.as_pair()
+            assert from_as_pair is not None
+            s1, s2 = from_as_pair
             validate_stack.append(s1)
             validate_stack.append(s2)
         else:
@@ -31,7 +33,9 @@ def print_leaves(tree: SExp) -> str:
         return "%d " % a[0]
 
     ret = ""
-    for i in tree.as_pair():
+    from_as_pair = tree.as_pair()
+    assert from_as_pair is not None
+    for i in from_as_pair:
         ret += print_leaves(i)
 
     return ret
@@ -45,7 +49,9 @@ def print_tree(tree: SExp) -> str:
         return "%d " % a[0]
 
     ret = "("
-    for i in tree.as_pair():
+    from_as_pair = tree.as_pair()
+    assert from_as_pair is not None
+    for i in from_as_pair:
         ret += print_tree(i)
     ret += ")"
     return ret
@@ -93,6 +99,8 @@ class ToSExpTest(unittest.TestCase):
         # those types implement the CLVMObject protocol. This is an example of
         # a tree that's generated
         class GeneratedTree:
+            if TYPE_CHECKING:
+                _type_check: ClassVar[CLVMObjectLike] = cast("GeneratedTree", None)
 
             depth: int = 4
             val: int = 0
@@ -108,12 +116,20 @@ class ToSExpTest(unittest.TestCase):
                     return None
                 return bytes([self.val])
 
+            @atom.setter
+            def atom(self, val: Optional[bytes]) -> None:
+                raise RuntimeError("setting not supported in this test class")
+
             @property
-            def pair(self) -> Optional[Tuple[Any, Any]]:
+            def pair(self) -> Optional[Tuple[CLVMObjectLike, CLVMObjectLike]]:
                 if self.depth == 0:
                     return None
                 new_depth: int = self.depth - 1
                 return (GeneratedTree(new_depth, self.val), GeneratedTree(new_depth, self.val + 2**new_depth))
+
+            @pair.setter
+            def pair(self, val: Optional[Tuple[CLVMObjectLike, CLVMObjectLike]]) -> None:
+                raise RuntimeError("setting not supported in this test class")
 
         tree = SExp.to(GeneratedTree(5, 0))
         assert print_leaves(tree) == "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 " + \
@@ -161,7 +177,7 @@ class ToSExpTest(unittest.TestCase):
 
     def test_eager_conversion(self) -> None:
         with self.assertRaises(ValueError):
-            SExp.to(("foobar", (1, {})))
+            SExp.to(("foobar", (1, {})))  # type: ignore[arg-type]
 
     def test_convert_atom(self) -> None:
         assert convert_atom_to_bytes(0x133742) == bytes([0x13, 0x37, 0x42])
@@ -181,7 +197,7 @@ class ToSExpTest(unittest.TestCase):
             assert convert_atom_to_bytes([1, 2, 3])
 
         with self.assertRaises(ValueError):
-            assert convert_atom_to_bytes((1, 2))
+            assert convert_atom_to_bytes((1, 2))  # type: ignore[arg-type]
 
         with self.assertRaises(ValueError):
-            assert convert_atom_to_bytes({})
+            assert convert_atom_to_bytes({})  # type: ignore[arg-type]

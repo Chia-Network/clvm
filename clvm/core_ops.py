@@ -1,3 +1,5 @@
+from typing import Tuple, TypeVar
+
 from .EvalError import EvalError
 from .SExp import SExp
 
@@ -12,7 +14,12 @@ from .costs import (
 )
 
 
-def op_if(args: SExp):
+_T_SExp = TypeVar("_T_SExp", bound=SExp)
+
+# TODO: should all the int return types be more specific integer types?
+
+
+def op_if(args: _T_SExp) -> Tuple[int, _T_SExp]:
     if args.list_len() != 3:
         raise EvalError("i takes exactly 3 arguments", args)
     r = args.rest()
@@ -21,38 +28,38 @@ def op_if(args: SExp):
     return IF_COST, r.first()
 
 
-def op_cons(args: SExp):
+def op_cons(args: _T_SExp) -> Tuple[int, _T_SExp]:
     if args.list_len() != 2:
         raise EvalError("c takes exactly 2 arguments", args)
     return CONS_COST, args.first().cons(args.rest().first())
 
 
-def op_first(args: SExp):
+def op_first(args: _T_SExp) -> Tuple[int, _T_SExp]:
     if args.list_len() != 1:
         raise EvalError("f takes exactly 1 argument", args)
     return FIRST_COST, args.first().first()
 
 
-def op_rest(args: SExp):
+def op_rest(args: _T_SExp) -> Tuple[int, _T_SExp]:
     if args.list_len() != 1:
         raise EvalError("r takes exactly 1 argument", args)
     return REST_COST, args.first().rest()
 
 
-def op_listp(args: SExp):
+def op_listp(args: _T_SExp) -> Tuple[int, _T_SExp]:
     if args.list_len() != 1:
         raise EvalError("l takes exactly 1 argument", args)
     return LISTP_COST, args.true if args.first().listp() else args.false
 
 
-def op_raise(args: SExp):
+def op_raise(args: _T_SExp) -> Tuple[int, _T_SExp]:
     if args.list_len() == 1 and not args.first().listp():
         raise EvalError("clvm raise", args.first())
     else:
         raise EvalError("clvm raise", args)
 
 
-def op_eq(args: SExp):
+def op_eq(args: _T_SExp) -> Tuple[int, _T_SExp]:
     if args.list_len() != 2:
         raise EvalError("= takes exactly 2 arguments", args)
     a0 = args.first()

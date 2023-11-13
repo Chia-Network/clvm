@@ -168,25 +168,25 @@ def default_unknown_op(op: bytes, args: SExp) -> Tuple[int, SExp]:
     return (cost, SExp.null())
 
 
-class DefaultOperator(Protocol):
+class OperatorProtocol(Protocol):
     def __call__(self, op: bytes, args: SExp) -> Tuple[int, SExp]: ...
 
 
 _T_OperatorDict = TypeVar("_T_OperatorDict", bound="OperatorDict")
 
 
-class OperatorDict(dict):
+class OperatorDict(Dict[bytes, OperatorProtocol]):
     """
     This is a nice hack that adds `__call__` to a dictionary, so
     operators can be added dynamically.
     """
 
-    unknown_op_handler: DefaultOperator
+    unknown_op_handler: OperatorProtocol
     quote_atom: int
     apply_atom: int
 
     # TODO: how do you create an instance if that requires passing in an instance?
-    def __new__(cls: Type[_T_OperatorDict], d: Dict, *args: object, **kwargs) -> _T_OperatorDict:
+    def __new__(cls: Type[_T_OperatorDict], d: Dict[bytes, OperatorProtocol], *args: object, **kwargs) -> _T_OperatorDict:
         """
         `quote_atom` and `apply_atom` must be set
         `unknown_op_handler` has a default implementation

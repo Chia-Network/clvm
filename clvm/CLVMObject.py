@@ -8,6 +8,7 @@ from typing_extensions import Protocol
 class CLVMObjectLike(Protocol):
     # It's not clear if it is possible to express the exclusivity without maybe
     # restructuring all the classes.
+    # TODO: can we make these read only?
     atom: typing.Optional[bytes]
     pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
 
@@ -33,7 +34,7 @@ class CLVMObject:
         class_: typing.Type[_T_CLVMObject],
         # TODO: which?  review?
         # v: typing.Union[CLVMObject, CLVMObjectLike, typing.Tuple[CLVMObject, CLVMObject], bytes],
-        v: typing.Union[typing.Tuple[CLVMObject, CLVMObject], bytes],
+        v: typing.Union[CLVMObjectLike, bytes],
     ) -> _T_CLVMObject:
         if isinstance(v, class_):
             return v

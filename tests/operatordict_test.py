@@ -1,6 +1,8 @@
 import unittest
 
-from clvm.operators import OperatorDict
+from typing import Dict
+
+from clvm.operators import OperatorProtocol, OperatorDict
 
 
 class OperatorDictTest(unittest.TestCase):
@@ -9,7 +11,8 @@ class OperatorDictTest(unittest.TestCase):
            either by object property or by keyword argument.
            Note that they cannot be specified in the operator dictionary itself.
         """
-        d = {1: "hello", 2: "goodbye"}
+        # ignoring because apparently it doesn't matter for this test that the types are all wrong
+        d: Dict[bytes, OperatorProtocol] = {1: "hello", 2: "goodbye"}  # type: ignore [dict-item]
         with self.assertRaises(AttributeError):
             o = OperatorDict(d)
         with self.assertRaises(AttributeError):
