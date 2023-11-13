@@ -151,7 +151,7 @@ class AsPythonTest(unittest.TestCase):
             self.assertEqual(from_as_pair[1].as_atom(), SExp.null())
             v = from_as_pair[0]
             element = d[0]
-            assert isinstance(element, list)
+            assert isinstance(element, (list, bytes))
             d = element
 
         self.assertEqual(v.as_atom(), b"2")
@@ -187,15 +187,17 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(v.as_atom(), SExp.null())
 
     def test_invalid_type(self) -> None:
-        s = SExp.to(dummy_class)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
+            s = SExp.to(dummy_class)  # type: ignore[arg-type]
+            # TODO: this note seems incorrect and neither of the following lines are run
             # conversions are deferred, this is where it will fail:
             b = list(s.as_iter())
             print(b)
 
     def test_invalid_tuple(self) -> None:
-        s = SExp.to((dummy_class, dummy_class))  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
+            s = SExp.to((dummy_class, dummy_class))  # type: ignore[arg-type]
+            # TODO: this note seems incorrect and neither of the following lines are run
             # conversions are deferred, this is where it will fail:
             b = list(s.as_iter())
             print(b)
