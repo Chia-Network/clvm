@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Type, TypeVar
+from typing import Dict, Tuple, Type, TypeVar
 
 from typing_extensions import Protocol
 
@@ -186,14 +186,14 @@ class OperatorDict(dict):
     apply_atom: int
 
     # TODO: how do you create an instance if that requires passing in an instance?
-    def __new__(class_: Type[_T_OperatorDict], d: "OperatorDict", *args: object, **kwargs) -> _T_OperatorDict:
+    def __new__(cls: Type[_T_OperatorDict], d: Dict, *args: object, **kwargs) -> _T_OperatorDict:
         """
         `quote_atom` and `apply_atom` must be set
         `unknown_op_handler` has a default implementation
         We do not check if quote and apply are distinct
         We do not check if the opcode values for quote and apply exist in the passed-in dict
         """
-        self = super(OperatorDict, class_).__new__(class_, d)
+        self = super().__new__(cls, d)
         self.quote_atom = kwargs["quote"] if "quote" in kwargs else d.quote_atom
         self.apply_atom = kwargs["apply"] if "apply" in kwargs else d.apply_atom
         if "unknown_op_handler" in kwargs:

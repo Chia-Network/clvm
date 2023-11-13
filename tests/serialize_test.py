@@ -3,6 +3,7 @@ import unittest
 from typing import Optional
 
 from clvm import to_sexp_f
+from clvm.SExp import CastableType
 from clvm.serialize import (sexp_from_stream, sexp_buffer_from_stream, atom_to_byte_iterator)
 
 
@@ -26,7 +27,7 @@ class LargeAtom:
 
 
 class SerializeTest(unittest.TestCase):
-    def check_serde(self, s) -> None:
+    def check_serde(self, s: CastableType) -> None:
         v = to_sexp_f(s)
         b = v.as_bin()
         v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)

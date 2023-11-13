@@ -22,7 +22,7 @@ CastableType = typing.Union[
     int,
     None,
     list,
-    typing.Tuple["CastableType", "CastableType"],
+    typing.Tuple["CastableType", ...],
 ]
 
 

@@ -1,7 +1,10 @@
 import unittest
 
+from typing import List, Tuple, Union
+
 from clvm import SExp
 from clvm.CLVMObject import CLVMObject
+from clvm.SExp import CastableType
 from blspy import G1Element
 from clvm.EvalError import EvalError
 
@@ -22,9 +25,12 @@ fh = bytes.fromhex
 H01 = fh("01")
 H02 = fh("02")
 
+NestedListOfBytes = Union[bytes, List["NestedListOfBytes"]]
+NestedTupleOfBytes = Union[bytes, Tuple["NestedTupleOfBytes", ...]]
+
 
 class AsPythonTest(unittest.TestCase):
-    def check_as_python(self, p) -> None:
+    def check_as_python(self, p: CastableType) -> None:
         v = SExp.to(p)
         p1 = v.as_python()
         self.assertEqual(p, p1)
@@ -59,10 +65,13 @@ class AsPythonTest(unittest.TestCase):
 
     def test_list_of_one(self) -> None:
         v = SExp.to([1])
+        assert v.pair is not None
         self.assertEqual(type(v.pair[0]), CLVMObject)
         self.assertEqual(type(v.pair[1]), CLVMObject)
-        self.assertEqual(type(v.as_pair()[0]), SExp)
-        self.assertEqual(type(v.as_pair()[1]), SExp)
+        from_as_pair = v.as_pair()
+        assert from_as_pair is not None
+        self.assertEqual(type(from_as_pair[0]), SExp)
+        self.assertEqual(type(from_as_pair[1]), SExp)
         self.assertEqual(v.pair[0].atom, b"\x01")
         self.assertEqual(v.pair[1].atom, b"")
 
@@ -132,26 +141,35 @@ class AsPythonTest(unittest.TestCase):
         self.assertEqual(SExp.to("foobar").as_atom(), b"foobar")
 
     def test_deep_recursion(self) -> None:
-        d = b"2"
+        d: NestedListOfBytes = b"2"
         for i in range(1000):
             d = [d]
         v = SExp.to(d)
         for i in range(1000):
-            self.assertEqual(v.as_pair()[1].as_atom(), SExp.null())
-            v = v.as_pair()[0]
-            d = d[0]
+            from_as_pair = v.as_pair()
+            assert from_as_pair is not None
+            self.assertEqual(from_as_pair[1].as_atom(), SExp.null())
+            v = from_as_pair[0]
+            element = d[0]
+            assert isinstance(element, list)
+            d = element
 
         self.assertEqual(v.as_atom(), b"2")
         self.assertEqual(d, b"2")
 
     def test_long_linked_list(self) -> None:
-        d = b""
+        d: NestedTupleOfBytes = b""
         for i in range(1000):
             d = (b"2", d)
         v = SExp.to(d)
         for i in range(1000):
-            self.assertEqual(v.as_pair()[0].as_atom(), d[0])
-            v = v.as_pair()[1]
+            from_as_pair = v.as_pair()
+            assert from_as_pair is not None
+            self.assertEqual(from_as_pair[0].as_atom(), d[0])
+            from_as_pair = v.as_pair()
+            assert from_as_pair is not None
+            v = from_as_pair[1]
+            assert isinstance(d, tuple)
             d = d[1]
 
         self.assertEqual(v.as_atom(), SExp.null())
@@ -161,27 +179,29 @@ class AsPythonTest(unittest.TestCase):
         d = [1337] * 1000
         v = SExp.to(d)
         for i in range(1000 - 1):
-            self.assertEqual(v.as_pair()[0].as_int(), d[i])
-            v = v.as_pair()[1]
+            from_as_pair = v.as_pair()
+            assert from_as_pair is not None
+            self.assertEqual(from_as_pair[0].as_int(), d[i])
+            v = from_as_pair[1]
 
         self.assertEqual(v.as_atom(), SExp.null())
 
     def test_invalid_type(self) -> None:
+        s = SExp.to(dummy_class)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
-            s = SExp.to(dummy_class)
             # conversions are deferred, this is where it will fail:
             b = list(s.as_iter())
             print(b)
 
     def test_invalid_tuple(self) -> None:
+        s = SExp.to((dummy_class, dummy_class))  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
-            s = SExp.to((dummy_class, dummy_class))
             # conversions are deferred, this is where it will fail:
             b = list(s.as_iter())
             print(b)
 
         with self.assertRaises(ValueError):
-            s = SExp.to((dummy_class, dummy_class, dummy_class))
+            s = SExp.to((dummy_class, dummy_class, dummy_class))  # type: ignore[arg-type]
 
     def test_clvm_object_tuple(self) -> None:
         o1 = CLVMObject(b"foo")
