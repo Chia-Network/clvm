@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple, Type, TypeVar
+from typing import Dict, Iterator, Optional, Tuple, Type, TypeVar
 
 from typing_extensions import Protocol
 
@@ -28,22 +28,16 @@ from .costs import (
 KEYWORDS = (
     # core opcodes 0x01-x08
     ". q a i c f r l x "
-
     # opcodes on atoms as strings 0x09-0x0f
     "= >s sha256 substr strlen concat . "
-
     # opcodes on atoms as ints 0x10-0x17
     "+ - * / divmod > ash lsh "
-
     # opcodes on atoms as vectors of bools 0x18-0x1c
     "logand logior logxor lognot . "
-
     # opcodes for bls 1381 0x1d-0x1f
     "point_add pubkey_for_exp . "
-
     # bool opcodes 0x20-0x23
     "not any all . "
-
     # misc 0x24
     "softfork "
 ).split()
@@ -68,11 +62,12 @@ OP_REWRITE = {
 }
 
 
-def args_len(op_name, args: SExp):
+def args_len(op_name: str, args: SExp) -> Iterator[int]:
     for arg in args.as_iter():
         if arg.pair:
             raise EvalError("%s requires int args" % op_name, arg)
-        yield len(arg.as_atom())
+        assert arg.atom is not None
+        yield len(arg.atom)
 
 
 # unknown ops are reserved if they start with 0xffff
@@ -101,6 +96,7 @@ def args_len(op_name, args: SExp):
 
 # this means that unknown ops where cost_function is 1, 2, or 3, may still be
 # fatal errors if the arguments passed are not atoms.
+
 
 def default_unknown_op(op: bytes, args: SExp) -> Tuple[int, SExp]:
     # any opcode starting with ffff is reserved (i.e. fatal error)
@@ -158,6 +154,7 @@ def default_unknown_op(op: bytes, args: SExp) -> Tuple[int, SExp]:
             if arg.pair:
                 raise EvalError("unknown op on list", arg)
             cost += CONCAT_COST_PER_ARG
+            assert arg.atom is not None
             length += len(arg.atom)
         cost += length * CONCAT_COST_PER_BYTE
 
@@ -169,7 +166,13 @@ def default_unknown_op(op: bytes, args: SExp) -> Tuple[int, SExp]:
 
 
 class OperatorProtocol(Protocol):
-    def __call__(self, op: bytes, args: SExp) -> Tuple[int, SExp]: ...
+    def __call__(self, args: SExp) -> Tuple[int, SExp]:
+        ...
+
+
+class UnknownOperatorProtocol(Protocol):
+    def __call__(self, op: bytes, args: SExp) -> Tuple[int, SExp]:
+        ...
 
 
 _T_OperatorDict = TypeVar("_T_OperatorDict", bound="OperatorDict")
@@ -181,12 +184,21 @@ class OperatorDict(Dict[bytes, OperatorProtocol]):
     operators can be added dynamically.
     """
 
-    unknown_op_handler: OperatorProtocol
-    quote_atom: int
-    apply_atom: int
+    unknown_op_handler: UnknownOperatorProtocol
+    quote_atom: bytes
+    apply_atom: bytes
 
-    # TODO: how do you create an instance if that requires passing in an instance?
-    def __new__(cls: Type[_T_OperatorDict], d: Dict[bytes, OperatorProtocol], *args: object, **kwargs) -> _T_OperatorDict:
+    # TODO: can we remove the args and kwargs?
+    # TODO: hint the overloads
+    def __new__(
+        cls: Type[_T_OperatorDict],
+        d: Dict[bytes, OperatorProtocol],
+        *args: object,
+        quote: Optional[bytes] = None,
+        apply: Optional[bytes] = None,
+        unknown_op_handler: UnknownOperatorProtocol = default_unknown_op,
+        **kwargs: object,
+    ) -> _T_OperatorDict:
         """
         `quote_atom` and `apply_atom` must be set
         `unknown_op_handler` has a default implementation
@@ -194,12 +206,19 @@ class OperatorDict(Dict[bytes, OperatorProtocol]):
         We do not check if the opcode values for quote and apply exist in the passed-in dict
         """
         self = super().__new__(cls, d)
-        self.quote_atom = kwargs["quote"] if "quote" in kwargs else d.quote_atom
-        self.apply_atom = kwargs["apply"] if "apply" in kwargs else d.apply_atom
-        if "unknown_op_handler" in kwargs:
-            self.unknown_op_handler = kwargs["unknown_op_handler"]
+
+        if quote is None:
+            assert isinstance(d, OperatorDict)
+            self.quote_atom = d.quote_atom
         else:
-            self.unknown_op_handler = default_unknown_op
+            self.quote_atom = quote
+
+        if apply is None:
+            assert isinstance(d, OperatorDict)
+            self.apply_atom = d.apply_atom
+        else:
+            self.apply_atom = apply
+
         return self
 
     def __call__(self, op: bytes, arguments: SExp) -> Tuple[int, SExp]:
@@ -214,6 +233,8 @@ QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 APPLY_ATOM = KEYWORD_TO_ATOM["a"]
 
 OPERATOR_LOOKUP = OperatorDict(
-    operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE), quote=QUOTE_ATOM, apply=APPLY_ATOM
+    operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE),
+    quote=QUOTE_ATOM,
+    apply=APPLY_ATOM,
 )
 OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRITE))

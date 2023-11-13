@@ -1,8 +1,8 @@
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from .CLVMObject import CLVMObject
 from .EvalError import EvalError
-from .SExp import SExp
+from .SExp import CastableType, SExp
 from .operators import OperatorDict
 
 from .costs import (
@@ -13,16 +13,14 @@ from .costs import (
     PATH_LOOKUP_COST_PER_ZERO_BYTE
 )
 
-# the "Any" below should really be "OpStackType" but
-# recursive types aren't supported by mypy
-
-OpCallable = Callable[[Any, "ValStackType"], int]
+OpCallable = Callable[["OpStackType", "ValStackType"], int]
+PreOpCallable = Callable[["OpStackType", "ValStackType"], None]
 
 ValStackType = List[SExp]
 OpStackType = List[OpCallable]
 
 
-def to_pre_eval_op(pre_eval_f, to_sexp_f) -> Callable[[OpStackType, ValStackType], None]:
+def to_pre_eval_op(pre_eval_f: Callable[[SExp, SExp], Optional[Callable[[SExp], object]]], to_sexp_f: Callable[[CastableType], SExp]) -> PreOpCallable:
     def my_pre_eval_op(op_stack: OpStackType, value_stack: ValStackType) -> None:
         v = to_sexp_f(value_stack[-1])
         context = pre_eval_f(v.first(), v.rest())
@@ -39,7 +37,7 @@ def to_pre_eval_op(pre_eval_f, to_sexp_f) -> Callable[[OpStackType, ValStackType
     return my_pre_eval_op
 
 
-def msb_mask(byte):
+def msb_mask(byte: int) -> int:
     byte |= byte >> 1
     byte |= byte >> 2
     byte |= byte >> 4
@@ -48,14 +46,14 @@ def msb_mask(byte):
 
 def run_program(
     program: CLVMObject,
-    args: CLVMObject,
+    args: SExp,
     operator_lookup: OperatorDict,
     max_cost: Optional[int] = None,
-    pre_eval_f=None,
+    pre_eval_f: Optional[PreOpCallable] = None,
 ) -> Tuple[int, SExp]:
 
     _program = SExp.to(program)
-    if pre_eval_f:
+    if pre_eval_f is not None:
         pre_eval_op = to_pre_eval_op(pre_eval_f, _program.to)
     else:
         pre_eval_op = None
@@ -129,7 +127,9 @@ def run_program(
 
         operator = sexp.first()
         if operator.pair:
-            new_operator, must_be_nil = operator.as_pair()
+            from_as_pair = operator.as_pair()
+            assert from_as_pair is not None
+            new_operator, must_be_nil = from_as_pair
             if new_operator.pair or must_be_nil.atom != b"":
                 raise EvalError("in ((X)...) syntax X must be lone atom", sexp)
             new_operand_list = sexp.rest()
@@ -163,6 +163,7 @@ def run_program(
             raise EvalError("internal error", operator)
 
         op = operator.as_atom()
+        assert op is not None
         if op == operator_lookup.apply_atom:
             if operand_list.list_len() != 2:
                 raise EvalError("apply requires exactly 2 parameters", operand_list)

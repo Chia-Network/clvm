@@ -31,6 +31,14 @@ CONS_BOX_MARKER = 0xFF
 T = typing.TypeVar("T")
 
 
+OpCallable = typing.Callable[
+    ["OpStackType", "ValStackType", typing.BinaryIO, typing.Type], None
+]
+
+ValStackType = typing.List[SExp]
+OpStackType = typing.List[OpCallable]
+
+
 def sexp_to_byte_iterator(sexp: SExp) -> typing.Iterator[bytes]:
     todo_stack = [sexp]
     while todo_stack:
@@ -41,7 +49,8 @@ def sexp_to_byte_iterator(sexp: SExp) -> typing.Iterator[bytes]:
             todo_stack.append(pair[1])
             todo_stack.append(pair[0])
         else:
-            yield from atom_to_byte_iterator(sexp.as_atom())
+            assert sexp.atom is not None
+            yield from atom_to_byte_iterator(sexp.atom)
 
 
 def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
@@ -90,7 +99,9 @@ def sexp_to_stream(sexp: SExp, f: typing.BinaryIO) -> None:
         f.write(b)
 
 
-def _op_read_sexp(op_stack, val_stack, f: typing.BinaryIO, to_sexp) -> None:
+def _op_read_sexp(
+    op_stack: OpStackType, val_stack: ValStackType, f: typing.BinaryIO, to_sexp: typing.Callable[[bytes], SExp],
+) -> None:
     blob = f.read(1)
     if len(blob) == 0:
         raise ValueError("bad encoding")
@@ -103,15 +114,20 @@ def _op_read_sexp(op_stack, val_stack, f: typing.BinaryIO, to_sexp) -> None:
     val_stack.append(_atom_from_stream(f, b, to_sexp))
 
 
-def _op_cons(op_stack, val_stack, f: typing.BinaryIO, to_sexp) -> None:
+def _op_cons(
+    op_stack: OpStackType,
+    val_stack: ValStackType,
+    f: typing.BinaryIO,
+    to_sexp: typing.Callable[[typing.Tuple[SExp, SExp]], SExp],
+) -> None:
     right = val_stack.pop()
     left = val_stack.pop()
     val_stack.append(to_sexp((left, right)))
 
 
-def sexp_from_stream(f: typing.BinaryIO, to_sexp: typing.Callable[..., T]) -> T:
-    op_stack = [_op_read_sexp]
-    val_stack = []
+def sexp_from_stream(f: typing.BinaryIO, to_sexp: typing.Callable[[SExp], T]) -> T:
+    op_stack: OpStackType = [_op_read_sexp]
+    val_stack: ValStackType = []
 
     while op_stack:
         func = op_stack.pop()
@@ -171,7 +187,9 @@ def sexp_buffer_from_stream(f: typing.BinaryIO) -> bytes:
     return ret.getvalue()
 
 
-def _atom_from_stream(f: typing.BinaryIO, b: int, to_sexp: typing.Callable[..., T]) -> T:
+def _atom_from_stream(
+    f: typing.BinaryIO, b: int, to_sexp: typing.Callable[[bytes], T]
+) -> T:
     if b == 0x80:
         return to_sexp(b"")
     if b <= MAX_SINGLE_BYTE:

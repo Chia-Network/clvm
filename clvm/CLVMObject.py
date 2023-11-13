@@ -44,7 +44,9 @@ class CLVMObject:
                 raise ValueError("tuples must be of size 2, cannot create CLVMObject from: %s" % str(v))
             self.pair = v
             self.atom = None
-        else:
+        elif isinstance(v, bytes):
             self.atom = v
             self.pair = None
+        else:
+            raise ValueError(f"cannot create CLVMObject from: {v!r}")
         return self

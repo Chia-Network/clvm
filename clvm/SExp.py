@@ -178,18 +178,18 @@ class SExp:
         return f.getvalue()
 
     @classmethod
-    def to(class_, v: CastableType) -> "SExp":
-        if isinstance(v, class_):
+    def to(cls: typing.Type[_T_SExp], v: CastableType) -> _T_SExp:
+        if isinstance(v, cls):
             return v
 
         if looks_like_clvm_object(v):
             # TODO: maybe this can be done more cleanly
-            return class_(typing.cast(CLVMObjectLike, v))
+            return cls(typing.cast(CLVMObjectLike, v))
 
         # this will lazily convert elements
-        return class_(to_sexp_type(v))
+        return cls(to_sexp_type(v))
 
-    def cons(self: _T_SExp, right) -> _T_SExp:
+    def cons(self: _T_SExp, right: _T_SExp) -> _T_SExp:
         return self.to((self, right))
 
     def first(self: _T_SExp) -> _T_SExp:
@@ -214,9 +214,9 @@ class SExp:
             yield v.first()
             v = v.rest()
 
-    def __eq__(self, other: CastableType) -> bool:
+    def __eq__(self, other: object) -> bool:
         try:
-            other = self.to(other)
+            other = self.to(typing.cast(CastableType, other))
             to_compare_stack = [(self, other)]
             while to_compare_stack:
                 s1, s2 = to_compare_stack.pop()

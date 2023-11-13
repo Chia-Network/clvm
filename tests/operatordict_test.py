@@ -12,21 +12,21 @@ class OperatorDictTest(unittest.TestCase):
            Note that they cannot be specified in the operator dictionary itself.
         """
         # ignoring because apparently it doesn't matter for this test that the types are all wrong
-        d: Dict[bytes, OperatorProtocol] = {1: "hello", 2: "goodbye"}  # type: ignore [dict-item]
+        d: Dict[bytes, OperatorProtocol] = {b"\01": "hello", b"\02": "goodbye"}  # type: ignore [dict-item]
         with self.assertRaises(AttributeError):
             o = OperatorDict(d)
         with self.assertRaises(AttributeError):
-            o = OperatorDict(d, apply=1)
+            o = OperatorDict(d, apply=b"\01")
         with self.assertRaises(AttributeError):
-            o = OperatorDict(d, quote=1)
-        o = OperatorDict(d, apply=1, quote=2)
+            o = OperatorDict(d, quote=b"\01")
+        o = OperatorDict(d, apply=b"\01", quote=b"\02")
         print(o)
         # Why does the constructed Operator dict contain entries for "apply":1 and "quote":2 ?
         # assert d == o
-        self.assertEqual(o.apply_atom, 1)
-        self.assertEqual(o.quote_atom, 2)
+        self.assertEqual(o.apply_atom, b"\01")
+        self.assertEqual(o.quote_atom, b"\02")
 
         # Test construction from an already existing OperatorDict
         o2 = OperatorDict(o)
-        self.assertEqual(o2.apply_atom, 1)
-        self.assertEqual(o2.quote_atom, 2)
+        self.assertEqual(o2.apply_atom, b"\01")
+        self.assertEqual(o2.quote_atom, b"\02")

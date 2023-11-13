@@ -224,7 +224,7 @@ def op_gr_bytes(args: SExp) -> typing.Tuple[int, SExp]:
     return cost, args.true if b0 > b1 else args.false
 
 
-def op_pubkey_for_exp(args: _T_SExp) -> typing.Tuple[_T_SExp, _T_SExp]:
+def op_pubkey_for_exp(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     ((i0, l0),) = args_as_int_list("pubkey_for_exp", args, 1)
     i0 %= 0x73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001
     exponent = PrivateKey.from_bytes(i0.to_bytes(32, "big"))
@@ -258,7 +258,8 @@ def op_strlen(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     a0 = args.first()
     if a0.pair:
         raise EvalError("strlen on list", a0)
-    size = len(a0.as_atom())
+    assert a0.atom is not None
+    size = len(a0.atom)
     cost = STRLEN_BASE_COST + size * STRLEN_COST_PER_BYTE
     return malloc_cost(cost, args.to(size))
 
@@ -272,6 +273,7 @@ def op_substr(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
         raise EvalError("substr on list", a0)
 
     s0 = a0.as_atom()
+    assert s0 is not None
 
     if arg_count == 2:
         i1, = list(args_as_int32("substr", args.rest()))
@@ -292,7 +294,8 @@ def op_concat(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     for arg in args.as_iter():
         if arg.pair:
             raise EvalError("concat on list", arg)
-        s.write(arg.as_atom())
+        assert arg.atom is not None
+        s.write(arg.atom)
         cost += CONCAT_COST_PER_ARG
     r = s.getvalue()
     cost += len(r) * CONCAT_COST_PER_BYTE
@@ -322,6 +325,7 @@ def op_lsh(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
         raise EvalError("shift too large", args.to(i1))
     # we actually want i0 to be an *unsigned* int
     a0 = args.first().as_atom()
+    assert a0 is not None
     i0 = int.from_bytes(a0, "big", signed=False)
     if i1 >= 0:
         r = i0 << i1
@@ -350,7 +354,7 @@ def binop_reduction(
 
 
 def op_logand(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
-    def binop(a, b):
+    def binop(a: int, b: int) -> int:
         a &= b
         return a
 
@@ -358,7 +362,7 @@ def op_logand(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
 
 
 def op_logior(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
-    def binop(a, b):
+    def binop(a: int, b: int) -> int:
         a |= b
         return a
 
@@ -366,7 +370,7 @@ def op_logior(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
 
 
 def op_logxor(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
-    def binop(a, b):
+    def binop(a: int, b: int) -> int:
         a ^= b
         return a
 
@@ -411,7 +415,7 @@ def op_all(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     return cost, args.to(r)
 
 
-def op_softfork(args: SExp) -> typing.Tuple[int, bool]:
+def op_softfork(args: SExp) -> typing.Tuple[int, SExp]:
     if args.list_len() < 1:
         raise EvalError("softfork takes at least 1 argument", args)
     a = args.first()
