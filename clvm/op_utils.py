@@ -1,4 +1,7 @@
-def operators_for_dict(keyword_to_atom, op_dict, op_name_lookup={}):
+def operators_for_dict(keyword_to_atom, op_dict, op_name_lookup=None):
+    if op_name_lookup is None:
+        op_name_lookup = {}
+
     d = {}
     for op in keyword_to_atom.keys():
         op_name = "op_%s" % op_name_lookup.get(op, op)
@@ -8,5 +11,7 @@ def operators_for_dict(keyword_to_atom, op_dict, op_name_lookup={}):
     return d
 
 
-def operators_for_module(keyword_to_atom, mod, op_name_lookup={}):
+def operators_for_module(keyword_to_atom, mod, op_name_lookup=None):
+    if op_name_lookup is None:
+        op_name_lookup = {}
     return operators_for_dict(keyword_to_atom, mod.__dict__, op_name_lookup)
