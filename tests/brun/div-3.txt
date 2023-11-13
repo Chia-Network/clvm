@@ -1,3 +1,2 @@
 brun -c '(/ 2 5)' '(80001 -73)'
-cost = 1125
--1096
+FAIL: div operator with negative operands is deprecated (0x013881 -73)

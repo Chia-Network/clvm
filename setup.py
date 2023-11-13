@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 dev_dependencies = [
-    "clvm_tools>=0.4.2",
+    "clvm_tools>=0.4.4",
     "mypy",
     "pytest",
     "types-setuptools",

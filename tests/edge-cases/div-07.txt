@@ -1,2 +1,2 @@
 brun '(/ (q . 0xffff) (q . 0xffff))'
-1
+FAIL: div operator with negative operands is deprecated (0xffff 0xffff)

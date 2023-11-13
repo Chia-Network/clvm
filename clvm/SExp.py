@@ -1,7 +1,6 @@
 import io
 import typing
 
-from blspy import G1Element
 
 from .as_python import as_python
 from .CLVMObject import CLVMObject, CLVMObjectLike
@@ -22,7 +21,6 @@ CastableType = typing.Union[
     str,
     int,
     None,
-    G1Element,
     list,
     typing.Tuple["CastableType", "CastableType"],
 ]
@@ -38,7 +36,7 @@ def looks_like_clvm_object(o: typing.Any) -> bool:
 
 # this function recognizes some common types and turns them into plain bytes,
 def convert_atom_to_bytes(
-    v: typing.Union[bytes, str, int, G1Element, None, list],
+    v: typing.Union[bytes, str, int, None, list],
 ) -> bytes:
 
     if isinstance(v, bytes):
@@ -47,12 +45,12 @@ def convert_atom_to_bytes(
         return v.encode()
     if isinstance(v, int):
         return int_to_bytes(v)
-    if isinstance(v, G1Element):
-        return bytes(v)
     if v is None:
         return b""
     if v == []:
         return b""
+    if hasattr(v, "__bytes__"):
+        return bytes(v)
 
     raise ValueError("can't cast %s (%s) to bytes" % (type(v), v))
 

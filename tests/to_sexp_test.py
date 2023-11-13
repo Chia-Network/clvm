@@ -67,6 +67,11 @@ class Atom:
     atom: None = None
 
 
+class DummyByteConvertible:
+    def __bytes__(self) -> bytes:
+        return b"foobar"
+
+
 class ToSExpTest(unittest.TestCase):
     def test_cast_1(self) -> None:
         # this was a problem in `clvm_tools` and is included
@@ -169,6 +174,8 @@ class ToSExpTest(unittest.TestCase):
         assert convert_atom_to_bytes(b"foobar") == b"foobar"
         assert convert_atom_to_bytes(None) == b""
         assert convert_atom_to_bytes([]) == b""
+
+        assert convert_atom_to_bytes(DummyByteConvertible()) == b"foobar"
 
         with self.assertRaises(ValueError):
             assert convert_atom_to_bytes([1, 2, 3])

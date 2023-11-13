@@ -1,3 +1,2 @@
 brun -c '(/ (q . -3) (q . 10))'
-cost = 1037
-()
+FAIL: div operator with negative operands is deprecated (-3 10)

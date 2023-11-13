@@ -191,13 +191,12 @@ def op_div(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     (i0, l0), (i1, l1) = args_as_int_list("/", args, 2)
     if i1 == 0:
         raise EvalError("div with 0", args.to(i0))
+
+    if i0 < 0 or i1 < 0:
+        raise EvalError("div operator with negative operands is deprecated", args)
+
     cost += (l0 + l1) * DIV_COST_PER_BYTE
     q, r = divmod(i0, i1)
-
-    # this is to preserve a buggy behavior from the initial implementation
-    # of this operator.
-    if q == -1 and r != 0:
-        q += 1
 
     return malloc_cost(cost, args.to(q))
 
