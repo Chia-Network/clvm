@@ -24,13 +24,13 @@ def sexp_to_byte_iterator(sexp):
     todo_stack = [sexp]
     while todo_stack:
         sexp = todo_stack.pop()
-        pair = sexp.as_pair()
+        pair = sexp.pair
         if pair:
             yield bytes([CONS_BOX_MARKER])
             todo_stack.append(pair[1])
             todo_stack.append(pair[0])
         else:
-            yield from atom_to_byte_iterator(sexp.as_atom())
+            yield from atom_to_byte_iterator(sexp.atom)
 
 
 def atom_to_byte_iterator(as_atom):
