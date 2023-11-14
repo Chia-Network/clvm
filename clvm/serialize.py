@@ -43,7 +43,7 @@ def sexp_to_byte_iterator(sexp: SExp) -> typing.Iterator[bytes]:
     todo_stack = [sexp]
     while todo_stack:
         sexp = todo_stack.pop()
-        pair = sexp.as_pair()
+        pair = sexp.pair
         if pair:
             yield bytes([CONS_BOX_MARKER])
             todo_stack.append(pair[1])
