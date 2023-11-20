@@ -38,4 +38,7 @@ setup(
         "Bug Reports": "https://github.com/Chia-Network/clvm",
         "Source": "https://github.com/Chia-Network/clvm",
     },
+    package_data={
+        "": ["py.typed"],
+    },
 )
