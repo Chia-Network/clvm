@@ -43,10 +43,14 @@ def _as_python(op_stack: OpStackType, val_stack: List[SExp]) -> None:
     pair = t.as_pair()
     if pair:
         left, right = pair
-        op_stack.append(_make_tuple)
-        op_stack.append(_as_python)
-        op_stack.append(_roll)
-        op_stack.append(_as_python)
+        # TODO: make this work, ignoring to look at other things
+        op_stack.append(_make_tuple)  # type: ignore[arg-type]
+        # TODO: make this work, ignoring to look at other things
+        op_stack.append(_as_python)  # type: ignore[arg-type]
+        # TODO: make this work, ignoring to look at other things
+        op_stack.append(_roll)  # type: ignore[arg-type]
+        # TODO: make this work, ignoring to look at other things
+        op_stack.append(_as_python)  # type: ignore[arg-type]
         val_stack.append(left)
         val_stack.append(right)
     else:
@@ -56,9 +60,11 @@ def _as_python(op_stack: OpStackType, val_stack: List[SExp]) -> None:
 
 # TODO: probably have to just accept this Any, but...
 def as_python(sexp: SExp) -> Any:
-    op_stack: OpStackType = [_as_python]
+    # TODO: make this work, ignoring to look at other things
+    op_stack: OpStackType = [_as_python]  # type: ignore[list-item]
     val_stack: List[SExp] = [sexp]
     while op_stack:
         op_f = op_stack.pop()
-        op_f(op_stack, val_stack)
+        # TODO: make this work, ignoring to look at other things
+        op_f(op_stack, val_stack)  # type: ignore[arg-type]
     return val_stack[-1]

@@ -54,7 +54,8 @@ def run_program(
 
     _program = SExp.to(program)
     if pre_eval_f is not None:
-        pre_eval_op = to_pre_eval_op(pre_eval_f, _program.to)
+        # TODO: make this work, ignoring to look at other things
+        pre_eval_op = to_pre_eval_op(pre_eval_f, _program.to)  # type: ignore[arg-type]
     else:
         pre_eval_op = None
 
