@@ -10,10 +10,10 @@ class CLVMObjectLike(Protocol):
     # restructuring all the classes.
     # TODO: can we make these read only?
     atom: typing.Optional[bytes]
-    pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
+    pair: typing.Optional[PairType]
 
 
-PairType = typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
+PairType = typing.Tuple[CLVMObjectLike, CLVMObjectLike]
 
 
 _T_CLVMObject = typing.TypeVar("_T_CLVMObject", bound="CLVMObject")
@@ -28,7 +28,7 @@ class CLVMObject:
 
     # this is always a 2-tuple of an object implementing the CLVM object
     # protocol.
-    pair: PairType
+    pair: typing.Optional[PairType]
     __slots__ = ["atom", "pair"]
 
     @staticmethod
@@ -36,7 +36,7 @@ class CLVMObject:
         class_: typing.Type[_T_CLVMObject],
         # TODO: which?  review?
         # v: typing.Union[CLVMObject, CLVMObjectLike, typing.Tuple[CLVMObject, CLVMObject], bytes],
-        v: typing.Union[CLVMObjectLike, bytes, PairType],
+        v: typing.Union[CLVMObject, bytes, PairType],
     ) -> _T_CLVMObject:
         if isinstance(v, class_):
             return v
@@ -46,9 +46,11 @@ class CLVMObject:
                 raise ValueError("tuples must be of size 2, cannot create CLVMObject from: %s" % str(v))
             self.pair = v
             self.atom = None
-        elif isinstance(v, bytes):
-            self.atom = v
-            self.pair = None
+        # TODO: discussing this
+        # elif isinstance(v, bytes):
         else:
-            raise ValueError(f"cannot create CLVMObject from: {v!r}")
+            self.atom = v  # type: ignore[assignment]
+            self.pair = None
+        # else:
+        #     raise ValueError(f"cannot create CLVMObject from: {v!r}")
         return self

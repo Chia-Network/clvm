@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 OpCallable = Callable[["OpStackType", "ValStackType"], None]
 
-ValType = Union[SExp, List["ValType"], Tuple["ValType", ...]]
+ValType = Union["SExp", List["ValType"], Tuple["ValType", ...]]
 ValStackType = List[Union[ValType, "ValStackType"]]
 OpStackType = List[OpCallable]
 

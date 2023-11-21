@@ -35,7 +35,7 @@ OpCallable = typing.Callable[
     ["OpStackType", "ValStackType", typing.BinaryIO, typing.Type], None
 ]
 
-ValStackType = typing.List[SExp]
+ValStackType = typing.List["SExp"]
 OpStackType = typing.List[OpCallable]
 
 
