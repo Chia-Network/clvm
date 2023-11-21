@@ -17,7 +17,7 @@ from __future__ import annotations
 import io
 import typing
 
-from .CLVMObject import CLVMObject
+from .CLVMObject import CLVMObject, CLVMObjectLike
 
 
 if typing.TYPE_CHECKING:
@@ -46,8 +46,9 @@ def sexp_to_byte_iterator(sexp: SExp) -> typing.Iterator[bytes]:
         pair = sexp.pair
         if pair:
             yield bytes([CONS_BOX_MARKER])
-            todo_stack.append(pair[1])
-            todo_stack.append(pair[0])
+            # TODO: can we assume the pairs are necessarily SExp?  can we hint this better so we require and know it
+            todo_stack.append(pair[1])  # type: ignore[arg-type]
+            todo_stack.append(pair[0])  # type: ignore[arg-type]
         else:
             assert sexp.atom is not None
             yield from atom_to_byte_iterator(sexp.atom)

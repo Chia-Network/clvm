@@ -13,8 +13,10 @@ class CLVMObjectLike(Protocol):
     pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
 
 
-_T_CLVMObject = typing.TypeVar("_T_CLVMObject", bound="CLVMObject")
+PairType = typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
 
+
+_T_CLVMObject = typing.TypeVar("_T_CLVMObject", bound="CLVMObject")
 
 class CLVMObject:
     """
@@ -26,7 +28,7 @@ class CLVMObject:
 
     # this is always a 2-tuple of an object implementing the CLVM object
     # protocol.
-    pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
+    pair: PairType
     __slots__ = ["atom", "pair"]
 
     @staticmethod
@@ -34,7 +36,7 @@ class CLVMObject:
         class_: typing.Type[_T_CLVMObject],
         # TODO: which?  review?
         # v: typing.Union[CLVMObject, CLVMObjectLike, typing.Tuple[CLVMObject, CLVMObject], bytes],
-        v: typing.Union[CLVMObjectLike, bytes],
+        v: typing.Union[CLVMObjectLike, bytes, PairType],
     ) -> _T_CLVMObject:
         if isinstance(v, class_):
             return v

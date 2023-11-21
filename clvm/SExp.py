@@ -29,13 +29,15 @@ CastableType = typing.Union[
 NULL = b""
 
 
-def looks_like_clvm_object(o: typing.Any) -> bool:
+# TODO: can this be replaced by a runtime protocol check?
+def looks_like_clvm_object(o: typing.Any) -> typing.TypeGuard[CLVMObjectLike]:
     d = dir(o)
     return "atom" in d and "pair" in d
 
 
 # this function recognizes some common types and turns them into plain bytes,
 def convert_atom_to_bytes(
+    # TODO: not any list, but an empty list
     v: typing.Union[bytes, str, int, None, typing.List, typing.SupportsBytes],
 ) -> bytes:
 
@@ -55,25 +57,35 @@ def convert_atom_to_bytes(
     raise ValueError("can't cast %s (%s) to bytes" % (type(v), v))
 
 
+StackValType = typing.Union[CLVMObjectLike, typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
+StackType = typing.List[typing.Union[StackValType, "StackType"]]
+
 # returns a clvm-object like object
 def to_sexp_type(
-    v: CastableType,
+    v: CLVMObjectLike,
 ) -> CLVMObjectLike:
-    stack = [v]
-    ops: typing.List[typing.Tuple[int, typing.Optional[int]]] = [(0, None)]  # convert
+    stack: StackType = [v]
+    ops: typing.List[typing.Union[typing.Tuple[typing.Literal[0], None], typing.Tuple[int, int]]] = [(0, None)]  # convert
+
+    # TODO: can this type just be applied to the parameter instead?
+    internal_v: typing.Union[CLVMObjectLike, typing.Tuple, typing.List]
+    target: int
+    element: CLVMObjectLike
 
     while len(ops) > 0:
-        op, target = ops.pop()
+        op_target = ops.pop()
         # convert valuefrom .operators import OperatorDict
 
-        if op == 0:
+        # this form allows mypy to follow the not-none-ness of op_target[1] for all other operations
+        if op_target[1] is None:
+            assert op_target[0] == 0
             if looks_like_clvm_object(stack[-1]):
                 continue
-            v = stack.pop()
-            if isinstance(v, tuple):
-                if len(v) != 2:
-                    raise ValueError("can't cast tuple of size %d" % len(v))
-                left, right = v
+            internal_v = stack.pop()
+            if isinstance(internal_v, tuple):
+                if len(internal_v) != 2:
+                    raise ValueError("can't cast tuple of size %d" % len(internal_v))
+                left, right = internal_v
                 target = len(stack)
                 stack.append(CLVMObject((left, right)))
                 if not looks_like_clvm_object(right):
@@ -84,36 +96,47 @@ def to_sexp_type(
                     stack.append(left)
                     ops.append((1, target))  # set left
                     ops.append((0, None))  # convert
-                continue
-            if isinstance(v, list):
+            elif isinstance(internal_v, list):
                 target = len(stack)
                 stack.append(CLVMObject(NULL))
-                for _ in v:
+                for _ in internal_v:
                     stack.append(_)
                     ops.append((3, target))  # prepend list
                     # we only need to convert if it's not already the right
                     # type
                     if not looks_like_clvm_object(_):
                         ops.append((0, None))  # convert
-                continue
-            stack.append(CLVMObject(convert_atom_to_bytes(v)))
-            continue
-
-        if op == 1:  # set left
-            stack[target].pair = (CLVMObject(stack.pop()), stack[target].pair[1])
-            continue
-        if op == 2:  # set right
-            stack[target].pair = (stack[target].pair[0], CLVMObject(stack.pop()))
-            continue
-        if op == 3:  # prepend list
-            stack[target] = CLVMObject((stack.pop(), stack[target]))
-            continue
+            else:
+                # TODO: do we have to ignore?
+                stack.append(CLVMObject(convert_atom_to_bytes(internal_v)))  # type: ignore[arg-type]
+        elif op_target[0] == 1:  # set left
+            target = op_target[1]
+            # TODO: do we have to ignore?
+            element = stack[target]  # type: ignore[assignment]
+            pair = element.pair
+            assert pair is not None
+            # TODO: do we have to ignore?
+            element.pair = (CLVMObject(stack.pop()), pair[1])  # type: ignore[arg-type]
+        elif op_target[0] == 2:  # set right
+            target = op_target[1]
+            # TODO: do we have to ignore?
+            element = stack[target]  # type: ignore[assignment]
+            pair = element.pair
+            assert pair is not None
+            # TODO: do we have to ignore?
+            element.pair = (pair[0], CLVMObject(stack.pop()))  # type: ignore[arg-type]
+        elif op_target[0] == 3:  # prepend list
+            target = op_target[1]
+            # TODO: do we have to ignore?
+            stack[target] = CLVMObject((stack.pop(), stack[target]))  # type: ignore[arg-type]
+        # TODO: what about an else to fail explicitly on an unknown op?
     # there's exactly one item left at this point
     if len(stack) != 1:
         raise ValueError("internal error")
 
     # stack[0] implements the clvm object protocol and can be wrapped by an SExp
-    return stack[0]
+    # TODO: do we have to ignore?
+    return stack[0]  # type: ignore[return-value]
 
 
 _T_SExp = typing.TypeVar("_T_SExp", bound="SExp")
@@ -134,9 +157,9 @@ class SExp:
        elements implementing the CLVM object protocol.
     Exactly one of "atom" and "pair" must be None.
     """
-    true: "SExp"
-    false: "SExp"
-    __null__: "SExp"
+    true: typing.ClassVar["SExp"]
+    false: typing.ClassVar["SExp"]
+    __null__: typing.ClassVar["SExp"]
 
     # the underlying object implementing the clvm object protocol
     atom: typing.Optional[bytes]
@@ -183,11 +206,11 @@ class SExp:
             return v
 
         if looks_like_clvm_object(v):
-            # TODO: maybe this can be done more cleanly
-            return cls(typing.cast(CLVMObjectLike, v))
+            return cls(v)
 
         # this will lazily convert elements
-        return cls(to_sexp_type(v))
+        # TODO: do we have to ignore?
+        return cls(to_sexp_type(v))  # type: ignore[arg-type]
 
     def cons(self: _T_SExp, right: _T_SExp) -> _T_SExp:
         return self.to((self, right))
@@ -242,7 +265,7 @@ class SExp:
             v = v.rest()
         return size
 
-    def as_python(self):
+    def as_python(self) -> typing.Any:
         return as_python(self)
 
     def __str__(self) -> str:
