@@ -8,7 +8,7 @@ from typing_extensions import Protocol
 class CLVMObjectLike(Protocol):
     # It's not clear if it is possible to express the exclusivity without maybe
     # restructuring all the classes.
-    # TODO: can we make these read only?
+    # TODO: can we make these read only? nope, to_sexp_type() depends on mutation
     atom: typing.Optional[bytes]
     pair: typing.Optional[PairType]
 
@@ -17,6 +17,7 @@ PairType = typing.Tuple[CLVMObjectLike, CLVMObjectLike]
 
 
 _T_CLVMObject = typing.TypeVar("_T_CLVMObject", bound="CLVMObject")
+
 
 class CLVMObject:
     """
