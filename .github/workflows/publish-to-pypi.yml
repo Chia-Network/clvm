@@ -51,6 +51,12 @@ jobs:
         --out-dir dist/
         .
 
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: ./dist
+
     - name: Publish distribution to PyPI
       if: startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@release/v1
