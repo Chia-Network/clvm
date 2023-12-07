@@ -29,7 +29,6 @@ CastableType = typing.Union[
 NULL = b""
 
 
-# TODO: can this be replaced by a runtime protocol check?
 def looks_like_clvm_object(o: typing.Any) -> typing.TypeGuard[CLVMObjectLike]:
     d = dir(o)
     return "atom" in d and "pair" in d
@@ -37,7 +36,6 @@ def looks_like_clvm_object(o: typing.Any) -> typing.TypeGuard[CLVMObjectLike]:
 
 # this function recognizes some common types and turns them into plain bytes,
 def convert_atom_to_bytes(
-    # TODO: not any list, but an empty list
     v: typing.Union[bytes, str, int, None, typing.List, typing.SupportsBytes],
 ) -> bytes:
 
@@ -67,16 +65,15 @@ def to_sexp_type(
     stack: StackType = [v]
     ops: typing.List[typing.Union[typing.Tuple[typing.Literal[0], None], typing.Tuple[int, int]]] = [(0, None)]  # convert
 
-    # TODO: can this type just be applied to the parameter instead?
     internal_v: typing.Union[CLVMObjectLike, typing.Tuple, typing.List]
     target: int
     element: CLVMObjectLike
 
     while len(ops) > 0:
         op_target = ops.pop()
-        # convert valuefrom .operators import OperatorDict
 
         # this form allows mypy to follow the not-none-ness of op_target[1] for all other operations
+        # convert value
         if op_target[1] is None:
             assert op_target[0] == 0
             if looks_like_clvm_object(stack[-1]):
@@ -142,7 +139,6 @@ def to_sexp_type(
 _T_SExp = typing.TypeVar("_T_SExp", bound="SExp")
 
 
-# TODO: Maybe there is some way to track atom vs. pair SExps to help hinting out a bit
 class SExp:
     """
     SExp provides higher level API on top of any object implementing the CLVM

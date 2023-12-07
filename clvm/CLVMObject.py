@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import typing
 
-from typing_extensions import Protocol
 
-
-class CLVMObjectLike(Protocol):
+class CLVMObjectLike(typing.Protocol):
     # It's not clear if it is possible to express the exclusivity without maybe
-    # restructuring all the classes.
-    # TODO: can we make these read only? nope, to_sexp_type() depends on mutation
+    # restructuring all the classes, such as having a separate instance for each
+    # of the atom and pair cases and hinting a union of a protocol of each type.
     atom: typing.Optional[bytes]
     pair: typing.Optional[PairType]
 

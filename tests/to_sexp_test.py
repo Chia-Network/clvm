@@ -90,7 +90,7 @@ class ToSExpTest(unittest.TestCase):
         # it's a bit of a layer violation that CLVMObject unwraps SExp, but we
         # rely on that in a fair number of places for now. We should probably
         # work towards phasing that out
-        # TODO: yep, this is cheeating the system, discussing
+        # TODO: yep, this is cheating the system, discussing
         o = CLVMObject(SExp.to(1))  # type: ignore[arg-type]
         assert o.atom == bytes([1])
 

@@ -189,7 +189,6 @@ class AsPythonTest(unittest.TestCase):
     def test_invalid_type(self) -> None:
         with self.assertRaises(ValueError):
             s = SExp.to(dummy_class)  # type: ignore[arg-type]
-            # TODO: this note seems incorrect and neither of the following lines are run
             # conversions are deferred, this is where it will fail:
             b = list(s.as_iter())
             print(b)
@@ -197,7 +196,6 @@ class AsPythonTest(unittest.TestCase):
     def test_invalid_tuple(self) -> None:
         with self.assertRaises(ValueError):
             s = SExp.to((dummy_class, dummy_class))  # type: ignore[arg-type]
-            # TODO: this note seems incorrect and neither of the following lines are run
             # conversions are deferred, this is where it will fail:
             b = list(s.as_iter())
             print(b)
