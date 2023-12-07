@@ -40,10 +40,9 @@ class OperatorsTest(unittest.TestCase):
             with self.assertRaises(EvalError):
                 default_unknown_op(b"\xff\xff" + suffix, SExp.null())
 
-        # TODO: which assert are we trying to check here?
         with self.assertRaises(EvalError):
             # an empty atom is not a valid opcode
-            self.assertEqual(default_unknown_op(b"", SExp.null()), (1, SExp.null()))
+            default_unknown_op(b"", SExp.null())
 
         # a single ff is not sufficient to be treated as a reserved opcode
         self.assertEqual(default_unknown_op(b"\xff", SExp.null()), (CONCAT_BASE_COST, SExp.null()))
