@@ -2,7 +2,11 @@ import types
 from typing import Callable, Dict, Optional
 
 
-def operators_for_dict(keyword_to_atom: Dict, op_dict: Dict[str, Callable], op_name_lookup: Optional[Dict] = None) -> Dict:
+def operators_for_dict(
+    keyword_to_atom: Dict,
+    op_dict: Dict[str, Callable],
+    op_name_lookup: Optional[Dict] = None,
+) -> Dict:
     if op_name_lookup is None:
         op_name_lookup = {}
 

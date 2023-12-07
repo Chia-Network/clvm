@@ -58,12 +58,14 @@ def convert_atom_to_bytes(
 StackValType = typing.Union[CLVMObjectLike, typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
 StackType = typing.List[typing.Union[StackValType, "StackType"]]
 
+
 # returns a clvm-object like object
 def to_sexp_type(
     v: CLVMObjectLike,
 ) -> CLVMObjectLike:
     stack: StackType = [v]
-    ops: typing.List[typing.Union[typing.Tuple[typing.Literal[0], None], typing.Tuple[int, int]]] = [(0, None)]  # convert
+    # convert
+    ops: typing.List[typing.Union[typing.Tuple[typing.Literal[0], None], typing.Tuple[int, int]]] = [(0, None)]
 
     internal_v: typing.Union[CLVMObjectLike, typing.Tuple, typing.List]
     target: int

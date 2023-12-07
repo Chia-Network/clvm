@@ -20,7 +20,10 @@ ValStackType = List[SExp]
 OpStackType = List[OpCallable]
 
 
-def to_pre_eval_op(pre_eval_f: Callable[[SExp, SExp], Optional[Callable[[SExp], object]]], to_sexp_f: Callable[[CastableType], SExp]) -> PreOpCallable:
+def to_pre_eval_op(
+    pre_eval_f: Callable[[SExp, SExp], Optional[Callable[[SExp], object]]],
+    to_sexp_f: Callable[[CastableType], SExp],
+) -> PreOpCallable:
     def my_pre_eval_op(op_stack: OpStackType, value_stack: ValStackType) -> None:
         v = to_sexp_f(value_stack[-1])
         context = pre_eval_f(v.first(), v.rest())

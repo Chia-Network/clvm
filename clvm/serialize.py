@@ -17,7 +17,7 @@ from __future__ import annotations
 import io
 import typing
 
-from .CLVMObject import CLVMObject, CLVMObjectLike
+from .CLVMObject import CLVMObject
 
 
 if typing.TYPE_CHECKING:
