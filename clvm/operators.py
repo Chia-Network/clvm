@@ -222,6 +222,8 @@ class OperatorDict(Dict[bytes, OperatorProtocol]):
         else:
             self.apply_atom = apply
 
+        self.unknown_op_handler = unknown_op_handler
+
         return self
 
     def __call__(self, op: bytes, arguments: SExp) -> Tuple[int, SExp]:
