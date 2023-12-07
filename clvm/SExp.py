@@ -1,6 +1,7 @@
 import io
 import typing
 
+import typing_extensions
 
 from .as_python import as_python
 from .CLVMObject import CLVMObject, CLVMObjectLike
@@ -29,7 +30,7 @@ CastableType = typing.Union[
 NULL = b""
 
 
-def looks_like_clvm_object(o: typing.Any) -> typing.TypeGuard[CLVMObjectLike]:
+def looks_like_clvm_object(o: typing.Any) -> typing_extensions.TypeGuard[CLVMObjectLike]:
     d = dir(o)
     return "atom" in d and "pair" in d
 
