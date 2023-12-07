@@ -26,7 +26,7 @@ H01 = fh("01")
 H02 = fh("02")
 
 NestedListOfBytes = Union[bytes, List["NestedListOfBytes"]]
-NestedTupleOfBytes = Union[bytes, Tuple["NestedTupleOfBytes", ...]]
+NestedTupleOfBytes = Union[bytes, Tuple["NestedTupleOfBytes", "NestedTupleOfBytes"]]
 
 
 class AsPythonTest(unittest.TestCase):
