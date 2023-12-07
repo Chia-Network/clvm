@@ -11,11 +11,11 @@ class OperatorDictTest(unittest.TestCase):
         """
         d = {1: "hello", 2: "goodbye"}
         with self.assertRaises(AttributeError):
-            o = OperatorDict(d)
+            OperatorDict(d)
         with self.assertRaises(AttributeError):
-            o = OperatorDict(d, apply=1)
+            OperatorDict(d, apply=1)
         with self.assertRaises(AttributeError):
-            o = OperatorDict(d, quote=1)
+            OperatorDict(d, quote=1)
         o = OperatorDict(d, apply=1, quote=2)
         print(o)
         # Why does the constructed Operator dict contain entries for "apply":1 and "quote":2 ?
