@@ -23,7 +23,7 @@ CastableType = typing.Union[
     int,
     None,
     list,
-    typing.Tuple["CastableType", ...],
+    typing.Tuple["CastableType", "CastableType"],
 ]
 
 
@@ -37,7 +37,7 @@ def looks_like_clvm_object(o: typing.Any) -> typing_extensions.TypeGuard[CLVMObj
 
 # this function recognizes some common types and turns them into plain bytes,
 def convert_atom_to_bytes(
-    v: typing.Union[bytes, str, int, None, typing.List, typing.SupportsBytes],
+    v: typing.Union[bytes, str, int, None, typing.List[typing_extensions.Never], typing.SupportsBytes],
 ) -> bytes:
 
     if isinstance(v, bytes):
