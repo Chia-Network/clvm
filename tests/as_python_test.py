@@ -169,16 +169,10 @@ class AsPythonTest(unittest.TestCase):
     def test_invalid_type(self):
         with self.assertRaises(ValueError):
             s = SExp.to(dummy_class)
-            # conversions are deferred, this is where it will fail:
-            b = list(s.as_iter())
-            print(b)
 
     def test_invalid_tuple(self):
         with self.assertRaises(ValueError):
             s = SExp.to((dummy_class, dummy_class))
-            # conversions are deferred, this is where it will fail:
-            b = list(s.as_iter())
-            print(b)
 
         with self.assertRaises(ValueError):
             s = SExp.to((dummy_class, dummy_class, dummy_class))
