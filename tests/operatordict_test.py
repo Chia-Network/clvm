@@ -13,11 +13,14 @@ class OperatorDictTest(unittest.TestCase):
         """
         # ignoring because apparently it doesn't matter for this test that the types are all wrong
         d: Dict[bytes, OperatorProtocol] = {b"\01": "hello", b"\02": "goodbye"}  # type: ignore [dict-item]
-        with self.assertRaises(AttributeError):
+        # TODO: or do we want to retain the AttributeError behavior?
+        with self.assertRaises(AssertionError):
             o = OperatorDict(d)
-        with self.assertRaises(AttributeError):
+        # TODO: or do we want to retain the AttributeError behavior?
+        with self.assertRaises(AssertionError):
             o = OperatorDict(d, apply=b"\01")
-        with self.assertRaises(AttributeError):
+        # TODO: or do we want to retain the AttributeError behavior?
+        with self.assertRaises(AssertionError):
             o = OperatorDict(d, quote=b"\01")
         o = OperatorDict(d, apply=b"\01", quote=b"\02")
         print(o)
