@@ -168,10 +168,10 @@ class ToSExpTest(unittest.TestCase):
         assert convert_atom_to_bytes(DummyByteConvertible()) == b"foobar"
 
         with self.assertRaises(ValueError):
-            assert convert_atom_to_bytes([1, 2, 3])
+            convert_atom_to_bytes([1, 2, 3])
 
         with self.assertRaises(ValueError):
-            assert convert_atom_to_bytes((1, 2))
+            convert_atom_to_bytes((1, 2))
 
         with self.assertRaises(ValueError):
-            assert convert_atom_to_bytes({})
+            convert_atom_to_bytes({})
