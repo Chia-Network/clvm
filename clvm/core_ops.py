@@ -1,4 +1,6 @@
-from typing import Never, Tuple, TypeVar
+from typing import Tuple, TypeVar
+
+from typing_extensions import Never
 
 from .EvalError import EvalError
 from .SExp import SExp
