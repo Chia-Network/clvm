@@ -4,7 +4,7 @@ import typing
 import typing_extensions
 
 from .as_python import as_python
-from .CLVMObject import CLVMObject, CLVMObjectLike
+from .CLVMObject import CLVMObject, CLVMStorage
 
 from .EvalError import EvalError
 
@@ -17,7 +17,7 @@ from .serialize import sexp_to_stream
 
 CastableType = typing.Union[
     "SExp",
-    CLVMObjectLike,
+    CLVMStorage,
     bytes,
     str,
     int,
@@ -30,7 +30,7 @@ CastableType = typing.Union[
 NULL = b""
 
 
-def looks_like_clvm_object(o: typing.Any) -> typing_extensions.TypeGuard[CLVMObjectLike]:
+def looks_like_clvm_object(o: typing.Any) -> typing_extensions.TypeGuard[CLVMStorage]:
     d = dir(o)
     return "atom" in d and "pair" in d
 
@@ -56,21 +56,21 @@ def convert_atom_to_bytes(
     raise ValueError("can't cast %s (%s) to bytes" % (type(v), v))
 
 
-StackValType = typing.Union[CLVMObjectLike, typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
+StackValType = typing.Union[CLVMStorage, typing.Tuple[CLVMStorage, CLVMStorage]]
 StackType = typing.List[typing.Union[StackValType, "StackType"]]
 
 
 # returns a clvm-object like object
 def to_sexp_type(
-    v: CLVMObjectLike,
-) -> CLVMObjectLike:
+    v: CLVMStorage,
+) -> CLVMStorage:
     stack: StackType = [v]
     # convert
     ops: typing.List[typing.Union[typing.Tuple[typing.Literal[0], None], typing.Tuple[int, int]]] = [(0, None)]
 
-    internal_v: typing.Union[CLVMObjectLike, typing.Tuple, typing.List]
+    internal_v: typing.Union[CLVMStorage, typing.Tuple, typing.List]
     target: int
-    element: CLVMObjectLike
+    element: CLVMStorage
 
     while len(ops) > 0:
         op_target = ops.pop()
@@ -165,9 +165,9 @@ class SExp:
 
     # this is a tuple of the otherlying CLVMObject-like objects. i.e. not
     # SExp objects with higher level functions, or None
-    pair: typing.Optional[typing.Tuple[CLVMObjectLike, CLVMObjectLike]]
+    pair: typing.Optional[typing.Tuple[CLVMStorage, CLVMStorage]]
 
-    def __init__(self, obj: CLVMObjectLike) -> None:
+    def __init__(self, obj: CLVMStorage) -> None:
         self.atom = obj.atom
         self.pair = obj.pair
 

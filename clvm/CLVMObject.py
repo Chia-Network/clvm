@@ -3,7 +3,7 @@ from __future__ import annotations
 import typing
 
 
-class CLVMObjectLike(typing.Protocol):
+class CLVMStorage(typing.Protocol):
     # It's not clear if it is possible to express the exclusivity without maybe
     # restructuring all the classes, such as having a separate instance for each
     # of the atom and pair cases and hinting a union of a protocol of each type.
@@ -11,7 +11,7 @@ class CLVMObjectLike(typing.Protocol):
     pair: typing.Optional[PairType]
 
 
-PairType = typing.Tuple[CLVMObjectLike, CLVMObjectLike]
+PairType = typing.Tuple[CLVMStorage, CLVMStorage]
 
 
 _T_CLVMObject = typing.TypeVar("_T_CLVMObject", bound="CLVMObject")
@@ -34,7 +34,7 @@ class CLVMObject:
     def __new__(
         class_: typing.Type[_T_CLVMObject],
         # TODO: which?  review?
-        # v: typing.Union[CLVMObject, CLVMObjectLike, typing.Tuple[CLVMObject, CLVMObject], bytes],
+        # v: typing.Union[CLVMObject, CLVMStorage, typing.Tuple[CLVMObject, CLVMObject], bytes],
         v: typing.Union[CLVMObject, bytes, PairType],
     ) -> _T_CLVMObject:
         if isinstance(v, class_):

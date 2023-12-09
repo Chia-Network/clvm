@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from typing import ClassVar, Optional, TYPE_CHECKING, Tuple, cast
 from clvm.SExp import SExp, looks_like_clvm_object, convert_atom_to_bytes
-from clvm.CLVMObject import CLVMObject, CLVMObjectLike
+from clvm.CLVMObject import CLVMObject, CLVMStorage
 
 
 def validate_sexp(sexp: SExp) -> None:
@@ -101,7 +101,7 @@ class ToSExpTest(unittest.TestCase):
         # a tree that's generated
         class GeneratedTree:
             if TYPE_CHECKING:
-                _type_check: ClassVar[CLVMObjectLike] = cast("GeneratedTree", None)
+                _type_check: ClassVar[CLVMStorage] = cast("GeneratedTree", None)
 
             depth: int = 4
             val: int = 0
@@ -122,14 +122,14 @@ class ToSExpTest(unittest.TestCase):
                 raise RuntimeError("setting not supported in this test class")
 
             @property
-            def pair(self) -> Optional[Tuple[CLVMObjectLike, CLVMObjectLike]]:
+            def pair(self) -> Optional[Tuple[CLVMStorage, CLVMStorage]]:
                 if self.depth == 0:
                     return None
                 new_depth: int = self.depth - 1
                 return (GeneratedTree(new_depth, self.val), GeneratedTree(new_depth, self.val + 2**new_depth))
 
             @pair.setter
-            def pair(self, val: Optional[Tuple[CLVMObjectLike, CLVMObjectLike]]) -> None:
+            def pair(self, val: Optional[Tuple[CLVMStorage, CLVMStorage]]) -> None:
                 raise RuntimeError("setting not supported in this test class")
 
         tree = SExp.to(GeneratedTree(5, 0))
