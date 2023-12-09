@@ -188,11 +188,11 @@ class AsPythonTest(unittest.TestCase):
 
     def test_invalid_type(self) -> None:
         with self.assertRaises(ValueError):
-            s = SExp.to(dummy_class)  # type: ignore[arg-type]
+            SExp.to(dummy_class)  # type: ignore[arg-type]
 
     def test_invalid_tuple(self) -> None:
         with self.assertRaises(ValueError):
-            s = SExp.to((dummy_class, dummy_class))  # type: ignore[arg-type]
+            SExp.to((dummy_class, dummy_class))  # type: ignore[arg-type]
 
         with self.assertRaises(ValueError):
             SExp.to((dummy_class, dummy_class, dummy_class))  # type: ignore[arg-type]
