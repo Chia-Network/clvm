@@ -1,4 +1,4 @@
-from typing import Tuple, TypeVar
+from typing import Never, Tuple, TypeVar
 
 from .EvalError import EvalError
 from .SExp import SExp
@@ -46,20 +46,20 @@ def op_rest(args: _T_SExp) -> Tuple[int, _T_SExp]:
     return REST_COST, args.first().rest()
 
 
-def op_listp(args: _T_SExp) -> Tuple[int, SExp]:
+def op_listp(args: SExp) -> Tuple[int, SExp]:
     if args.list_len() != 1:
         raise EvalError("l takes exactly 1 argument", args)
     return LISTP_COST, args.true if args.first().listp() else args.false
 
 
-def op_raise(args: _T_SExp) -> Tuple[int, _T_SExp]:
+def op_raise(args: SExp) -> Never:
     if args.list_len() == 1 and not args.first().listp():
         raise EvalError("clvm raise", args.first())
     else:
         raise EvalError("clvm raise", args)
 
 
-def op_eq(args: _T_SExp) -> Tuple[int, SExp]:
+def op_eq(args: SExp) -> Tuple[int, SExp]:
     if args.list_len() != 2:
         raise EvalError("= takes exactly 2 arguments", args)
     a0 = args.first()
