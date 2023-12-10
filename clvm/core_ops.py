@@ -18,8 +18,6 @@ from .costs import (
 
 _T_SExp = TypeVar("_T_SExp", bound=SExp)
 
-# TODO: should all the int return types be more specific integer types?
-
 
 def op_if(args: _T_SExp) -> Tuple[int, _T_SExp]:
     if args.list_len() != 3:

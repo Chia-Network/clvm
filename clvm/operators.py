@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Iterator, Optional, Protocol, Tuple, Type, TypeVar
+from typing import Dict, Iterator, Literal, Optional, Protocol, Tuple, Type, TypeVar, overload
 
 from . import core_ops, more_ops
 
@@ -192,7 +192,30 @@ class OperatorDict(Dict[bytes, OperatorProtocol]):
     apply_atom: bytes
 
     # TODO: can we remove the args and kwargs?
-    # TODO: hint the overloads
+    @overload
+    def __new__(
+        cls: Type[_T_OperatorDict],
+        d: Dict[bytes, OperatorProtocol],
+        *args: object,
+        quote: bytes,
+        apply: bytes,
+        unknown_op_handler: UnknownOperatorProtocol = default_unknown_op,
+        **kwargs: object,
+    ) -> _T_OperatorDict:
+        ...
+
+    @overload
+    def __new__(
+        cls: Type[_T_OperatorDict],
+        d: OperatorDict,
+        *args: object,
+        quote: Optional[bytes] = None,
+        apply: Optional[bytes] = None,
+        unknown_op_handler: UnknownOperatorProtocol = default_unknown_op,
+        **kwargs: object,
+    ) -> _T_OperatorDict:
+        ...
+
     def __new__(
         cls: Type[_T_OperatorDict],
         d: Dict[bytes, OperatorProtocol],

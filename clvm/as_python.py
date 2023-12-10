@@ -11,9 +11,6 @@ ValType = Union["SExp", List["ValType"], Tuple["ValType", ...]]
 ValStackType = List[Union[ValType, "ValStackType"]]
 OpStackType = List[OpCallable]
 
-# TODO: hum...
-PythonType = Union[int, bytes, str, List["PythonType"], Tuple["PythonType", "PythonType"]]
-
 
 def _roll(op_stack: OpStackType, val_stack: List[object]) -> None:
     v1 = val_stack.pop()
@@ -58,7 +55,6 @@ def _as_python(op_stack: OpStackType, val_stack: List[SExp]) -> None:
         val_stack.append(t.atom)  # type:ignore[arg-type]
 
 
-# TODO: probably have to just accept this Any, but...
 def as_python(sexp: SExp) -> Any:
     # TODO: make this work, ignoring to look at other things
     op_stack: OpStackType = [_as_python]  # type: ignore[list-item]

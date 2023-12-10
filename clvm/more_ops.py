@@ -75,7 +75,6 @@ def op_sha256(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     return malloc_cost(cost, args.to(h.digest()))
 
 
-# TODO: can we get more specific about op_name such as with a typing.Literal?
 def args_as_ints(op_name: str, args: SExp) -> typing.Iterator[typing.Tuple[int, int]]:
     for arg in args.as_iter():
         if arg.atom is None:
