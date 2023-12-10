@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Iterator, Literal, Optional, Protocol, Tuple, Type, TypeVar, overload
+from typing import Dict, Iterator, Optional, Protocol, Tuple, Type, TypeVar, overload
 
 from . import core_ops, more_ops
 
