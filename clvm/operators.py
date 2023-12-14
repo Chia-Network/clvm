@@ -70,8 +70,8 @@ def args_len(op_name: str, args: SExp) -> Iterator[int]:
     for arg in args.as_iter():
         if arg.pair:
             raise EvalError("%s requires int args" % op_name, arg)
-        assert arg.atom is not None
-        yield len(arg.atom)
+        # not a pair so must be an atom
+        yield len(arg.atom)  # type: ignore[arg-type]
 
 
 # unknown ops are reserved if they start with 0xffff

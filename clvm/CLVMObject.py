@@ -33,23 +33,20 @@ class CLVMObject:
     @staticmethod
     def __new__(
         class_: typing.Type[_T_CLVMObject],
-        # TODO: which?  review?
-        # v: typing.Union[CLVMObject, CLVMStorage, typing.Tuple[CLVMObject, CLVMObject], bytes],
-        v: typing.Union[CLVMObject, bytes, PairType],
+        v: typing.Union[_T_CLVMObject, bytes, PairType],
     ) -> _T_CLVMObject:
         if isinstance(v, class_):
             return v
+        # mypy does not realize that the isinstance check is type narrowing like this
+        narrowed_v: typing.Union[bytes, PairType] = v  # type: ignore[assignment]
+
         self = super(CLVMObject, class_).__new__(class_)
-        if isinstance(v, tuple):
-            if len(v) != 2:
-                raise ValueError("tuples must be of size 2, cannot create CLVMObject from: %s" % str(v))
-            self.pair = v
+        if isinstance(narrowed_v, tuple):
+            if len(narrowed_v) != 2:
+                raise ValueError("tuples must be of size 2, cannot create CLVMObject from: %s" % str(narrowed_v))
+            self.pair = narrowed_v
             self.atom = None
-        # TODO: discussing this
-        # elif isinstance(v, bytes):
         else:
-            self.atom = v  # type: ignore[assignment]
+            self.atom = narrowed_v
             self.pair = None
-        # else:
-        #     raise ValueError(f"cannot create CLVMObject from: {v!r}")
         return self
