@@ -16,8 +16,6 @@ PairType = typing.Tuple[CLVMStorage, CLVMStorage]
 
 _T_CLVMObject = typing.TypeVar("_T_CLVMObject", bound="CLVMObject")
 
-if typing.TYPE_CHECKING:
-    from .SExp import CastableType
 
 class CLVMObject:
     """
@@ -29,7 +27,6 @@ class CLVMObject:
 
     # this is always a 2-tuple of an object implementing the CLVM object
     # protocol.
-    # pair: typing.Optional[typing.Tuple[CastableType, CastableType]]
     pair: typing.Optional[PairType]
     __slots__ = ["atom", "pair"]
 
