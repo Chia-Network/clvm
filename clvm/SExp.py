@@ -68,31 +68,21 @@ StackType = typing.List[ValType]
 def to_sexp_type(
     v: CastableType,
 ) -> CLVMStorage:
-    stack: StackType = [v]
-    # convert
-    ops: typing.List[typing.Union[typing.Tuple[typing.Literal[0], None], typing.Tuple[int, int]]] = [(0, None)]
-
-    internal_v: CastableType  #typing.Union[CLVMStorage, typing.Tuple, typing.List]
-    target: int
-    element: CLVMStorage
+    stack = [v]
+    ops = [(0, None)]  # convert
 
     while len(ops) > 0:
-        op_target = ops.pop()
-
-        # this form allows mypy to follow the not-none-ness of op_target[1] for all other operations
+        op, target = ops.pop()
         # convert value
-        if op_target[1] is None:
-            assert op_target[0] == 0
+        if op == 0:
             if looks_like_clvm_object(stack[-1]):
                 continue
-            internal_v = stack.pop()
-            if isinstance(internal_v, tuple):
-                if len(internal_v) != 2:
-                    raise ValueError("can't cast tuple of size %d" % len(internal_v))
-                left, right = internal_v
+            v = stack.pop()
+            if isinstance(v, tuple):
+                if len(v) != 2:
+                    raise ValueError("can't cast tuple of size %d" % len(v))
+                left, right = v
                 target = len(stack)
-                # if not looks_like_clvm_object(left) or not looks_like_clvm_object(right):
-                #     assert False
                 stack.append(CLVMObject((left, right)))
                 if not looks_like_clvm_object(right):
                     stack.append(right)
@@ -102,47 +92,36 @@ def to_sexp_type(
                     stack.append(left)
                     ops.append((1, target))  # set left
                     ops.append((0, None))  # convert
-            elif isinstance(internal_v, list):
+                continue
+            if isinstance(v, list):
                 target = len(stack)
                 stack.append(CLVMObject(NULL))
-                for _ in internal_v:
+                for _ in v:
                     stack.append(_)
                     ops.append((3, target))  # prepend list
                     # we only need to convert if it's not already the right
                     # type
                     if not looks_like_clvm_object(_):
                         ops.append((0, None))  # convert
-            else:
-                # TODO: do we have to ignore?
-                stack.append(CLVMObject(convert_atom_to_bytes(internal_v)))  # taype: ignore[arg-type]
-        elif op_target[0] == 1:  # set left
-            target = op_target[1]
-            # TODO: do we have to ignore?
-            element = stack[target]  # taype: ignore[assignment]
-            pair = element.pair
-            assert pair is not None
-            # TODO: do we have to ignore?
-            element.pair = (CLVMObject(stack.pop()), pair[1])  # taype: ignore[arg-type]
-        elif op_target[0] == 2:  # set right
-            target = op_target[1]
-            # TODO: do we have to ignore?
-            element = stack[target]  # taype: ignore[assignment]
-            pair = element.pair
-            assert pair is not None
-            # TODO: do we have to ignore?
-            element.pair = (pair[0], CLVMObject(stack.pop()))  # taype: ignore[arg-type]
-        elif op_target[0] == 3:  # prepend list
-            target = op_target[1]
-            # TODO: do we have to ignore?
-            stack[target] = CLVMObject((stack.pop(), stack[target]))  # taype: ignore[arg-type]
-        # TODO: what about an else to fail explicitly on an unknown op?
+                continue
+            stack.append(CLVMObject(convert_atom_to_bytes(v)))
+            continue
+
+        if op == 1:  # set left
+            stack[target].pair = (CLVMObject(stack.pop()), stack[target].pair[1])
+            continue
+        if op == 2:  # set right
+            stack[target].pair = (stack[target].pair[0], CLVMObject(stack.pop()))
+            continue
+        if op == 3:  # prepend list
+            stack[target] = CLVMObject((stack.pop(), stack[target]))
+            continue
     # there's exactly one item left at this point
     if len(stack) != 1:
         raise ValueError("internal error")
 
     # stack[0] implements the clvm object protocol and can be wrapped by an SExp
-    # TODO: do we have to ignore?
-    return stack[0]  # taype: ignore[return-value]
+    return stack[0]
 
 
 _T_SExp = typing.TypeVar("_T_SExp", bound="SExp")
