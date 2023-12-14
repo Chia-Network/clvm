@@ -2,9 +2,8 @@ import unittest
 
 from typing import List, Tuple, Union
 
-from clvm import SExp
 from clvm.CLVMObject import CLVMObject
-from clvm.SExp import CastableType
+from clvm.SExp import CastableType, SExp
 from blspy import G1Element
 from clvm.EvalError import EvalError
 

@@ -3,7 +3,7 @@ from typing import Tuple
 
 from clvm.operators import (OPERATOR_LOOKUP, KEYWORD_TO_ATOM, default_unknown_op, OperatorDict)
 from clvm.EvalError import EvalError
-from clvm import SExp
+from clvm.SExp import SExp
 from clvm.costs import CONCAT_BASE_COST
 
 
