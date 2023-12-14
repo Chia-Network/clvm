@@ -62,9 +62,10 @@ StackType = typing.List[typing.Union[StackValType, "StackType"]]
 
 # returns a clvm-object like object
 def to_sexp_type(
-    v: CLVMStorage,
+    v: CastableType,
 ) -> CLVMStorage:
-    stack: StackType = [v]
+    # TODO: this all needs reviewed
+    stack: StackType = [v]  # type: ignore[list-item]
     # convert
     ops: typing.List[typing.Union[typing.Tuple[typing.Literal[0], None], typing.Tuple[int, int]]] = [(0, None)]
 
@@ -208,8 +209,7 @@ class SExp:
             return cls(v)
 
         # this will lazily convert elements
-        # TODO: do we have to ignore?
-        return cls(to_sexp_type(v))  # type: ignore[arg-type]
+        return cls(to_sexp_type(v))
 
     def cons(self: _T_SExp, right: _T_SExp) -> _T_SExp:
         return self.to((self, right))
