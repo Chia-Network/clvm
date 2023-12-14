@@ -59,9 +59,6 @@ def convert_atom_to_bytes(
 ValType = typing.Union["SExp", CastableType]
 StackType = typing.List[ValType]
 
-# StackValType = typing.Union[CLVMStorage, typing.Tuple[CLVMStorage, CLVMStorage]]
-# StackType = typing.List[typing.Union[StackValType, "StackType"]]
-
 
 # returns a clvm-object like object
 @typing.no_type_check
