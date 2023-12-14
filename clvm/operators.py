@@ -191,16 +191,13 @@ class OperatorDict(Dict[bytes, OperatorProtocol]):
     quote_atom: bytes
     apply_atom: bytes
 
-    # TODO: can we remove the args and kwargs?
     @overload
     def __new__(
         cls: Type[_T_OperatorDict],
         d: Dict[bytes, OperatorProtocol],
-        *args: object,
         quote: bytes,
         apply: bytes,
         unknown_op_handler: UnknownOperatorProtocol = default_unknown_op,
-        **kwargs: object,
     ) -> _T_OperatorDict:
         ...
 
@@ -208,22 +205,18 @@ class OperatorDict(Dict[bytes, OperatorProtocol]):
     def __new__(
         cls: Type[_T_OperatorDict],
         d: OperatorDict,
-        *args: object,
         quote: Optional[bytes] = None,
         apply: Optional[bytes] = None,
         unknown_op_handler: UnknownOperatorProtocol = default_unknown_op,
-        **kwargs: object,
     ) -> _T_OperatorDict:
         ...
 
     def __new__(
         cls: Type[_T_OperatorDict],
         d: Dict[bytes, OperatorProtocol],
-        *args: object,
         quote: Optional[bytes] = None,
         apply: Optional[bytes] = None,
         unknown_op_handler: UnknownOperatorProtocol = default_unknown_op,
-        **kwargs: object,
     ) -> _T_OperatorDict:
         """
         `quote_atom` and `apply_atom` must be set

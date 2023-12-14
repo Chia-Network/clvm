@@ -168,20 +168,10 @@ def op_divmod(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
         raise EvalError("divmod with 0", args.to(i0))
     cost += (l0 + l1) * DIVMOD_COST_PER_BYTE
     q, r = divmod(i0, i1)
-    q1 = args.to(q)
-    r1 = args.to(r)
-    if q1.atom is None:
-        # TODO: Should this (and other added TypeErrors) be EvalErrors?  Using
-        #       TypeErrors because that matches the type of the exception that would
-        #       have been thrown in the existing code.  This could also be done with
-        #       something like below to avoid any runtime differences, but it is also
-        #       a bit ugly.
-        #
-        #           q1_atom: int = args.to(q).atom  # type: ignore[assignment]
-        raise TypeError(f"Internal error, quotient must be an atom, got: {q1}")
-    if r1.atom is None:
-        raise TypeError(f"Internal error, quotient must be an atom, got: {r1}")
-    cost += (len(q1.atom) + len(r1.atom)) * MALLOC_COST_PER_BYTE
+    # since q and r are integers, the atoms will be non-None
+    q1_atom: bytes = args.to(q).atom  # type: ignore[assignment]
+    r1_atom: bytes = args.to(r).atom  # type: ignore[assignment]
+    cost += (len(q1_atom) + len(r1_atom)) * MALLOC_COST_PER_BYTE
     return cost, args.to((q, r))
 
 

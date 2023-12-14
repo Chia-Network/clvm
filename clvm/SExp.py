@@ -56,20 +56,23 @@ def convert_atom_to_bytes(
     raise ValueError("can't cast %s (%s) to bytes" % (type(v), v))
 
 
-StackValType = typing.Union[CLVMStorage, typing.Tuple[CLVMStorage, CLVMStorage]]
-StackType = typing.List[typing.Union[StackValType, "StackType"]]
+ValType = typing.Union["SExp", CastableType]
+StackType = typing.List[ValType]
+
+# StackValType = typing.Union[CLVMStorage, typing.Tuple[CLVMStorage, CLVMStorage]]
+# StackType = typing.List[typing.Union[StackValType, "StackType"]]
 
 
 # returns a clvm-object like object
+@typing.no_type_check
 def to_sexp_type(
     v: CastableType,
 ) -> CLVMStorage:
-    # TODO: this all needs reviewed
-    stack: StackType = [v]  # type: ignore[list-item]
+    stack: StackType = [v]
     # convert
     ops: typing.List[typing.Union[typing.Tuple[typing.Literal[0], None], typing.Tuple[int, int]]] = [(0, None)]
 
-    internal_v: typing.Union[CLVMStorage, typing.Tuple, typing.List]
+    internal_v: CastableType  #typing.Union[CLVMStorage, typing.Tuple, typing.List]
     target: int
     element: CLVMStorage
 
@@ -88,6 +91,8 @@ def to_sexp_type(
                     raise ValueError("can't cast tuple of size %d" % len(internal_v))
                 left, right = internal_v
                 target = len(stack)
+                # if not looks_like_clvm_object(left) or not looks_like_clvm_object(right):
+                #     assert False
                 stack.append(CLVMObject((left, right)))
                 if not looks_like_clvm_object(right):
                     stack.append(right)
@@ -109,27 +114,27 @@ def to_sexp_type(
                         ops.append((0, None))  # convert
             else:
                 # TODO: do we have to ignore?
-                stack.append(CLVMObject(convert_atom_to_bytes(internal_v)))  # type: ignore[arg-type]
+                stack.append(CLVMObject(convert_atom_to_bytes(internal_v)))  # taype: ignore[arg-type]
         elif op_target[0] == 1:  # set left
             target = op_target[1]
             # TODO: do we have to ignore?
-            element = stack[target]  # type: ignore[assignment]
+            element = stack[target]  # taype: ignore[assignment]
             pair = element.pair
             assert pair is not None
             # TODO: do we have to ignore?
-            element.pair = (CLVMObject(stack.pop()), pair[1])  # type: ignore[arg-type]
+            element.pair = (CLVMObject(stack.pop()), pair[1])  # taype: ignore[arg-type]
         elif op_target[0] == 2:  # set right
             target = op_target[1]
             # TODO: do we have to ignore?
-            element = stack[target]  # type: ignore[assignment]
+            element = stack[target]  # taype: ignore[assignment]
             pair = element.pair
             assert pair is not None
             # TODO: do we have to ignore?
-            element.pair = (pair[0], CLVMObject(stack.pop()))  # type: ignore[arg-type]
+            element.pair = (pair[0], CLVMObject(stack.pop()))  # taype: ignore[arg-type]
         elif op_target[0] == 3:  # prepend list
             target = op_target[1]
             # TODO: do we have to ignore?
-            stack[target] = CLVMObject((stack.pop(), stack[target]))  # type: ignore[arg-type]
+            stack[target] = CLVMObject((stack.pop(), stack[target]))  # taype: ignore[arg-type]
         # TODO: what about an else to fail explicitly on an unknown op?
     # there's exactly one item left at this point
     if len(stack) != 1:
@@ -137,7 +142,7 @@ def to_sexp_type(
 
     # stack[0] implements the clvm object protocol and can be wrapped by an SExp
     # TODO: do we have to ignore?
-    return stack[0]  # type: ignore[return-value]
+    return stack[0]  # taype: ignore[return-value]
 
 
 _T_SExp = typing.TypeVar("_T_SExp", bound="SExp")

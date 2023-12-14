@@ -15,13 +15,14 @@ from .costs import (
 
 OpCallable = Callable[["OpStackType", "ValStackType"], int]
 PreOpCallable = Callable[["OpStackType", "ValStackType"], None]
+PreEvalFunction = Callable[[SExp, SExp], Optional[Callable[[SExp], object]]]
 
 ValStackType = List[SExp]
 OpStackType = List[OpCallable]
 
 
 def to_pre_eval_op(
-    pre_eval_f: Callable[[SExp, SExp], Optional[Callable[[SExp], object]]],
+    pre_eval_f: PreEvalFunction,
     to_sexp_f: Callable[[CastableType], SExp],
 ) -> PreOpCallable:
     def my_pre_eval_op(op_stack: OpStackType, value_stack: ValStackType) -> None:
@@ -52,13 +53,12 @@ def run_program(
     args: SExp,
     operator_lookup: OperatorDict,
     max_cost: Optional[int] = None,
-    pre_eval_f: Optional[PreOpCallable] = None,
+    pre_eval_f: Optional[PreEvalFunction] = None,
 ) -> Tuple[int, SExp]:
 
     _program = SExp.to(program)
     if pre_eval_f is not None:
-        # TODO: make this work, ignoring to look at other things
-        pre_eval_op = to_pre_eval_op(pre_eval_f, _program.to)  # type: ignore[arg-type]
+        pre_eval_op = to_pre_eval_op(pre_eval_f, _program.to)
     else:
         pre_eval_op = None
 
