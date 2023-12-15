@@ -21,7 +21,7 @@ from .CLVMObject import CLVMObject, CLVMStorage
 
 
 if typing.TYPE_CHECKING:
-    from .SExp import SExp
+    from .SExp import CastableType, SExp
 
 
 MAX_SINGLE_BYTE = 0x7F
@@ -30,12 +30,13 @@ CONS_BOX_MARKER = 0xFF
 
 T = typing.TypeVar("T")
 
+ToSExp = typing.Callable[["CastableType"], CLVMStorage]
 
 OpCallable = typing.Callable[
-    ["OpStackType", "ValStackType", typing.BinaryIO, typing.Type], None
+    ["OpStackType", "ValStackType", typing.BinaryIO, ToSExp], None
 ]
 
-ValStackType = typing.List["SExp"]
+ValStackType = typing.List[CLVMStorage]
 OpStackType = typing.List[OpCallable]
 
 
@@ -100,7 +101,7 @@ def sexp_to_stream(sexp: SExp, f: typing.BinaryIO) -> None:
 
 
 def _op_read_sexp(
-    op_stack: OpStackType, val_stack: ValStackType, f: typing.BinaryIO, to_sexp: typing.Callable[[bytes], SExp],
+    op_stack: OpStackType, val_stack: ValStackType, f: typing.BinaryIO, to_sexp: ToSExp,
 ) -> None:
     blob = f.read(1)
     if len(blob) == 0:
@@ -118,14 +119,14 @@ def _op_cons(
     op_stack: OpStackType,
     val_stack: ValStackType,
     f: typing.BinaryIO,
-    to_sexp: typing.Callable[[typing.Tuple[SExp, SExp]], SExp],
+    to_sexp: ToSExp,
 ) -> None:
     right = val_stack.pop()
     left = val_stack.pop()
     val_stack.append(to_sexp((left, right)))
 
 
-def sexp_from_stream(f: typing.BinaryIO, to_sexp: typing.Callable[[SExp], T]) -> T:
+def sexp_from_stream(f: typing.BinaryIO, to_sexp: ToSExp) -> CLVMStorage:
     op_stack: OpStackType = [_op_read_sexp]
     val_stack: ValStackType = []
 
@@ -188,8 +189,8 @@ def sexp_buffer_from_stream(f: typing.BinaryIO) -> bytes:
 
 
 def _atom_from_stream(
-    f: typing.BinaryIO, b: int, to_sexp: typing.Callable[[bytes], T]
-) -> T:
+    f: typing.BinaryIO, b: int, to_sexp: ToSExp
+) -> CLVMStorage:
     if b == 0x80:
         return to_sexp(b"")
     if b <= MAX_SINGLE_BYTE:

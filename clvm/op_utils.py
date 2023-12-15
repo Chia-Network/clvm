@@ -21,7 +21,11 @@ def operators_for_dict(
     return d
 
 
-def operators_for_module(keyword_to_atom: Dict[str, bytes], mod: types.ModuleType, op_name_lookup: Optional[Dict[str, str]] = None) -> Dict[bytes, OperatorProtocol]:
+def operators_for_module(
+    keyword_to_atom: Dict[str, bytes],
+    mod: types.ModuleType,
+    op_name_lookup: Optional[Dict[str, str]] = None,
+) -> Dict[bytes, OperatorProtocol]:
     if op_name_lookup is None:
         op_name_lookup = {}
     return operators_for_dict(keyword_to_atom, mod.__dict__, op_name_lookup)
