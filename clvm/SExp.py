@@ -36,7 +36,7 @@ def looks_like_clvm_object(o: typing.Any) -> bool:
 
 # this function recognizes some common types and turns them into plain bytes,
 def convert_atom_to_bytes(
-    v: typing.Union[bytes, str, int, None, list],
+    v: typing.Union[bytes, str, int, None],
 ) -> bytes:
 
     if isinstance(v, bytes):
@@ -46,8 +46,6 @@ def convert_atom_to_bytes(
     if isinstance(v, int):
         return int_to_bytes(v)
     if v is None:
-        return b""
-    if v == []:
         return b""
     if hasattr(v, "__bytes__"):
         return bytes(v)

@@ -163,7 +163,6 @@ class ToSExpTest(unittest.TestCase):
 
         assert convert_atom_to_bytes(b"foobar") == b"foobar"
         assert convert_atom_to_bytes(None) == b""
-        assert convert_atom_to_bytes([]) == b""
 
         assert convert_atom_to_bytes(DummyByteConvertible()) == b"foobar"
 
