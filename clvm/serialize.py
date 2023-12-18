@@ -31,9 +31,12 @@ CONS_BOX_MARKER = 0xFF
 T = typing.TypeVar("T")
 
 ToSExp = typing.Callable[["CastableType"], CLVMStorage]
+ToCLVMStorage = typing.Callable[
+    [typing.Union[bytes, typing.Tuple[CLVMStorage, CLVMStorage]]], CLVMStorage
+]
 
 OpCallable = typing.Callable[
-    ["OpStackType", "ValStackType", typing.BinaryIO, ToSExp], None
+    ["OpStackType", "ValStackType", typing.BinaryIO, ToCLVMStorage], None
 ]
 
 ValStackType = typing.List[CLVMStorage]
@@ -101,7 +104,10 @@ def sexp_to_stream(sexp: SExp, f: typing.BinaryIO) -> None:
 
 
 def _op_read_sexp(
-    op_stack: OpStackType, val_stack: ValStackType, f: typing.BinaryIO, to_sexp: ToSExp,
+    op_stack: OpStackType,
+    val_stack: ValStackType,
+    f: typing.BinaryIO,
+    to_sexp: ToCLVMStorage,
 ) -> None:
     blob = f.read(1)
     if len(blob) == 0:
@@ -119,7 +125,7 @@ def _op_cons(
     op_stack: OpStackType,
     val_stack: ValStackType,
     f: typing.BinaryIO,
-    to_sexp: ToSExp,
+    to_sexp: ToCLVMStorage,
 ) -> None:
     right = val_stack.pop()
     left = val_stack.pop()
@@ -189,7 +195,7 @@ def sexp_buffer_from_stream(f: typing.BinaryIO) -> bytes:
 
 
 def _atom_from_stream(
-    f: typing.BinaryIO, b: int, to_sexp: ToSExp
+    f: typing.BinaryIO, b: int, to_sexp: ToCLVMStorage
 ) -> CLVMStorage:
     if b == 0x80:
         return to_sexp(b"")
