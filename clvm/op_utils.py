@@ -1,7 +1,10 @@
-import types
-from typing import Dict, Optional
+from __future__ import annotations
 
-from clvm.operators import OperatorProtocol
+import types
+from typing import Dict, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from clvm.operators import OperatorProtocol
 
 
 def operators_for_dict(
