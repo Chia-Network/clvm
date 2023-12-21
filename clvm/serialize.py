@@ -30,7 +30,6 @@ CONS_BOX_MARKER = 0xFF
 
 T = typing.TypeVar("T")
 
-ToSExp = typing.Callable[["CastableType"], CLVMStorage]
 ToCLVMStorage = typing.Callable[
     [typing.Union[bytes, typing.Tuple[CLVMStorage, CLVMStorage]]], CLVMStorage
 ]
@@ -132,7 +131,7 @@ def _op_cons(
     val_stack.append(to_sexp((left, right)))
 
 
-def sexp_from_stream(f: typing.BinaryIO, to_sexp: ToSExp) -> CLVMStorage:
+def sexp_from_stream(f: typing.BinaryIO, to_sexp: typing.Callable[["CastableType"], T]) -> T:
     op_stack: OpStackType = [_op_read_sexp]
     val_stack: ValStackType = []
 

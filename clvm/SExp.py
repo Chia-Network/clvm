@@ -18,6 +18,7 @@ from .serialize import sexp_to_stream
 CastableType = typing.Union[
     "SExp",
     CLVMStorage,
+    typing.SupportsBytes,
     bytes,
     str,
     int,
@@ -211,7 +212,7 @@ class SExp:
     def null(class_) -> "SExp":
         return class_.__null__
 
-    def as_iter(self: _T_SExp) -> typing.Iterable[_T_SExp]:
+    def as_iter(self: _T_SExp) -> typing.Iterator[_T_SExp]:
         v = self
         while not v.nullp():
             yield v.first()
