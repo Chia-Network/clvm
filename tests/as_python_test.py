@@ -2,7 +2,7 @@ import unittest
 
 from clvm import SExp
 from clvm.CLVMObject import CLVMObject
-from blspy import G1Element
+from chia_rs import G1Element
 from clvm.EvalError import EvalError
 
 
@@ -71,7 +71,7 @@ class AsPythonTest(unittest.TestCase):
             "b3b8ac537f4fd6bde9b26221d49b54b17a506be147347dae5"
             "d081c0a6572b611d8484e338f3432971a9823976c6a232b"
         )
-        v = SExp.to(G1Element(b))
+        v = SExp.to(G1Element.from_bytes(b))
         self.assertEqual(v.atom, b)
 
     def test_complex(self):

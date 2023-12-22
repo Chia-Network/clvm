@@ -1,2 +1,2 @@
 brun '(point_add (q . 0xffff) (q . 0xffff))'
-FAIL: point_add expects blob, got 82ffff: Length of bytes object not equal to G1Element::SIZE (0xffff 0xffff)
+FAIL: point_add expects blob, got 82ffff: unexpected end of buffer (0xffff 0xffff)

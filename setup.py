@@ -6,7 +6,7 @@ with open("README.md", "rt") as fh:
     long_description = fh.read()
 
 dependencies = [
-    "blspy>=0.9",
+    "chia_rs>=0.2.13",
 ]
 
 dev_dependencies = [
