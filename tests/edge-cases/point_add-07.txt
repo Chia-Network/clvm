@@ -1,2 +1,2 @@
 brun '(point_add (q . 128) (q . 128))'
-FAIL: point_add expects blob, got 820080: Length of bytes object not equal to G1Element::SIZE (128 128)
+FAIL: point_add expects blob, got 820080: unexpected end of buffer (128 128)
