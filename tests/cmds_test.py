@@ -57,7 +57,7 @@ class TestCmds(unittest.TestCase):
         sys.stderr = stderr_buffer
 
         args = shlex.split(cmd_line)
-        [entry_point] = importlib.metadata.entry_points(group="console_scripts", name=args[0])
+        entry_point = importlib.metadata.entry_points()["console_scripts"][args[0]]
         v = entry_point.load()(args)
 
         sys.stdout = old_stdout
