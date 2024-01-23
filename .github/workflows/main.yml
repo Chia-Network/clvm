@@ -42,7 +42,7 @@ jobs:
         run: flake8 clvm tests --max-line-length=120
       - name: Test with pytest
         run: |
-          py.test tests
+          pytest tests
           coverage run --branch --include=clvm/SExp.py -m pytest tests/as_python_test.py
           coverage run -a --branch --include=clvm/serialize.py -m pytest tests/serialize_test.py
           coverage run -a --branch --include=clvm/operators.py -m pytest tests/operators_test.py
