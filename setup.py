@@ -5,12 +5,9 @@ from setuptools import setup
 with open("README.md", "rt") as fh:
     long_description = fh.read()
 
-dependencies = [
-    "chia_rs>=0.2.13",
-    "importlib_metadata~=6.11.0"
-]
+dependencies = ["chia_rs>=0.2.13", "importlib_metadata~=6.11.0"]
 
-dev_dependencies = ["clvm_tools>=0.4.4", "pytest", "setuptools"]
+dev_dependencies = ["clvm_tools>=0.4.4", "pytest"]
 
 setup(
     name="clvm",
