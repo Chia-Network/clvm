@@ -7,7 +7,7 @@ with open("README.md", "rt") as fh:
 
 dependencies = ["chia_rs>=0.2.13", "importlib_metadata~=6.11.0"]
 
-dev_dependencies = ["clvm_tools>=0.4.4", "pytest"]
+dev_dependencies = ["clvm_tools>=0.4.4", "pytest", "setuptools"]
 
 setup(
     name="clvm",
