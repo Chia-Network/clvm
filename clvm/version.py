@@ -1,10 +1,8 @@
-from __future__ import annotations
-
-import importlib.metadata
+import importlib_metadata
 
 __version__: str
 try:
-    __version__ = importlib.metadata.version(__name__)
-except importlib.metadata.PackageNotFoundError:
+    __version__ = importlib_metadata.version(__name__)
+except importlib_metadata.PackageNotFoundError:
     # package is not installed
     __version__ = "unknown"
