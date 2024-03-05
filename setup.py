@@ -5,19 +5,15 @@ from setuptools import setup
 with open("README.md", "rt") as fh:
     long_description = fh.read()
 
-dependencies = [
-    "chia_rs>=0.2.13",
-    "importlib_metadata~=6.11.0"
-]
+dependencies = ["chia_rs>=0.2.13", "importlib_metadata~=6.11.0"]
 
-dev_dependencies = [
-    "clvm_tools>=0.4.4",
-    "pytest",
-]
+dev_dependencies = ["clvm_tools>=0.4.4", "pytest", "setuptools"]
 
 setup(
     name="clvm",
-    packages=["clvm",],
+    packages=[
+        "clvm",
+    ],
     author="Chia Network, Inc.",
     author_email="hello@chia.net",
     url="https://github.com/Chia-Network/clvm",
@@ -37,7 +33,9 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Security :: Cryptography",
     ],
-    extras_require=dict(dev=dev_dependencies,),
+    extras_require=dict(
+        dev=dev_dependencies,
+    ),
     project_urls={
         "Bug Reports": "https://github.com/Chia-Network/clvm",
         "Source": "https://github.com/Chia-Network/clvm",
