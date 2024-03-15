@@ -2,7 +2,7 @@ import hashlib
 import io
 import typing
 
-from blspy import G1Element, PrivateKey
+from chia_rs import G1Element, PrivateKey
 
 from .EvalError import EvalError
 from .casts import limbs_for_int

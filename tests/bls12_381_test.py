@@ -1,6 +1,6 @@
 import unittest
 
-from blspy import G1Element, PrivateKey
+from chia_rs import G1Element, PrivateKey
 
 bls12_381_generator = G1Element.generator()
 

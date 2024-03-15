@@ -1,7 +1,7 @@
-from pkg_resources import get_distribution, DistributionNotFound
+import importlib_metadata
 
 try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
+    __version__ = importlib_metadata.version(__name__)
+except importlib_metadata.PackageNotFoundError:
     # package is not installed
     __version__ = "unknown"

@@ -6,7 +6,8 @@ with open("README.md", "rt") as fh:
     long_description = fh.read()
 
 dependencies = [
-    "blspy>=0.9",
+    "chia_rs>=0.2.13",
+    "importlib_metadata~=6.11.0",
     "typing-extensions~=4.0",
 ]
 
@@ -14,12 +15,15 @@ dev_dependencies = [
     "clvm_tools>=0.4.4",
     "mypy",
     "pytest",
+    "setuptools",
     "types-setuptools",
 ]
 
 setup(
     name="clvm",
-    packages=["clvm",],
+    packages=[
+        "clvm",
+    ],
     author="Chia Network, Inc.",
     author_email="hello@chia.net",
     url="https://github.com/Chia-Network/clvm",
@@ -39,7 +43,9 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Security :: Cryptography",
     ],
-    extras_require=dict(dev=dev_dependencies,),
+    extras_require=dict(
+        dev=dev_dependencies,
+    ),
     project_urls={
         "Bug Reports": "https://github.com/Chia-Network/clvm",
         "Source": "https://github.com/Chia-Network/clvm",
