@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 import typing
 
@@ -16,15 +18,15 @@ from .serialize import sexp_to_stream
 
 
 CastableType = typing.Union[
-    "SExp",
+    SExp,
     CLVMStorage,
     typing.SupportsBytes,
     bytes,
     str,
     int,
     None,
-    typing.Sequence["CastableType"],
-    typing.Tuple["CastableType", "CastableType"],
+    typing.Sequence[CastableType],
+    typing.Tuple[CastableType, CastableType],
 ]
 
 
@@ -57,7 +59,7 @@ def convert_atom_to_bytes(
     raise ValueError("can't cast %s (%s) to bytes" % (type(v), v))
 
 
-ValType = typing.Union["SExp", CastableType]
+ValType = typing.Union[SExp, CastableType]
 StackType = typing.List[ValType]
 
 
@@ -139,9 +141,9 @@ class SExp:
        elements implementing the CLVM object protocol.
     Exactly one of "atom" and "pair" must be None.
     """
-    true: typing.ClassVar["SExp"]
-    false: typing.ClassVar["SExp"]
-    __null__: typing.ClassVar["SExp"]
+    true: typing.ClassVar[SExp]
+    false: typing.ClassVar[SExp]
+    __null__: typing.ClassVar[SExp]
 
     # the underlying object implementing the clvm object protocol
     atom: typing.Optional[bytes]
@@ -155,7 +157,7 @@ class SExp:
         self.pair = obj.pair
 
     # this returns a tuple of two SExp objects, or None
-    def as_pair(self) -> typing.Optional[typing.Tuple["SExp", "SExp"]]:
+    def as_pair(self) -> typing.Optional[typing.Tuple[SExp, SExp]]:
         pair = self.pair
         if pair is None:
             return pair
@@ -209,7 +211,7 @@ class SExp:
         raise EvalError("rest of non-cons", self)
 
     @classmethod
-    def null(class_) -> "SExp":
+    def null(class_) -> SExp:
         return class_.__null__
 
     def as_iter(self: _T_SExp) -> typing.Iterator[_T_SExp]:
