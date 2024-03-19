@@ -18,15 +18,15 @@ from .serialize import sexp_to_stream
 
 
 CastableType = typing.Union[
-    SExp,
+    "SExp",
     CLVMStorage,
     typing.SupportsBytes,
     bytes,
     str,
     int,
     None,
-    typing.Sequence[CastableType],
-    typing.Tuple[CastableType, CastableType],
+    typing.Sequence["CastableType"],
+    typing.Tuple["CastableType", "CastableType"],
 ]
 
 
@@ -59,7 +59,7 @@ def convert_atom_to_bytes(
     raise ValueError("can't cast %s (%s) to bytes" % (type(v), v))
 
 
-ValType = typing.Union[SExp, CastableType]
+ValType = typing.Union["SExp", CastableType]
 StackType = typing.List[ValType]
 
 
