@@ -184,8 +184,9 @@ class SExp:
         sexp_to_stream(self, f)
         return f.getvalue()
 
+    # TODO: should be `v: CastableType`
     @classmethod
-    def to(cls: typing.Type[_T_SExp], v: CastableType) -> _T_SExp:
+    def to(cls: typing.Type[_T_SExp], v: typing.Any) -> _T_SExp:
         if isinstance(v, cls):
             return v
 
