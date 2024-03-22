@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, List, Tuple, TYPE_CHECKING, Union
+from typing import Callable, List, Tuple, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from clvm.SExp import SExp
