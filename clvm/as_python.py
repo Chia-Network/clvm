@@ -60,5 +60,6 @@ def as_python(sexp: SExp) -> PythonReturnType:
         op_f = op_stack.pop()
         op_f(op_stack, val_stack)
     result = val_stack[-1]
+    from clvm.SExp import SExp
     assert not isinstance(result, SExp)
     return result
