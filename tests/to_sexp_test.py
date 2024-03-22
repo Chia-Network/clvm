@@ -179,7 +179,7 @@ class ToSExpTest(unittest.TestCase):
 
     def test_eager_conversion(self) -> None:
         with self.assertRaises(ValueError):
-            SExp.to(("foobar", (1, {})))  # type: ignore[arg-type]
+            SExp.to(("foobar", (1, {})))
 
     def test_convert_atom(self) -> None:
         assert convert_atom_to_bytes(0x133742) == bytes([0x13, 0x37, 0x42])

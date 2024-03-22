@@ -187,14 +187,14 @@ class AsPythonTest(unittest.TestCase):
 
     def test_invalid_type(self) -> None:
         with self.assertRaises(ValueError):
-            SExp.to(dummy_class)  # type: ignore[arg-type]
+            SExp.to(dummy_class)
 
     def test_invalid_tuple(self) -> None:
         with self.assertRaises(ValueError):
-            SExp.to((dummy_class, dummy_class))  # type: ignore[arg-type]
+            SExp.to((dummy_class, dummy_class))
 
         with self.assertRaises(ValueError):
-            SExp.to((dummy_class, dummy_class, dummy_class))  # type: ignore[arg-type]
+            SExp.to((dummy_class, dummy_class, dummy_class))
 
     def test_clvm_object_tuple(self) -> None:
         o1 = CLVMObject(b"foo")
