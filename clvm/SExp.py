@@ -5,7 +5,7 @@ import typing
 
 import typing_extensions
 
-from .as_python import PythonReturnType, as_python
+from .as_python import as_python
 from .CLVMObject import CLVMObject, CLVMStorage
 
 from .EvalError import EvalError
@@ -196,7 +196,7 @@ class SExp:
         # this will lazily convert elements
         return cls(to_sexp_type(v))
 
-    def cons(self: _T_SExp, right: CastableType) -> _T_SExp:
+    def cons(self: _T_SExp, right: _T_SExp) -> _T_SExp:
         return self.to((self, right))
 
     def first(self: _T_SExp) -> _T_SExp:
@@ -249,7 +249,7 @@ class SExp:
             v = v.rest()
         return size
 
-    def as_python(self) -> PythonReturnType:
+    def as_python(self) -> typing.Any:
         return as_python(self)
 
     def __str__(self) -> str:

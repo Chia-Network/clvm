@@ -53,12 +53,10 @@ def _as_python(op_stack: OpStackType, val_stack: ValStackType) -> None:
         val_stack.append(t.atom)  # type:ignore[arg-type]
 
 
-def as_python(sexp: SExp) -> PythonReturnType:
+def as_python(sexp: SExp) -> Any:
     op_stack: OpStackType = [_as_python]
     val_stack: ValStackType = [sexp]
     while op_stack:
         op_f = op_stack.pop()
         op_f(op_stack, val_stack)
-    result = val_stack[-1]
-    assert not isinstance(result, SExp)
-    return result
+    return val_stack[-1]
