@@ -6,7 +6,7 @@ bls12_381_generator = G1Element.generator()
 
 
 class BLS12_381_Test(unittest.TestCase):
-    def test_stream(self):
+    def test_stream(self) -> None:
         for _ in range(1, 64):
             p = PrivateKey.from_bytes(_.to_bytes(32, "big")).get_g1()
             blob = bytes(p)

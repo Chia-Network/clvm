@@ -1,8 +1,9 @@
-from typing import Dict, Tuple
+from __future__ import annotations
+
+from typing import Dict, Iterator, Optional, Protocol, Tuple, Type, TypeVar, overload
 
 from . import core_ops, more_ops
 
-from .CLVMObject import CLVMObject
 from .SExp import SExp
 from .EvalError import EvalError
 
@@ -65,11 +66,12 @@ OP_REWRITE = {
 }
 
 
-def args_len(op_name, args):
+def args_len(op_name: str, args: SExp) -> Iterator[int]:
     for arg in args.as_iter():
         if arg.pair:
             raise EvalError("%s requires int args" % op_name, arg)
-        yield len(arg.as_atom())
+        # not a pair so must be an atom
+        yield len(arg.atom)  # type: ignore[arg-type]
 
 
 # unknown ops are reserved if they start with 0xffff
@@ -99,7 +101,7 @@ def args_len(op_name, args):
 # this means that unknown ops where cost_function is 1, 2, or 3, may still be
 # fatal errors if the arguments passed are not atoms.
 
-def default_unknown_op(op: bytes, args: CLVMObject) -> Tuple[int, CLVMObject]:
+def default_unknown_op(op: bytes, args: SExp) -> Tuple[int, SExp]:
     # any opcode starting with ffff is reserved (i.e. fatal error)
     # opcodes are not allowed to be empty
     if len(op) == 0 or op[:2] == b"\xff\xff":
@@ -155,6 +157,7 @@ def default_unknown_op(op: bytes, args: CLVMObject) -> Tuple[int, CLVMObject]:
             if arg.pair:
                 raise EvalError("unknown op on list", arg)
             cost += CONCAT_COST_PER_ARG
+            assert arg.atom is not None
             length += len(arg.atom)
         cost += length * CONCAT_COST_PER_BYTE
 
@@ -165,29 +168,81 @@ def default_unknown_op(op: bytes, args: CLVMObject) -> Tuple[int, CLVMObject]:
     return (cost, SExp.null())
 
 
-class OperatorDict(dict):
+class OperatorProtocol(Protocol):
+    def __call__(self, args: SExp) -> Tuple[int, SExp]:
+        ...
+
+
+class UnknownOperatorProtocol(Protocol):
+    def __call__(self, op: bytes, args: SExp) -> Tuple[int, SExp]:
+        ...
+
+
+_T_OperatorDict = TypeVar("_T_OperatorDict", bound="OperatorDict")
+
+
+class OperatorDict(Dict[bytes, OperatorProtocol]):
     """
     This is a nice hack that adds `__call__` to a dictionary, so
     operators can be added dynamically.
     """
 
-    def __new__(class_, d: Dict, *args, **kwargs):
+    unknown_op_handler: UnknownOperatorProtocol
+    quote_atom: bytes
+    apply_atom: bytes
+
+    @overload
+    def __new__(
+        cls: Type[_T_OperatorDict],
+        d: Dict[bytes, OperatorProtocol],
+        quote: bytes,
+        apply: bytes,
+        unknown_op_handler: UnknownOperatorProtocol = default_unknown_op,
+    ) -> _T_OperatorDict:
+        ...
+
+    @overload
+    def __new__(
+        cls: Type[_T_OperatorDict],
+        d: OperatorDict,
+        quote: Optional[bytes] = None,
+        apply: Optional[bytes] = None,
+        unknown_op_handler: UnknownOperatorProtocol = default_unknown_op,
+    ) -> _T_OperatorDict:
+        ...
+
+    def __new__(
+        cls: Type[_T_OperatorDict],
+        d: Dict[bytes, OperatorProtocol],
+        quote: Optional[bytes] = None,
+        apply: Optional[bytes] = None,
+        unknown_op_handler: UnknownOperatorProtocol = default_unknown_op,
+    ) -> _T_OperatorDict:
         """
         `quote_atom` and `apply_atom` must be set
         `unknown_op_handler` has a default implementation
         We do not check if quote and apply are distinct
         We do not check if the opcode values for quote and apply exist in the passed-in dict
         """
-        self = super(OperatorDict, class_).__new__(class_, d)
-        self.quote_atom = kwargs["quote"] if "quote" in kwargs else d.quote_atom
-        self.apply_atom = kwargs["apply"] if "apply" in kwargs else d.apply_atom
-        if "unknown_op_handler" in kwargs:
-            self.unknown_op_handler = kwargs["unknown_op_handler"]
+        self = super().__new__(cls, d)
+
+        if quote is None:
+            assert isinstance(d, OperatorDict)
+            self.quote_atom = d.quote_atom
         else:
-            self.unknown_op_handler = default_unknown_op
+            self.quote_atom = quote
+
+        if apply is None:
+            assert isinstance(d, OperatorDict)
+            self.apply_atom = d.apply_atom
+        else:
+            self.apply_atom = apply
+
+        self.unknown_op_handler = unknown_op_handler
+
         return self
 
-    def __call__(self, op: bytes, arguments: CLVMObject) -> Tuple[int, CLVMObject]:
+    def __call__(self, op: bytes, arguments: SExp) -> Tuple[int, SExp]:
         f = self.get(op)
         if f is None:
             return self.unknown_op_handler(op, arguments)
@@ -199,6 +254,8 @@ QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 APPLY_ATOM = KEYWORD_TO_ATOM["a"]
 
 OPERATOR_LOOKUP = OperatorDict(
-    operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE), quote=QUOTE_ATOM, apply=APPLY_ATOM
+    operators_for_module(KEYWORD_TO_ATOM, core_ops, OP_REWRITE),
+    quote=QUOTE_ATOM,
+    apply=APPLY_ATOM,
 )
 OPERATOR_LOOKUP.update(operators_for_module(KEYWORD_TO_ATOM, more_ops, OP_REWRITE))

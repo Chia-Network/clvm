@@ -1,11 +1,11 @@
-def int_from_bytes(blob):
+def int_from_bytes(blob: bytes) -> int:
     size = len(blob)
     if size == 0:
         return 0
     return int.from_bytes(blob, "big", signed=True)
 
 
-def int_to_bytes(v):
+def int_to_bytes(v: int) -> bytes:
     byte_count = (v.bit_length() + 8) >> 3
     if v == 0:
         return b""
@@ -17,7 +17,7 @@ def int_to_bytes(v):
     return r
 
 
-def limbs_for_int(v):
+def limbs_for_int(v: int) -> int:
     """
     Return the number of bytes required to represent this integer.
     """

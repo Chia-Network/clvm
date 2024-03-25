@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import io
 import typing
 
+import typing_extensions
 
 from .as_python import as_python
-from .CLVMObject import CLVMObject
+from .CLVMObject import CLVMObject, CLVMStorage
 
 from .EvalError import EvalError
 
@@ -16,27 +19,28 @@ from .serialize import sexp_to_stream
 
 CastableType = typing.Union[
     "SExp",
-    "CLVMObject",
+    CLVMStorage,
+    typing.SupportsBytes,
     bytes,
     str,
     int,
     None,
-    list,
-    typing.Tuple[typing.Any, typing.Any],
+    typing.Sequence["CastableType"],
+    typing.Tuple["CastableType", "CastableType"],
 ]
 
 
 NULL = b""
 
 
-def looks_like_clvm_object(o: typing.Any) -> bool:
+def looks_like_clvm_object(o: typing.Any) -> typing_extensions.TypeGuard[CLVMStorage]:
     d = dir(o)
     return "atom" in d and "pair" in d
 
 
 # this function recognizes some common types and turns them into plain bytes,
 def convert_atom_to_bytes(
-    v: typing.Union[bytes, str, int, None, list],
+    v: typing.Union[bytes, str, int, None, typing.List[typing_extensions.Never], typing.SupportsBytes],
 ) -> bytes:
 
     if isinstance(v, bytes):
@@ -55,10 +59,15 @@ def convert_atom_to_bytes(
     raise ValueError("can't cast %s (%s) to bytes" % (type(v), v))
 
 
+ValType = typing.Union["SExp", CastableType]
+StackType = typing.List[ValType]
+
+
 # returns a clvm-object like object
+@typing.no_type_check
 def to_sexp_type(
     v: CastableType,
-):
+) -> CLVMStorage:
     stack = [v]
     ops = [(0, None)]  # convert
 
@@ -115,6 +124,9 @@ def to_sexp_type(
     return stack[0]
 
 
+_T_SExp = typing.TypeVar("_T_SExp", bound="SExp")
+
+
 class SExp:
     """
     SExp provides higher level API on top of any object implementing the CLVM
@@ -129,86 +141,89 @@ class SExp:
        elements implementing the CLVM object protocol.
     Exactly one of "atom" and "pair" must be None.
     """
-    true: "SExp"
-    false: "SExp"
-    __null__: "SExp"
+    true: typing.ClassVar[SExp]
+    false: typing.ClassVar[SExp]
+    __null__: typing.ClassVar[SExp]
 
     # the underlying object implementing the clvm object protocol
     atom: typing.Optional[bytes]
 
     # this is a tuple of the otherlying CLVMObject-like objects. i.e. not
     # SExp objects with higher level functions, or None
-    pair: typing.Optional[typing.Tuple[typing.Any, typing.Any]]
+    pair: typing.Optional[typing.Tuple[CLVMStorage, CLVMStorage]]
 
-    def __init__(self, obj):
+    def __init__(self, obj: CLVMStorage) -> None:
         self.atom = obj.atom
         self.pair = obj.pair
 
     # this returns a tuple of two SExp objects, or None
-    def as_pair(self) -> typing.Tuple["SExp", "SExp"]:
+    def as_pair(self) -> typing.Optional[typing.Tuple[SExp, SExp]]:
         pair = self.pair
         if pair is None:
             return pair
         return (self.__class__(pair[0]), self.__class__(pair[1]))
 
     # TODO: deprecate this. Same as .atom property
-    def as_atom(self):
+    def as_atom(self) -> typing.Optional[bytes]:
         return self.atom
 
-    def listp(self):
+    def listp(self) -> bool:
         return self.pair is not None
 
-    def nullp(self):
+    def nullp(self) -> bool:
         v = self.atom
         return v is not None and len(v) == 0
 
-    def as_int(self):
+    def as_int(self) -> int:
+        if self.atom is None:
+            raise TypeError("Unable to convert a pair to an int")
         return int_from_bytes(self.atom)
 
-    def as_bin(self):
+    def as_bin(self) -> bytes:
         f = io.BytesIO()
         sexp_to_stream(self, f)
         return f.getvalue()
 
+    # TODO: should be `v: CastableType`
     @classmethod
-    def to(class_, v: CastableType) -> "SExp":
-        if isinstance(v, class_):
+    def to(cls: typing.Type[_T_SExp], v: typing.Any) -> _T_SExp:
+        if isinstance(v, cls):
             return v
 
         if looks_like_clvm_object(v):
-            return class_(v)
+            return cls(v)
 
         # this will lazily convert elements
-        return class_(to_sexp_type(v))
+        return cls(to_sexp_type(v))
 
-    def cons(self, right):
+    def cons(self: _T_SExp, right: _T_SExp) -> _T_SExp:
         return self.to((self, right))
 
-    def first(self):
+    def first(self: _T_SExp) -> _T_SExp:
         pair = self.pair
         if pair:
             return self.__class__(pair[0])
         raise EvalError("first of non-cons", self)
 
-    def rest(self):
+    def rest(self: _T_SExp) -> _T_SExp:
         pair = self.pair
         if pair:
             return self.__class__(pair[1])
         raise EvalError("rest of non-cons", self)
 
     @classmethod
-    def null(class_):
+    def null(class_) -> SExp:
         return class_.__null__
 
-    def as_iter(self):
+    def as_iter(self: _T_SExp) -> typing.Iterator[_T_SExp]:
         v = self
         while not v.nullp():
             yield v.first()
             v = v.rest()
 
-    def __eq__(self, other: CastableType):
+    def __eq__(self, other: object) -> bool:
         try:
-            other = self.to(other)
+            other = self.to(typing.cast(CastableType, other))
             to_compare_stack = [(self, other)]
             while to_compare_stack:
                 s1, s2 = to_compare_stack.pop()
@@ -226,7 +241,7 @@ class SExp:
         except ValueError:
             return False
 
-    def list_len(self):
+    def list_len(self) -> int:
         v = self
         size = 0
         while v.listp():
@@ -234,13 +249,13 @@ class SExp:
             v = v.rest()
         return size
 
-    def as_python(self):
+    def as_python(self) -> typing.Any:
         return as_python(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.as_bin().hex()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, str(self))
 
 

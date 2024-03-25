@@ -3,6 +3,7 @@ import os
 import shlex
 import sys
 import unittest
+from typing import Callable, Iterable, List, Optional, Tuple
 
 import importlib_metadata
 
@@ -14,7 +15,7 @@ import importlib_metadata
 REPAIR = os.getenv("REPAIR", 0)
 
 
-def get_test_cases(path):
+def get_test_cases(path: str) -> List[Tuple[str, List[str], str, List[str], str]]:
     PREFIX = os.path.dirname(__file__)
     TESTS_PATH = os.path.join(PREFIX, path)
     paths = []
@@ -45,7 +46,7 @@ def get_test_cases(path):
 
 
 class TestCmds(unittest.TestCase):
-    def invoke_tool(self, cmd_line):
+    def invoke_tool(self, cmd_line: str) -> Tuple[Optional[int], str, str]:
 
         # capture io
         stdout_buffer = io.StringIO()
@@ -59,7 +60,7 @@ class TestCmds(unittest.TestCase):
 
         args = shlex.split(cmd_line)
         [entry_point] = importlib_metadata.entry_points(group="console_scripts", name=args[0])
-        v = entry_point.load()(args)
+        v: Optional[int] = entry_point.load()(args)
 
         sys.stdout = old_stdout
         sys.stderr = old_stderr
@@ -67,8 +68,13 @@ class TestCmds(unittest.TestCase):
         return v, stdout_buffer.getvalue(), stderr_buffer.getvalue()
 
 
-def make_f(cmd_lines, expected_output, comments, path):
-    def f(self):
+def make_f(
+    cmd_lines: List[str],
+    expected_output: object,
+    comments: Iterable[str],
+    path: str,
+) -> Callable[[TestCmds], None]:
+    def f(self: TestCmds) -> None:
         cmd = "".join(cmd_lines)
         for c in cmd.split(";"):
             r, actual_output, actual_stderr = self.invoke_tool(c)
@@ -92,7 +98,7 @@ def make_f(cmd_lines, expected_output, comments, path):
     return f
 
 
-def inject(*paths):
+def inject(*paths: str) -> None:
     for path in paths:
         for idx, (name, i, o, comments, path) in enumerate(get_test_cases(path)):
             name_of_f = "test_%s" % name
@@ -104,7 +110,7 @@ inject("edge-cases")
 inject("unknown-op")
 
 
-def main():
+def main() -> None:
     unittest.main()
 
 

@@ -5,7 +5,7 @@ from clvm.run_program import msb_mask
 
 class BitTest(unittest.TestCase):
 
-    def test_msb_mask(self):
+    def test_msb_mask(self) -> None:
         self.assertEqual(msb_mask(0x0), 0x0)
         self.assertEqual(msb_mask(0x01), 0x01)
         self.assertEqual(msb_mask(0x02), 0x02)
