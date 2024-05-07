@@ -1,8 +1,9 @@
-from typing import Any, Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from .CLVMObject import CLVMObject
 from .EvalError import EvalError
-from .SExp import SExp
+from .SExp import CastableType, SExp
+from .operators import OperatorDict
 
 from .costs import (
     APPLY_COST,
@@ -12,16 +13,18 @@ from .costs import (
     PATH_LOOKUP_COST_PER_ZERO_BYTE
 )
 
-# the "Any" below should really be "OpStackType" but
-# recursive types aren't supported by mypy
-
-OpCallable = Callable[[Any, "ValStackType"], int]
+OpCallable = Callable[["OpStackType", "ValStackType"], int]
+PreOpCallable = Callable[["OpStackType", "ValStackType"], None]
+PreEvalFunction = Callable[[SExp, SExp], Optional[Callable[[SExp], object]]]
 
 ValStackType = List[SExp]
 OpStackType = List[OpCallable]
 
 
-def to_pre_eval_op(pre_eval_f, to_sexp_f):
+def to_pre_eval_op(
+    pre_eval_f: PreEvalFunction,
+    to_sexp_f: Callable[[CastableType], SExp],
+) -> PreOpCallable:
     def my_pre_eval_op(op_stack: OpStackType, value_stack: ValStackType) -> None:
         v = to_sexp_f(value_stack[-1])
         context = pre_eval_f(v.first(), v.rest())
@@ -38,7 +41,7 @@ def to_pre_eval_op(pre_eval_f, to_sexp_f):
     return my_pre_eval_op
 
 
-def msb_mask(byte):
+def msb_mask(byte: int) -> int:
     byte |= byte >> 1
     byte |= byte >> 2
     byte |= byte >> 4
@@ -47,15 +50,15 @@ def msb_mask(byte):
 
 def run_program(
     program: CLVMObject,
-    args: CLVMObject,
-    operator_lookup: Callable[[bytes, CLVMObject], Tuple[int, CLVMObject]],
-    max_cost=None,
-    pre_eval_f=None,
-) -> Tuple[int, CLVMObject]:
+    args: SExp,
+    operator_lookup: OperatorDict,
+    max_cost: Optional[int] = None,
+    pre_eval_f: Optional[PreEvalFunction] = None,
+) -> Tuple[int, SExp]:
 
-    program = SExp.to(program)
-    if pre_eval_f:
-        pre_eval_op = to_pre_eval_op(pre_eval_f, program.to)
+    _program = SExp.to(program)
+    if pre_eval_f is not None:
+        pre_eval_op = to_pre_eval_op(pre_eval_f, _program.to)
     else:
         pre_eval_op = None
 
@@ -65,6 +68,8 @@ def run_program(
         if sexp.nullp():
             return cost, sexp.null()
 
+        if sexp.atom is None:
+            raise ValueError("Atom must have a non-None atom attribute")
         b = sexp.atom
 
         end_byte_cursor = 0
@@ -126,7 +131,9 @@ def run_program(
 
         operator = sexp.first()
         if operator.pair:
-            new_operator, must_be_nil = operator.as_pair()
+            from_as_pair = operator.as_pair()
+            assert from_as_pair is not None
+            new_operator, must_be_nil = from_as_pair
             if new_operator.pair or must_be_nil.atom != b"":
                 raise EvalError("in ((X)...) syntax X must be lone atom", sexp)
             new_operand_list = sexp.rest()
@@ -160,6 +167,7 @@ def run_program(
             raise EvalError("internal error", operator)
 
         op = operator.as_atom()
+        assert op is not None
         if op == operator_lookup.apply_atom:
             if operand_list.list_len() != 2:
                 raise EvalError("apply requires exactly 2 parameters", operand_list)
@@ -174,12 +182,12 @@ def run_program(
         return additional_cost
 
     op_stack: OpStackType = [eval_op]
-    value_stack: ValStackType = [program.cons(args)]
+    value_stack: ValStackType = [_program.cons(args)]
     cost: int = 0
 
     while op_stack:
         f = op_stack.pop()
         cost += f(op_stack, value_stack)
         if max_cost and cost > max_cost:
-            raise EvalError("cost exceeded", program.to(max_cost))
+            raise EvalError("cost exceeded", _program.to(max_cost))
     return cost, value_stack[-1]
