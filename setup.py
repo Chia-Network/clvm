@@ -7,7 +7,7 @@ with open("README.md", "rt") as fh:
 
 dependencies = [
     "chia_rs>=0.2.13",
-    "importlib_metadata~=6.11.0",
+    "importlib_metadata>=6.11,<8.1",
     "typing-extensions~=4.0",
 ]
 
