@@ -1,0 +1,3 @@
+brun -c '(logxor (q . 777) (q . 777))'
+cost = 681
+()

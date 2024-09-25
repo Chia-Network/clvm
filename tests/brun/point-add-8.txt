@@ -1,0 +1,3 @@
+brun -c '(point_add (pubkey_for_exp (q . 4)))'
+cost = 2771824
+0xac9b60d5afcbd5663a8a44b7c5a02f19e9a77ab0a35bd65809bb5c67ec582c897feb04decc694b13e08587f3ff9b5b60
