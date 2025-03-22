@@ -96,7 +96,6 @@ class ToSExpTest(unittest.TestCase):
         assert o.atom == bytes([1])
 
     def test_arbitrary_underlying_tree(self) -> None:
-
         # SExp provides a view on top of a tree of arbitrary types, as long as
         # those types implement the CLVMObject protocol. This is an example of
         # a tree that's generated
@@ -127,15 +126,21 @@ class ToSExpTest(unittest.TestCase):
                 if self.depth == 0:
                     return None
                 new_depth: int = self.depth - 1
-                return (GeneratedTree(new_depth, self.val), GeneratedTree(new_depth, self.val + 2**new_depth))
+                return (
+                    GeneratedTree(new_depth, self.val),
+                    GeneratedTree(new_depth, self.val + 2**new_depth),
+                )
 
             @pair.setter
             def pair(self, val: Optional[Tuple[CLVMStorage, CLVMStorage]]) -> None:
                 raise RuntimeError("setting not supported in this test class")
 
         tree = SExp.to(GeneratedTree(5, 0))
-        assert print_leaves(tree) == "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 " + \
-            "16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 "
+        assert (
+            print_leaves(tree)
+            == "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 "
+            + "16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 "
+        )
 
         tree = SExp.to(GeneratedTree(3, 0))
         assert print_leaves(tree) == "0 1 2 3 4 5 6 7 "
@@ -144,7 +149,6 @@ class ToSExpTest(unittest.TestCase):
         assert print_leaves(tree) == "10 11 12 13 14 15 16 17 "
 
     def test_looks_like_clvm_object(self) -> None:
-
         # this function can't look at the values, that would cause a cascade of
         # eager evaluation/conversion
         pair_and_atom = PairAndAtom()

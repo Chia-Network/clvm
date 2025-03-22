@@ -6,7 +6,7 @@ from clvm.object_cache import ObjectCache, treehash
 
 
 class ReadCacheLookupTest(unittest.TestCase):
-    def test_various(self):
+    def test_various(self) -> None:
         rcl = ReadCacheLookup()
         treehasher = ObjectCache(treehash)
 
