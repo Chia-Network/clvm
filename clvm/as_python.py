@@ -7,7 +7,9 @@ if TYPE_CHECKING:
 
 OpCallable = Callable[["OpStackType", "ValStackType"], None]
 
-PythonReturnType = Union[bytes, Tuple["PythonReturnType", "PythonReturnType"], List["PythonReturnType"]]
+PythonReturnType = Union[
+    bytes, Tuple["PythonReturnType", "PythonReturnType"], List["PythonReturnType"]
+]
 
 ValType = Union["SExp", PythonReturnType]
 ValStackType = List[ValType]
@@ -22,7 +24,9 @@ def _roll(op_stack: OpStackType, val_stack: ValStackType) -> None:
     val_stack.append(v2)
 
 
-MakeTupleValStackType = List[Union[bytes, Tuple[object, object], "MakeTupleValStackType"]]
+MakeTupleValStackType = List[
+    Union[bytes, Tuple[object, object], "MakeTupleValStackType"]
+]
 
 
 def _make_tuple(op_stack: OpStackType, val_stack: ValStackType) -> None:

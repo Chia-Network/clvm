@@ -10,7 +10,7 @@ from .costs import (
     QUOTE_COST,
     PATH_LOOKUP_BASE_COST,
     PATH_LOOKUP_COST_PER_LEG,
-    PATH_LOOKUP_COST_PER_ZERO_BYTE
+    PATH_LOOKUP_COST_PER_ZERO_BYTE,
 )
 
 OpCallable = Callable[["OpStackType", "ValStackType"], int]
@@ -55,7 +55,6 @@ def run_program(
     max_cost: Optional[int] = None,
     pre_eval_f: Optional[PreEvalFunction] = None,
 ) -> Tuple[int, SExp]:
-
     _program = SExp.to(program)
     if pre_eval_f is not None:
         pre_eval_op = to_pre_eval_op(pre_eval_f, _program.to)
