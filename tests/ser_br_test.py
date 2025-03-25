@@ -1,12 +1,8 @@
 import io
 
 from clvm.SExp import SExp
-from clvm.ser_br import (
-    are_paths_in_order,
-    relative_pointer,
-    sexp_to_byte_iterator_with_backrefs,
-    TOP,
-)
+from clvm.tree_path import TOP, are_paths_in_order, relative_pointer
+from clvm.ser_br import sexp_to_byte_iterator_with_backrefs
 from clvm.serialize import sexp_from_stream
 
 
