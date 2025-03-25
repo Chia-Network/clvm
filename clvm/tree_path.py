@@ -135,9 +135,18 @@ class TreePath(int):
 
 TOP = TreePath(1)
 
-
+#AI! use Union here instead of int | TreePath. Next function too
 def common_ancestor(n: int | TreePath, m: int | TreePath) -> TreePath:
     """
     Returns the common ancestor of `n` and `m`.
     """
     return TreePath(n).common_ancestor(m)
+
+
+def relative_pointer(n: int | TreePath, m: int | TreePath) -> TreePath:
+    """
+    Given two absolute path numbers n and m (with n to the left of m),
+    compute a pointer (encoded as a path number) that, when followed from
+    the top of the stack state at m, reaches n.
+    """
+    return TreePath(n).relative_pointer(m)
