@@ -1,7 +1,7 @@
 import io
 
 from clvm.SExp import SExp
-from clvm.tree_path import TOP, relative_pointer
+from clvm.tree_path import TOP, relative_pointer, TreePath
 from clvm.ser_br import sexp_to_byte_iterator_with_backrefs
 from clvm.serialize import sexp_from_stream
 
