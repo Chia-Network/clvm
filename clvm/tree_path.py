@@ -82,7 +82,7 @@ class TreePath(int):
 
 TOP = TreePath(1)
 
-
+# AI! make this a method on TreePath and implement the freestanding function in terms of the new method.
 def relative_pointer(n: int | TreePath, m: int | TreePath) -> TreePath:
     """
     Given two absolute path numbers n and m (with n to the left of m),
@@ -132,3 +132,10 @@ def relative_pointer(n: int | TreePath, m: int | TreePath) -> TreePath:
     for bit in reversed(rel_bits):
         p = (p << 1) | bit
     return TreePath(p)
+
+
+def common_ancestor(n: int | TreePath, m: int | TreePath) -> TreePath:
+    """
+    Returns the common ancestor of `n` and `m`.
+    """
+    return TreePath(n).common_ancestor(m)
