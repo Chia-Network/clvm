@@ -111,7 +111,7 @@ def relative_pointer(n: int | TreePath, m: int | TreePath) -> TreePath:
         b = bin(x)[3:]  # e.g., for x == 6 ('0b110'), b becomes "10"
         return [int(ch) for ch in b[::-1]]
 
-    if not are_paths_in_order(n, m):
+    if not TreePath(n) < TreePath(m):
         raise ValueError("n must be to the left of m")
 
     path_n = get_reversed_path(n)
