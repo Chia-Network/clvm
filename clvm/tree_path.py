@@ -1,7 +1,9 @@
 from typing import Union
 
 from .casts import limbs_for_int
-#AI! define TreePathType = Union[int, "TreePath"] and use it in the function signatures
+
+TreePathType = Union[int, "TreePath"]
+
 
 class TreePath(int):
     def __new__(self, value: int) -> "TreePath":
@@ -34,7 +36,7 @@ class TreePath(int):
                 raise ValueError(f"invalid path character {c}")
         return t
 
-    def common_ancestor(self, other: Union[int, "TreePath"]) -> "TreePath":
+    def common_ancestor(self, other: TreePathType) -> "TreePath":
         """
         Returns the common ancestor of `path1` and `path2`.
         """
@@ -49,7 +51,7 @@ class TreePath(int):
         common_path = path1 & mask | ((mask + 1) >> 1)
         return TreePath(common_path)
 
-    def relative_pointer(self, other: int | "TreePath") -> "TreePath":
+    def relative_pointer(self, other: TreePathType) -> "TreePath":
         """
         Given two absolute path numbers n and m (with n to the left of m),
         compute a pointer (encoded as a path number) that, when followed from
@@ -102,7 +104,7 @@ class TreePath(int):
             p = (p << 1) | bit
         return TreePath(p)
 
-    def __lt__(self, other: Union[int, "TreePath"]) -> bool:
+    def __lt__(self, other: TreePathType) -> bool:
         """
         Returns True if `self` would be processed before `other` when
         serializing the tree.
@@ -135,14 +137,14 @@ class TreePath(int):
 
 TOP = TreePath(1)
 
-def common_ancestor(n: Union[int, "TreePath"], m: Union[int, "TreePath"]) -> TreePath:
+def common_ancestor(n: TreePathType, m: TreePathType) -> TreePath:
     """
     Returns the common ancestor of `n` and `m`.
     """
     return TreePath(n).common_ancestor(m)
 
 
-def relative_pointer(n: Union[int, "TreePath"], m: Union[int, "TreePath"]) -> TreePath:
+def relative_pointer(n: TreePathType, m: TreePathType) -> TreePath:
     """
     Given two absolute path numbers n and m (with n to the left of m),
     compute a pointer (encoded as a path number) that, when followed from
