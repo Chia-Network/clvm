@@ -39,10 +39,11 @@ class TreePath(int):
         r = self.to_bytes(byte_count, "big", signed=False)
         # make sure the string returned is minimal
         # ie. no leading 00 bytes that are unnecessary
-        while len(r) > 1 and r[0] == 0:
-            breakpoint()
-            r = r[1:]
+        assert r == b"" or r[0] != 0
         return r
+
+
+TOP = TreePath(1)
 
 
 def are_paths_in_order(path1: int | TreePath, path2: int | TreePath) -> bool:
@@ -62,9 +63,6 @@ def are_paths_in_order(path1: int | TreePath, path2: int | TreePath) -> bool:
     # we are at the case where one path is a prefix of the other
     # the longer path is processed first
     return path1 >= path2
-
-
-TOP = TreePath(1)
 
 
 def relative_pointer(n: int | TreePath, m: int | TreePath) -> TreePath:
