@@ -1,3 +1,5 @@
+from typing import Union
+
 from .casts import limbs_for_int
 
 
@@ -32,7 +34,7 @@ class TreePath(int):
                 raise ValueError(f"invalid path character {c}")
         return t
 
-    def common_ancestor(self, other: "TreePath") -> "TreePath":
+    def common_ancestor(self, other: Union[int, "TreePath"]) -> "TreePath":
         """
         Returns the common ancestor of `path1` and `path2`.
         """
@@ -47,6 +49,10 @@ class TreePath(int):
         common_path = path1 & mask | ((mask + 1) >> 1)
         return TreePath(common_path)
 
+    # AI! implement using are_paths_in_order as template. Do other necessary comparitors too
+    def __lt__(self, other: Union[int, "TreePath"]) -> bool:
+
+
     def __bytes__(self) -> bytes:
         if self == 0:
             return b""
@@ -59,6 +65,10 @@ class TreePath(int):
 
 
 TOP = TreePath(1)
+
+
+def common_ancestor(path1: int | TreePath, path2: int | TreePath) -> TreePath:
+    return TreePath(path1).common_ancestor(path2)
 
 
 def are_paths_in_order(path1: int | TreePath, path2: int | TreePath) -> bool:
