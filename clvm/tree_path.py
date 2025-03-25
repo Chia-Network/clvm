@@ -1,7 +1,7 @@
 from typing import Union
 
 from .casts import limbs_for_int
-
+#AI! define TreePathType = Union[int, "TreePath"] and use it in the function signatures
 
 class TreePath(int):
     def __new__(self, value: int) -> "TreePath":
