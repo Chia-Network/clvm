@@ -1,7 +1,7 @@
 from typing import List, Optional
 
-from .tree_path import TreePath
-from .ser_br import relative_pointer, are_paths_in_order, limbs_for_int
+from .tree_path import TreePath, relative_pointer, are_paths_in_order
+from .casts import limbs_for_int
 
 
 class TrieNode:
@@ -28,8 +28,10 @@ class TreePathTrie:
             if node.children[bit_index] is None:
                 next_path = node.path.left() if bit_index == 0 else node.path.right()
                 node.children[bit_index] = TrieNode(next_path)
-            node = node.children[bit_index]
-            node.min_size = min(node.min_size or serialized_length, serialized_length)
+            next_node = node.children[bit_index]
+            if next_node is not None:
+                node = next_node
+                node.min_size = min(node.min_size or serialized_length, serialized_length)
 
     def find_shortest_path(
         self, tree_path: TreePath, serialized_length: int
