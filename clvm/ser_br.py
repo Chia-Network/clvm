@@ -80,12 +80,12 @@ def find_short_path(
     best_size: int = node_serialized_length
     best_path: Optional[TreePath] = None
     for path in possible_paths:
-        if are_paths_in_order(tree_path, path):
+        if tree_path < path:
             break
         # the paths are in order
         relative_path = relative_pointer(path, tree_path)
         size = limbs_for_int(relative_path) + 1
-        if best_size is None or size < best_size:
+        if size < best_size:
             best_size = size
             best_path = relative_path
     return best_path
