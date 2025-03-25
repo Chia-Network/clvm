@@ -135,15 +135,14 @@ class TreePath(int):
 
 TOP = TreePath(1)
 
-#AI! use Union here instead of int | TreePath. Next function too
-def common_ancestor(n: int | TreePath, m: int | TreePath) -> TreePath:
+def common_ancestor(n: Union[int, "TreePath"], m: Union[int, "TreePath"]) -> TreePath:
     """
     Returns the common ancestor of `n` and `m`.
     """
     return TreePath(n).common_ancestor(m)
 
 
-def relative_pointer(n: int | TreePath, m: int | TreePath) -> TreePath:
+def relative_pointer(n: Union[int, "TreePath"], m: Union[int, "TreePath"]) -> TreePath:
     """
     Given two absolute path numbers n and m (with n to the left of m),
     compute a pointer (encoded as a path number) that, when followed from
