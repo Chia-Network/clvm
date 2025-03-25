@@ -1,7 +1,7 @@
 from typing import Dict, Iterator, List, Optional, Tuple
 
 from .CLVMObject import CLVMStorage
-from .tree_path import TreePath, TOP
+from .tree_path import TreePath, TOP, are_paths_in_order
 
 from .casts import limbs_for_int
 from .object_cache import ObjectCache, treehash, serialized_length
