@@ -47,7 +47,9 @@ def sexp_to_byte_iterator_with_backrefs(obj: CLVMStorage) -> Iterator[bytes]:
         possible_paths = paths_for_hash.get(node_tree_hash, [])
         maybe_path = None
         if len(possible_paths) > 1 and node_serialized_length > 3:
-            maybe_path = find_short_path(tree_path, possible_paths, node_serialized_length)
+            maybe_path = find_short_path(
+                tree_path, possible_paths, node_serialized_length
+            )
         if maybe_path is not None:
             yield bytes([BACK_REFERENCE])
             yield from atom_to_byte_iterator(bytes(maybe_path))
@@ -66,6 +68,7 @@ def sexp_to_byte_iterator_with_backrefs(obj: CLVMStorage) -> Iterator[bytes]:
 
         while read_op_stack[-1:] == ["C"]:
             read_op_stack.pop()
+
 
 def find_short_path(
     tree_path: TreePath,
