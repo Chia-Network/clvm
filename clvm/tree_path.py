@@ -49,8 +49,12 @@ class TreePath(int):
         common_path = path1 & mask | ((mask + 1) >> 1)
         return TreePath(common_path)
 
-    # AI! implement using are_paths_in_order as template. Do other necessary comparitors too
     def __lt__(self, other: Union[int, "TreePath"]) -> bool:
+        """
+        Returns True if `self` would be processed before `other` when
+        serializing the tree.
+        """
+        return are_paths_in_order(self, other)
 
 
     def __bytes__(self) -> bytes:
