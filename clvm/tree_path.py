@@ -33,7 +33,19 @@ class TreePath(int):
         return t
 
     def common_ancestor(self, other: "TreePath") -> "TreePath":
-        return common_ancestor(self, other)
+        """
+        Returns the common ancestor of `path1` and `path2`.
+        """
+        path1 = self
+        path2 = other
+        if path1 == path2:
+            return TreePath(path1)
+        mask = 1
+        while (path1 & mask) == (path2 & mask):
+            mask <<= 1
+            mask |= 1
+        common_path = path1 & mask | ((mask + 1) >> 1)
+        return TreePath(common_path)
 
     def __bytes__(self) -> bytes:
         if self == 0:
@@ -47,20 +59,6 @@ class TreePath(int):
 
 
 TOP = TreePath(1)
-
-# AI! move to method function
-def common_ancestor(path1: int | TreePath, path2: int | TreePath) -> TreePath:
-    """
-    Returns the common ancestor of `path1` and `path2`.
-    """
-    if path1 == path2:
-        return TreePath(path1)
-    mask = 1
-    while (path1 & mask) == (path2 & mask):
-        mask <<= 1
-        mask |= 1
-    common_path = path1 & mask | ((mask + 1) >> 1)
-    return TreePath(common_path)
 
 
 def are_paths_in_order(path1: int | TreePath, path2: int | TreePath) -> bool:
