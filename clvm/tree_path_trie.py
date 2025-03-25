@@ -19,19 +19,15 @@ class TreePathTrie:
     def __init__(self) -> None:
         self.root = TrieNode(None, None, 0)  # TOP
 
-    def insert(self, path: TreePath) -> None: # AI! get this working
+    def insert(self, path: TreePath) -> None:
         node = self.root
-        # node.min_size = min(node.min_size or serialized_length, serialized_length)
-        for bit in reversed(
-            bin(path)[3:]
-        ):  # Iterate through bits of path, skipping "0b1" prefix
+        for bit in reversed(bin(path)[3:]):  # Iterate through bits of path, skipping "0b1" prefix
             bit_index = int(bit)
-            # if node.children[bit_index] is None:
-            #    next_path = node.path.left() if bit_index == 0 else node.path.right()
-            #    node.children[bit_index] = TrieNode(next_path)
-            # next_node = node.children[bit_index]
-            # if next_node is not None:
-            #    node = next_node
-            #    node.min_size = min(
-            #        node.min_size or serialized_length, serialized_length
-            #    )
+            if bit_index == 0:
+                if node.to_left is None:
+                    node.to_left = TreePath(int(bin(path)[2:], 2)) # This might be wrong
+                node = TrieNode(node.to_left, None, 0)
+            else:
+                if node.to_right is None:
+                    node.to_right = TreePath(int(bin(path)[2:], 2)) # This might be wrong
+                node = TrieNode(None, node.to_right, 0)
