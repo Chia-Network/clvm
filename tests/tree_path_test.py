@@ -57,17 +57,16 @@ def test_relative_pointer() -> None:
     assert relative_pointer(14, 13) == 29
 
 
-#AI! use quoted strings for binary values to help backtrace in the next two tests
 def test_tree_path_trim() -> None:
     def check_trim(path: int, n: int, expected_trim: int) -> None:
         t = TreePath(path)
         trim = t.trim(n)
         assert int(trim) == expected_trim
 
-    check_trim(0b10010, 2, 0b100)
-    check_trim(0b10010, 1, 0b1001)
-    check_trim(0b10010, 4, 0b1)
-    check_trim(0b10010, 5, 0b0)
+    check_trim(0b10010, 2, 0b100)  # 0b10010 -> 0b100
+    check_trim(0b10010, 1, 0b1001)  # 0b10010 -> 0b1001
+    check_trim(0b10010, 4, 0b1)  # 0b10010 -> 0b1
+    check_trim(0b10010, 5, 0b0)  # 0b10010 -> 0b0
 
 
 def test_tree_path_trim_from_back() -> None:
@@ -76,10 +75,10 @@ def test_tree_path_trim_from_back() -> None:
         trim_from_back = t.trim_from_back(n)
         assert int(trim_from_back) == expected_trim_from_back
 
-    check_trim_from_back(0b10010, 2, 0b10)
-    check_trim_from_back(0b10010, 1, 0b0)
-    check_trim_from_back(0b10010, 4, 0b0010)
-    check_trim_from_back(0b10010, 5, 0b10010)
+    check_trim_from_back(0b10010, 2, 0b10)  # 0b10010 -> 0b10
+    check_trim_from_back(0b10010, 1, 0b0)  # 0b10010 -> 0b0
+    check_trim_from_back(0b10010, 4, 0b0010)  # 0b10010 -> 0b0010
+    check_trim_from_back(0b10010, 5, 0b10010)  # 0b10010 -> 0b10010
 
 
 def test_sexp_to_byte_iterator_with_backrefs() -> None:
