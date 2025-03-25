@@ -57,6 +57,7 @@ def test_relative_pointer() -> None:
     assert relative_pointer(14, 13) == 29
 
 
+#AI! use quoted binary values to help backtrace in the next two tests
 def test_tree_path_trim() -> None:
     def check_trim(path: int, n: int, expected_trim: int) -> None:
         t = TreePath(path)
