@@ -46,6 +46,20 @@ class TreePath(int):
 TOP = TreePath(1)
 
 
+def common_ancestor(path1: int | TreePath, path2: int | TreePath) -> TreePath:
+    """
+    Returns the common ancestor of `path1` and `path2`.
+    """
+    if path1 == path2:
+        return TreePath(path1)
+    mask = 1
+    while (path1 & mask) == (path2 & mask):
+        mask <<= 1
+        mask |= 1
+    common_path = path1 & mask | (mask + 1)
+    return TreePath(common_path)
+
+
 def are_paths_in_order(path1: int | TreePath, path2: int | TreePath) -> bool:
     """
     Returns True if `path1` would be processed before `path2` when
