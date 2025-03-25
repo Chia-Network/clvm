@@ -67,7 +67,7 @@ def sexp_to_byte_iterator_with_backrefs(obj: CLVMStorage) -> Iterator[bytes]:
         while read_op_stack[-1:] == ["C"]:
             read_op_stack.pop()
 
-
+# move this to tree_path.py AI!
 def are_paths_in_order(path1: int | TreePath, path2: int | TreePath) -> bool:
     """
     Returns True if `path1` would be processed before `path2` when
