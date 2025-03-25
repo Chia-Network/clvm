@@ -45,4 +45,23 @@ class TreePath(int):
         return r
 
 
+def are_paths_in_order(path1: int | TreePath, path2: int | TreePath) -> bool:
+    """
+    Returns True if `path1` would be processed before `path2` when
+    serializing the tree.
+    """
+    while path1 > 1 and path2 > 1:
+        d1 = path1 & 1
+        d2 = path2 & 1
+        if d2 == 0 and d1 == 1:
+            return False
+        if d2 == 1 and d1 == 0:
+            return True
+        path1 >>= 1
+        path2 >>= 1
+    # we are at the case where one path is a prefix of the other
+    # the longer path is processed first
+    return path1 >= path2
+
+
 TOP = TreePath(1)
