@@ -65,6 +65,30 @@ def test_relative_pointer() -> None:
     assert relative_pointer(14, 13) == 29
 
 
+def test_common_ancestor() -> None:
+    from clvm.tree_path import common_ancestor
+
+    assert common_ancestor(2, 3) == 1
+    assert common_ancestor(4, 7) == 1
+    assert common_ancestor(4, 5) == 1
+    assert common_ancestor(8, 15) == 1
+    assert common_ancestor(8, 11) == 1
+    assert common_ancestor(16, 31) == 1
+    assert common_ancestor(16, 23) == 1
+    assert common_ancestor(5, 6) == 1
+    assert common_ancestor(5, 7) == 1
+    assert common_ancestor(6, 7) == 1
+    assert common_ancestor(10, 11) == 1
+    assert common_ancestor(10, 15) == 1
+    assert common_ancestor(11, 14) == 1
+    assert common_ancestor(11, 15) == 1
+    assert common_ancestor(12, 13) == 1
+    assert common_ancestor(12, 15) == 1
+    assert common_ancestor(13, 14) == 1
+    assert common_ancestor(13, 15) == 1
+    assert common_ancestor(14, 15) == 1
+
+
 def test_sexp_to_byte_iterator_with_backrefs() -> None:
     # This is a test for the function _sexp_to_byte_iterator_with_backrefs
 
