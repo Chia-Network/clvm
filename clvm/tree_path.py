@@ -32,6 +32,9 @@ class TreePath(int):
                 raise ValueError(f"invalid path character {c}")
         return t
 
+    def common_ancestor(self, other: "TreePath") -> "TreePath":
+        return common_ancestor(self, other)
+
     def __bytes__(self) -> bytes:
         if self == 0:
             return b""
@@ -45,7 +48,7 @@ class TreePath(int):
 
 TOP = TreePath(1)
 
-
+# AI! move to method function
 def common_ancestor(path1: int | TreePath, path2: int | TreePath) -> TreePath:
     """
     Returns the common ancestor of `path1` and `path2`.
@@ -56,7 +59,7 @@ def common_ancestor(path1: int | TreePath, path2: int | TreePath) -> TreePath:
     while (path1 & mask) == (path2 & mask):
         mask <<= 1
         mask |= 1
-    common_path = path1 & mask | (mask + 1)
+    common_path = path1 & mask | ((mask + 1) >> 1)
     return TreePath(common_path)
 
 
