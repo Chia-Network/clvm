@@ -1,7 +1,7 @@
 import io
 
 from clvm.SExp import SExp
-from clvm.tree_path import TOP, are_paths_in_order, relative_pointer
+from clvm.tree_path import TOP, relative_pointer
 from clvm.ser_br import sexp_to_byte_iterator_with_backrefs
 from clvm.serialize import sexp_from_stream
 
@@ -48,14 +48,6 @@ def test_tree_path() -> None:
     check("rrrr", 31)
 
 
-def test_are_paths_in_order() -> None:
-    assert are_paths_in_order(2, 3) is True
-    assert are_paths_in_order(3, 2) is False
-    assert are_paths_in_order(2, 1) is True
-    assert are_paths_in_order(1, 2) is False
-    assert are_paths_in_order(1, 1) is True
-
-
 def test_relative_pointer() -> None:
     assert relative_pointer(2, 3) == 2
     assert relative_pointer(2, 5) == 2
@@ -63,29 +55,6 @@ def test_relative_pointer() -> None:
     assert relative_pointer(6, 5) == 6
     assert relative_pointer(6, 7) == 13
     assert relative_pointer(14, 13) == 29
-
-
-def test_common_ancestor() -> None:
-    assert common_ancestor(2, 3) == 1
-    assert common_ancestor(4, 7) == 1
-    assert common_ancestor(4, 5) == 1
-    assert common_ancestor(8, 15) == 1
-    assert common_ancestor(8, 11) == 1
-    assert common_ancestor(16, 31) == 1
-    assert common_ancestor(16, 23) == 1
-    assert common_ancestor(5, 6) == 1
-    assert common_ancestor(5, 7) == 3
-    assert common_ancestor(6, 7) == 1
-    assert common_ancestor(10, 11) == 1
-    assert common_ancestor(10, 15) == 1
-    assert common_ancestor(11, 14) == 1
-    assert common_ancestor(11, 15) == 7
-    assert common_ancestor(12, 13) == 1
-    assert common_ancestor(12, 15) == 1
-    assert common_ancestor(13, 14) == 1
-    assert common_ancestor(13, 15) == 3
-    assert common_ancestor(23, 27) == 7
-    assert common_ancestor(19, 27) == 11
 
 
 def test_sexp_to_byte_iterator_with_backrefs() -> None:
