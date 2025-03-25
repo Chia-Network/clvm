@@ -57,6 +57,7 @@ def test_relative_pointer() -> None:
     assert relative_pointer(14, 13) == 29
 
 
+#AI! break into tests for trim and trim_from_back
 def test_tree_path_split() -> None:
     def check_split(path: int, n: int, expected_trim: int, expected_trim_from_back: int) -> None:
         t = TreePath(path)
@@ -67,7 +68,7 @@ def test_tree_path_split() -> None:
     check_split(0b10010, 2, 0b100, 0b10)
     check_split(0b10010, 1, 0b1001, 0b0)
     check_split(0b10010, 4, 0b1, 0b0010)
-    check_split(0b10010, 5, 0b0, 0b0010)
+    check_split(0b10010, 5, 0b1, 0b10010)
 
 
 def test_sexp_to_byte_iterator_with_backrefs() -> None:
