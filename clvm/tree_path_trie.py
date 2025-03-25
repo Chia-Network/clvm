@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from .tree_path import TreePath, relative_pointer, are_paths_in_order, common_ancestor
+from .tree_path import TreePath, relative_pointer, common_ancestor
 from .casts import limbs_for_int
 
 
