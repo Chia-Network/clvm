@@ -54,8 +54,8 @@ class TreePath(int):
         Returns True if `self` would be processed before `other` when
         serializing the tree.
         """
+        # move are_paths code up here and rewrite are_paths with this AI!
         return are_paths_in_order(self, other)
-
 
     def __bytes__(self) -> bytes:
         if self == 0:
