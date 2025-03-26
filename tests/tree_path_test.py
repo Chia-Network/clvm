@@ -57,28 +57,28 @@ def test_relative_pointer() -> None:
     assert relative_pointer(14, 13) == 29
 
 
-def test_tree_path_trim() -> None:
-    def check_trim(path: str, n: int, expected_trim: str) -> None:
+def test_tree_path_first_steps() -> None:
+    def check(path: str, n: int, expected: str) -> None:
         t = TreePath(int(path, 2))
-        trim = t.trim(n)
-        assert bin(int(trim)) == expected_trim
+        v = t.first_steps(n)
+        assert bin(int(v)) == expected
 
-    check_trim("0b10010", 2, "0b100")
-    check_trim("0b10010", 1, "0b1001")
-    check_trim("0b10010", 4, "0b1")
-    check_trim("0b10010", 5, "0b0")
+    check("0b10010", 1, "0b10")
+    check("0b10010", 2, "0b110")
+    check("0b10010", 3, "0b1010")
+    check("0b10010", 4, "0b10010")
 
 
-def test_tree_path_trim_from_back() -> None:
-    def check_trim_from_back(path: str, n: int, expected_trim_from_back: str) -> None:
+def test_tree_path_remaining_steps() -> None:
+    def check(path: str, n: int, expected: str) -> None:
         t = TreePath(int(path, 2))
-        trim_from_back = t.trim_from_back(n)
-        assert bin(int(trim_from_back)) == expected_trim_from_back
+        v = t.remaining_steps(n)
+        assert bin(int(v)) == expected
 
-    check_trim_from_back("0b10010", 2, "0b10")
-    check_trim_from_back("0b10010", 1, "0b0")
-    check_trim_from_back("0b10010", 4, "0b10")
-    check_trim_from_back("0b10010", 5, "0b10010")
+    check("0b10010", 1, "0b1001")
+    check("0b10010", 2, "0b100")
+    check("0b10010", 3, "0b10")
+    check("0b10010", 4, "0b1")
 
 
 def test_sexp_to_byte_iterator_with_backrefs() -> None:

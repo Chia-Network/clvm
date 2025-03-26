@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 
 from .casts import limbs_for_int
 
@@ -35,6 +35,27 @@ class TreePath(int):
             else:
                 raise ValueError(f"invalid path character {c}")
         return t
+
+    def first_steps(self, n: int) -> "TreePath":
+        """
+        Returns the first `n` steps of the given path.
+        """
+        new_path = self & ((1 << n) - 1)
+        new_path |= 1 << n
+        return TreePath(new_path)
+
+    def remaining_steps(self, n: int) -> "TreePath":
+        """
+        Returns the path with the first `n` steps removed.
+        """
+        return TreePath(self >> n)
+
+    def split(self, n: int) -> Tuple["TreePath", "TreePath"]:
+        """
+        Split the path into two parts: the first `n` steps
+        and the remaining steps.
+        """
+        return self.first_steps(n), self.remaining_steps(n)
 
     def common_ancestor(self, other: TreePathType) -> "TreePath":
         """
@@ -82,7 +103,7 @@ class TreePath(int):
         n = self
         m = other
 
-        if not TreePath(n) < TreePath(m):
+        if not n < TreePath(m):
             raise ValueError("n must be to the left of m")
 
         path_n = get_reversed_path(n)
@@ -109,7 +130,7 @@ class TreePath(int):
         Returns True if `self` would be processed before `other` when
         serializing the tree.
         """
-        path1 = self
+        path1 = int(self)
         path2 = other
         while path1 > 1 and path2 > 1:
             d1 = path1 & 1
@@ -136,6 +157,7 @@ class TreePath(int):
 
 
 TOP = TreePath(1)
+
 
 def common_ancestor(n: TreePathType, m: TreePathType) -> TreePath:
     """
