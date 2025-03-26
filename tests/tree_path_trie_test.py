@@ -59,24 +59,23 @@ class TestTreePathTrie(unittest.TestCase):
 
         path10 = TreePath(10)
         trie.insert(path10)
-#AI! rename tns_left/tns_right to tns_(node_number) like I've done in later tests
         tns = trie.root.value
         assert tns is not None
         assert tns.min_total_distance == 3
         assert tns.path == 2
-        tns_left = tns.next_node.to_left.value
-        assert tns_left is not None
-        assert tns_left.min_total_distance == 2
-        assert tns_left.path == 4
-        assert tns_left.next_node.to_left.value is None
-        assert tns_left.next_node.to_right.value is None
+        tns_4 = tns.next_node.to_left.value
+        assert tns_4 is not None
+        assert tns_4.min_total_distance == 2
+        assert tns_4.path == 4
+        assert tns_4.next_node.to_left.value is None
+        assert tns_4.next_node.to_right.value is None
 
-        tns_right = tns.next_node.to_right.value
-        assert tns_right is not None
-        assert tns_right.min_total_distance == 2
-        assert tns_right.path == 5
-        assert tns_right.next_node.to_left.value is None
-        assert tns_right.next_node.to_right.value is None
+        tns_5 = tns.next_node.to_right.value
+        assert tns_5 is not None
+        assert tns_5.min_total_distance == 2
+        assert tns_5.path == 5
+        assert tns_5.next_node.to_left.value is None
+        assert tns_5.next_node.to_right.value is None
 
         path22 = TreePath(22)
         trie.insert(path22)
@@ -103,7 +102,7 @@ class TestTreePathTrie(unittest.TestCase):
         assert tns is not None
         assert tns.min_total_distance == 2
         assert tns.path == 1
-        tns_l = tns.next_node.to_left.value # left from 1, landing on 2
+        tns_l = tns.next_node.to_left.value  # left from 1, landing on 2
         assert tns_l is not None
         assert tns_l.min_total_distance == 2
         assert tns_l.path == 2
