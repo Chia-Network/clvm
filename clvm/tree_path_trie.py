@@ -6,8 +6,8 @@ from .tree_path import TreePath
 
 @dataclass
 class TrieNode:
-    min_total_distance: int
-    path: TreePath
+    min_distance_remaining: int  # this is from the *parent*
+    path_from_parent: TreePath
     to_left: "Branch"
     to_right: "Branch"
 
@@ -51,13 +51,15 @@ class TreePathTrie:
                 right_branch = Branch(None)
                 branch.value = TrieNode(total_distance, path, left_branch, right_branch)
                 return
-            trie_node.min_total_distance = min(trie_node.min_total_distance, path_size)
-            if is_prefix(trie_node.path, path):
+            if is_prefix(trie_node.path_from_parent, path):
                 # this is a proper prefix. Let's go down the tree to the next branch
-                trie_path_size = len(bin(trie_node.path)[3:])
+                trie_node.min_distance_remaining = min(
+                    trie_node.min_distance_remaining, path_size
+                )
+                trie_path_size = len(bin(trie_node.path_from_parent)[3:])
                 path = path.remaining_steps(trie_path_size)
                 path_size -= trie_path_size
-                assert int(path) > 0, "path is not a proper prefix"
+                assert int(path) > 1, "path is not a proper prefix"
                 branch = trie_node.to_right if path & 1 else trie_node.to_left
                 continue
 
@@ -66,7 +68,7 @@ class TreePathTrie:
             # we create a 1 and a 2. The 1 has the same root as the original node and
             # the 2 has the same destination as the original node
 
-            prefix_path = trie_node.path.common_ancestor(path)
+            prefix_path = trie_node.path_from_parent.common_ancestor(path)
             prefix_path_size = len(bin(prefix_path)[3:])
 
             new_branch_value = split_branch(trie_node, prefix_path_size)
@@ -74,9 +76,9 @@ class TreePathTrie:
 
 
 def split_branch(trie_node: TrieNode, prefix_path_size: int) -> TrieNode:
-    new_path_1, new_path_2 = trie_node.path.split(prefix_path_size)
+    new_path_1, new_path_2 = trie_node.path_from_parent.split(prefix_path_size)
 
-    new_total_distance_2 = trie_node.min_total_distance - prefix_path_size
+    new_total_distance_2 = trie_node.min_distance_remaining - prefix_path_size
 
     new_trie_node_2 = TrieNode(
         new_total_distance_2,
@@ -91,6 +93,6 @@ def split_branch(trie_node: TrieNode, prefix_path_size: int) -> TrieNode:
     if new_path_2 & 1:
         new_left_branch, new_right_branch = new_right_branch, new_left_branch
     new_trie_node_1 = TrieNode(
-        trie_node.min_total_distance, new_path_1, new_left_branch, new_right_branch
+        trie_node.min_distance_remaining, new_path_1, new_left_branch, new_right_branch
     )
     return new_trie_node_1
