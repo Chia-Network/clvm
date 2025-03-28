@@ -57,20 +57,29 @@ class TreePath(int):
         """
         return self.first_steps(n), self.remaining_steps(n)
 
+    def common_prefix_count(self, other: "TreePathType") -> int:
+        """
+        Returns the number of common prefix bits between `self` and `other`.
+        """
+        path1 = int(self)
+        path2 = int(other)
+        count = 0
+        while path1 > 1 and path2 > 1:
+            d1 = path1 & 1
+            d2 = path2 & 1
+            if d1 != d2:
+                break
+            count += 1
+            path1 >>= 1
+            path2 >>= 1
+        return count
+
     def common_ancestor(self, other: TreePathType) -> "TreePath":
         """
         Returns the common ancestor of `path1` and `path2`.
         """
-        path1 = self
-        path2 = other
-        if path1 == path2:
-            return TreePath(path1)
-        mask = 1
-        while (path1 & mask) == (path2 & mask):
-            mask <<= 1
-            mask |= 1
-        common_path = path1 & mask | ((mask + 1) >> 1)
-        return TreePath(common_path)
+        count = self.common_prefix_count(other)
+        return self.first_steps(count)
 
     def relative_pointer(self, other: TreePathType) -> "TreePath":
         """
