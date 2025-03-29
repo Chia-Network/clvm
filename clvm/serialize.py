@@ -14,11 +14,18 @@
 #   1000 0000 -> 0 bytes : nil
 #   0000 0000 -> 1 byte : zero (b'\x00')
 
+from collections import Counter
+from typing import Dict, Iterator, List, Optional, Tuple
+
+
 import io
 import typing
 
-from .read_cache_lookup import ReadCacheLookup
+from .casts import limbs_for_int
 from .object_cache import ObjectCache, treehash, serialized_length
+from .read_cache_lookup import ReadCacheLookup
+from .tree_path import TreePath, TOP, relative_pointer
+from .tree_path_trie import TreePathTrie
 
 from .CLVMObject import CLVMStorage
 
@@ -41,10 +48,22 @@ ValStackType = CLVMStorage
 OpStackType = typing.List[OpCallable]
 
 
+#AI! create an int enum for Backrefs except fix the mess
+
+class Backrefs(Enum.IntEnum):
+    FAST = 2
+    ALLOW = 1
+    DISALLOW = 0
+
+
 def sexp_to_byte_iterator(
-    sexp: CLVMStorage, *, allow_backrefs: bool = False
+    sexp: CLVMStorage, *, allow_backrefs: Backrefs = Backrefs.DISALLOW
 ) -> typing.Iterator[bytes]:
-    if allow_backrefs:
+    if allow_backrefs == Backrefs.FAST:
+        yield from sexp_to_byte_iterator_with_backrefs_fast(sexp)
+        return
+
+    if allow_backrefs == Backrefs.ALLOW:
         yield from sexp_to_byte_iterator_with_backrefs(sexp)
         return
 
@@ -61,7 +80,9 @@ def sexp_to_byte_iterator(
             yield from atom_to_byte_iterator(sexp.atom)
 
 
-def sexp_to_byte_iterator_with_backrefs(sexp: CLVMStorage) -> typing.Iterator[bytes]:
+def sexp_to_byte_iterator_with_backrefs(
+    sexp: CLVMStorage,
+) -> typing.Iterator[bytes]:
     # in `read_op_stack`:
     #  "P" = "push"
     #  "C" = "pop two objects, create and push a new cons with them"
@@ -326,3 +347,90 @@ def _atom_from_stream(f: typing.BinaryIO, b: int) -> bytes:
     if len(blob) != size:
         raise ValueError("bad encoding")
     return blob
+
+
+def all_nodes(obj: CLVMStorage) -> Iterator[Tuple[CLVMStorage, TreePath]]:
+    to_yield: List[Tuple[CLVMStorage, TreePath]] = [(obj, TOP)]
+    while to_yield:
+        obj, path = to_yield.pop()
+        yield obj, path
+        if obj.pair is not None:
+            to_yield.append((obj.pair[1], path.right()))
+            to_yield.append((obj.pair[0], path.left()))
+
+
+def sexp_to_byte_iterator_with_backrefs(obj: CLVMStorage) -> Iterator[bytes]:
+    thc = ObjectCache(treehash)
+    slc = ObjectCache(serialized_length)
+
+    # in `read_op_stack`:
+    #  "P" = "push"
+    #  "C" = "pop two objects, create and push a new cons with them"
+
+    hash_counter = Counter(thc.get(node) for node, path in all_nodes(obj))
+
+    trie_for_hash: Dict[bytes, TreePathTrie] = {}
+    for key, value in hash_counter.items():
+        if value > 1:
+            trie_for_hash[key] = TreePathTrie()
+
+    read_op_stack = ["P"]
+
+    write_stack: List[Tuple[CLVMStorage, TreePath]] = [(obj, TOP)]
+
+    # breakpoint()
+    while write_stack:
+        node_to_write, tree_path = write_stack.pop()
+        op = read_op_stack.pop()
+        assert op == "P"
+
+        node_serialized_length = slc.get(node_to_write)
+
+        node_tree_hash = thc.get(node_to_write)
+        maybe_path = None
+        if node_tree_hash in trie_for_hash:
+            trie = trie_for_hash[node_tree_hash]
+            node_serialized_length_bits = (node_serialized_length - 1) * 8
+            maybe_path = trie.find_shortest_relative_pointer(
+                tree_path, node_serialized_length_bits
+            )
+            trie.insert(tree_path)
+        if maybe_path is not None:
+            yield bytes([BACK_REFERENCE])
+            yield from atom_to_byte_iterator(bytes(maybe_path))
+        elif node_to_write.pair:
+            left, right = node_to_write.pair
+            yield bytes([CONS_BOX_MARKER])
+            write_stack.append((right, tree_path.right()))
+            write_stack.append((left, tree_path.left()))
+            read_op_stack.append("C")
+            read_op_stack.append("P")
+            read_op_stack.append("P")
+        else:
+            atom = node_to_write.atom
+            assert atom is not None
+            yield from atom_to_byte_iterator(atom)
+
+        while read_op_stack[-1:] == ["C"]:
+            read_op_stack.pop()
+
+
+def find_short_path(
+    tree_path: TreePath,
+    possible_paths: List[TreePath],
+    node_serialized_length: int,
+) -> Optional[TreePath]:
+    if possible_paths is None or len(possible_paths) == 1:
+        return None
+    best_size: int = node_serialized_length
+    best_path: Optional[TreePath] = None
+    for path in possible_paths:
+        if tree_path < path:
+            break
+        # the paths are in order
+        relative_path = relative_pointer(path, tree_path)
+        size = limbs_for_int(relative_path) + 1
+        if size < best_size:
+            best_size = size
+            best_path = relative_path
+    return best_path
