@@ -15,6 +15,7 @@
 #   0000 0000 -> 1 byte : zero (b'\x00')
 
 from collections import Counter
+from enum import IntEnum
 from typing import Dict, Iterator, List, Optional, Tuple
 
 
@@ -48,9 +49,7 @@ ValStackType = CLVMStorage
 OpStackType = typing.List[OpCallable]
 
 
-#AI! create an int enum for Backrefs except fix the mess
-
-class Backrefs(Enum.IntEnum):
+class Backrefs(IntEnum):
     FAST = 2
     ALLOW = 1
     DISALLOW = 0

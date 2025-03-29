@@ -14,7 +14,7 @@ from .casts import (
     int_from_bytes,
     int_to_bytes,
 )
-from .serialize import sexp_to_stream
+from .serialize import sexp_to_stream, Backrefs
 
 
 CastableType = typing.Union[
@@ -186,7 +186,7 @@ class SExp:
             raise TypeError("Unable to convert a pair to an int")
         return int_from_bytes(self.atom)
 
-    def as_bin(self, *, allow_backrefs: bool = False) -> bytes:
+    def as_bin(self, *, allow_backrefs: Backrefs = 0) -> bytes:
         f = io.BytesIO()
         sexp_to_stream(self, f, allow_backrefs=allow_backrefs)
         return f.getvalue()
