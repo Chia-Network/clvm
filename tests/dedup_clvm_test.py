@@ -104,9 +104,7 @@ class DedupCLVMTest(unittest.TestCase):
         #        -2: (1, -1) => (b"a" . -1)
         self.assertEqual(root_index, -2)
         self.assertEqual(storage._atoms, [b"", b"a", b"b", b"c"])
-        self.assertEqual(
-            storage._atom_to_index, {b"": 0, b"a": 1, b"b": 2, b"c": 3}
-        )
+        self.assertEqual(storage._atom_to_index, {b"": 0, b"a": 1, b"b": 2, b"c": 3})
         self.assertEqual(storage._pairs, [(2, 3), (1, -1)])
         self.assertEqual(storage._pair_to_index, {(2, 3): -1, (1, -1): -2})
 
@@ -136,9 +134,7 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(len(storage._atoms), 4)
 
         self.assertEqual(storage._pairs, [(1, 3), (2, -1), (1, -2)])
-        self.assertEqual(
-            storage._pair_to_index, {(1, 3): -1, (2, -1): -2, (1, -2): -3}
-        )
+        self.assertEqual(storage._pair_to_index, {(1, 3): -1, (2, -1): -2, (1, -2): -3})
         # Check that the pair (A . C) (index -1) was only stored once
         self.assertEqual(len(storage._pairs), 3)
 
@@ -222,25 +218,25 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertIsNotNone(pair1)
         assert pair1 is not None
         left1, right1 = pair1
-        self.assertEqual(left1.atom, b"apple") # A
+        self.assertEqual(left1.atom, b"apple")  # A
         self.assertIsNone(left1.pair)
 
-        self.assertIsNone(right1.atom) # (B . (A . C))
+        self.assertIsNone(right1.atom)  # (B . (A . C))
         pair2 = right1.pair
         self.assertIsNotNone(pair2)
         assert pair2 is not None
         left2, right2 = pair2
-        self.assertEqual(left2.atom, b"banana") # B
+        self.assertEqual(left2.atom, b"banana")  # B
         self.assertIsNone(left2.pair)
 
-        self.assertIsNone(right2.atom) # (A . C)
+        self.assertIsNone(right2.atom)  # (A . C)
         pair3 = right2.pair
         self.assertIsNotNone(pair3)
         assert pair3 is not None
         left3, right3 = pair3
-        self.assertEqual(left3.atom, b"apple") # A
+        self.assertEqual(left3.atom, b"apple")  # A
         self.assertIsNone(left3.pair)
-        self.assertEqual(right3.atom, b"cherry") # C
+        self.assertEqual(right3.atom, b"cherry")  # C
         self.assertIsNone(right3.pair)
 
     def test_dedup_object_reconstruction_shared(self):
@@ -253,7 +249,7 @@ class DedupCLVMTest(unittest.TestCase):
 
         # Add to storage
         root_index = storage.add_clvm(original_sexp)
-        self.assertEqual(len(storage._pairs), 2) # Ensure pair was deduplicated
+        self.assertEqual(len(storage._pairs), 2)  # Ensure pair was deduplicated
 
         # Create DedupCLVMObject wrapper
         dedup_root = DedupCLVMObject(storage, root_index)
@@ -270,7 +266,7 @@ class DedupCLVMTest(unittest.TestCase):
         pair1 = dedup_root.pair
         self.assertIsNotNone(pair1)
         assert pair1 is not None
-        left1, right1 = pair1 # Both should be (A . B)
+        left1, right1 = pair1  # Both should be (A . B)
 
         self.assertIsNone(left1.atom)
         pair_l = left1.pair
@@ -289,4 +285,4 @@ class DedupCLVMTest(unittest.TestCase):
         # Check that the underlying DedupCLVMObject instances for the shared part might be different
         # (as they are created on demand), but represent the same structure.
         # We don't strictly need them to be the same instance, just equal.
-        self.assertEqual(left1, right1) # SExp.__eq__ should handle this via structure
+        self.assertEqual(left1, right1)  # SExp.__eq__ should handle this via structure
