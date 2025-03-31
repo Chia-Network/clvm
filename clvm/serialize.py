@@ -169,7 +169,10 @@ def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
 
 
 def sexp_to_stream(
-    sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False
+    sexp: CLVMStorage,
+    f: typing.BinaryIO,
+    *,
+    allow_backrefs: Backrefs = Backrefs.DISALLOW,
 ) -> None:
     for b in sexp_to_byte_iterator(sexp, allow_backrefs=allow_backrefs):
         f.write(b)
@@ -358,7 +361,7 @@ def all_nodes(obj: CLVMStorage) -> Iterator[Tuple[CLVMStorage, TreePath]]:
             to_yield.append((obj.pair[0], path.left()))
 
 
-def sexp_to_byte_iterator_with_backrefs(obj: CLVMStorage) -> Iterator[bytes]:
+def sexp_to_byte_iterator_with_backrefs_fast(obj: CLVMStorage) -> Iterator[bytes]:
     thc = ObjectCache(treehash)
     slc = ObjectCache(serialized_length)
 
