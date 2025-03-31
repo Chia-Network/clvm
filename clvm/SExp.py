@@ -186,7 +186,7 @@ class SExp:
             raise TypeError("Unable to convert a pair to an int")
         return int_from_bytes(self.atom)
 
-    def as_bin(self, *, allow_backrefs: Backrefs = 0) -> bytes:
+    def as_bin(self, *, allow_backrefs: Backrefs = Backrefs.DISALLOW) -> bytes:
         f = io.BytesIO()
         sexp_to_stream(self, f, allow_backrefs=allow_backrefs)
         return f.getvalue()
