@@ -64,11 +64,9 @@ class TreePath(int):
         path1 = int(self)
         path2 = int(other)
         count = 0
-        while path1 > 1 and path2 > 1:
-            d1 = path1 & 1
-            d2 = path2 & 1
-            if d1 != d2:
-                break
+        # Loop while both paths have steps left (are > 1)
+        # and the current step (LSB) is the same.
+        while (path1 > 1 and path2 > 1) and ((path1 & 1) == (path2 & 1)):
             count += 1
             path1 >>= 1
             path2 >>= 1
