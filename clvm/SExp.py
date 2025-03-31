@@ -217,7 +217,7 @@ class SExp:
 
     def as_iter(self: _T_SExp) -> typing.Iterator[_T_SExp]:
         v = self
-        while not v.nullp():
+        while v.pair is not None:
             yield v.first()
             v = v.rest()
 

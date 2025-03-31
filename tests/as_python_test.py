@@ -223,11 +223,12 @@ class AsPythonTest(unittest.TestCase):
         val = list(SExp.to((1, b"")).as_iter())
         self.assertEqual(val, [1])
 
-        # these fail because the lists are not null-terminated
-        self.assertRaises(EvalError, lambda: list(SExp.to(1).as_iter()))
-        self.assertRaises(
-            EvalError, lambda: list(SExp.to((1, (2, (3, (4, 5))))).as_iter())
-        )
+        # we accept lists that are not null-terminated
+        val = list(SExp.to(1).as_iter())
+        self.assertEqual(val, [])
+
+        val = list(SExp.to((1, (2, (3, (4, 5))))).as_iter())
+        self.assertEqual(val, [1, 2, 3, 4])
 
     def test_eq(self) -> None:
         val = SExp.to(1)
