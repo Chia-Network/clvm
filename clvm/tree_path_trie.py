@@ -29,10 +29,6 @@ def is_prefix(prefix: TreePath, path: TreePath) -> bool:
         p2 >>= 1
 
 
-def path_length(path: TreePath) -> int:
-    return len(bin(path)[3:])
-
-
 @dataclass
 class TreePathTrie:
     root: Branch
@@ -42,7 +38,7 @@ class TreePathTrie:
 
     def insert(self, path: TreePath) -> None:
         branch: Branch = self.root
-        path_size = path_length(path)
+        path_size = len(path)
         while True:
             trie_node = branch.value
             if trie_node is None:
@@ -103,10 +99,16 @@ class TreePathTrie:
             prefix_path = trie_node.path_from_parent.common_ancestor(source_node_path)
             prefix_path_size = len(bin(prefix_path)[3:])
             if prefix_path == trie_node.path_from_parent:
+                # Iterate prefix_path_size times, checking bits and counting right turns
+                current_path_segment = source_node_path
                 for _ in range(prefix_path_size):
-                    if source_node_path & 1:
+                    if current_path_segment & 1:
                         source_node_path_right_count -= 1
-                    source_node_path = source_node_path.remaining_steps(1)
+                    # Move to the next bit for the next iteration's check
+                    current_path_segment = current_path_segment.remaining_steps(1)
+
+                # Update source_node_path *after* iterating through the prefix
+                source_node_path = source_node_path.remaining_steps(prefix_path_size)
 
                 # do we need to consider the left branch as a relative pointer?
                 if trie_node.to_left.value is not None and source_node_path & 1:
