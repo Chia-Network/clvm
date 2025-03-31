@@ -82,6 +82,9 @@ class DedupCLVMStorage:
         Recursively adds a CLVM object (and its children) to the deduplicated storage.
 
         This uses a non-recursive approach with stacks to traverse the CLVM object tree.
+        Since the CLVM object structure can be deeply nested, a recursive approach
+        could lead to a stack overflow. This iterative approach avoids that.
+
         `to_add` holds the CLVM objects yet to be processed.
         `operator_stack` controls the processing logic:
             - "Z" (Canonicalize): Process the next object from `to_add`. If it's an
@@ -131,6 +134,14 @@ class DedupCLVMStorage:
         # The final index on the stack is the root index of the added object
         assert len(added_stack) == 1
         return added_stack[0]
+
+    def __str__(self) -> str:
+        """Returns a string representation of the storage for debugging."""
+        return f"DedupCLVMStorage(atom_count={len(self._atoms)}, pair_count={len(self._pairs)})"
+
+    def __repr__(self) -> str:
+        """Returns a string representation of the storage for debugging."""
+        return str(self)
 
 
 class DedupCLVMObject(CLVMStorage):
@@ -183,3 +194,29 @@ class DedupCLVMObject(CLVMStorage):
 
         # Positive index means it's an atom, so no pair.
         return None
+
+    def __str__(self) -> str:
+        """Returns a string representation of the object for debugging."""
+        if self.atom is not None:
+            return f"Atom({self.atom.hex()})"
+        left, right = self.pair
+        return f"Pair({left}, {right})"
+
+    def __repr__(self) -> str:
+        """Returns a string representation of the object for debugging."""
+        return str(self)
+
+
+def dedup_clvm(obj: CLVMStorage) -> DedupCLVMObject:
+    """
+    Deduplicates the given CLVM object and returns a `DedupCLVMObject` wrapper.
+
+    Args:
+        obj: The CLVM object to deduplicate.
+
+    Returns:
+        A `DedupCLVMObject` instance representing the deduplicated object.
+    """
+    dedup_storage = DedupCLVMStorage()
+    root_index = dedup_storage.add_clvm(obj)
+    return DedupCLVMObject(dedup_storage, root_index)
