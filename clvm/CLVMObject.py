@@ -8,7 +8,9 @@ class CLVMStorage(typing.Protocol):
     # restructuring all the classes, such as having a separate instance for each
     # of the atom and pair cases and hinting a union of a protocol of each type.
     atom: typing.Optional[bytes]
-    pair: typing.Optional[PairType]
+
+    @property
+    def pair(self) -> typing.Optional[PairType]: ...
 
 
 PairType = typing.Tuple[CLVMStorage, CLVMStorage]
