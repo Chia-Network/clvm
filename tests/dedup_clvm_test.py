@@ -67,10 +67,10 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(storage._pairs, [(1, 2), (2, 1), (1, -1)])
         self.assertEqual(storage._pair_to_index, {(1, 2): -1, (2, 1): -2, (1, -1): -3})
 
-    def test_add_clvm_atom(self) -> None:
+    def test_intern_atom(self) -> None: # Renamed test
         storage = DedupCLVMStorage()
         sexp_atom = SExp.to(b"hello")
-        root_index = storage.add_clvm(sexp_atom)
+        root_index = storage.intern(sexp_atom) # Changed from add_clvm
 
         self.assertEqual(root_index, 1)  # 0 is b"", 1 should be b"hello"
         self.assertEqual(storage._atoms, [b"", b"hello"])
@@ -78,10 +78,10 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(storage._pairs, [])
         self.assertEqual(storage._pair_to_index, {})
 
-    def test_add_clvm_simple_pair(self) -> None:
+    def test_intern_simple_pair(self) -> None: # Renamed test
         storage = DedupCLVMStorage()
         sexp_pair = SExp.to((b"left", b"right"))
-        root_index = storage.add_clvm(sexp_pair)
+        root_index = storage.intern(sexp_pair) # Changed from add_clvm
 
         # Expected state:
         # Atoms: 0: b"", 1: b"left", 2: b"right"
@@ -92,11 +92,11 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(storage._pairs, [(1, 2)])
         self.assertEqual(storage._pair_to_index, {(1, 2): -1})
 
-    def test_add_clvm_nested_pair(self) -> None:
+    def test_intern_nested_pair(self) -> None: # Renamed test
         storage = DedupCLVMStorage()
         # (b"a" . (b"b" . b"c"))
         sexp_nested = SExp.to(("a", ("b", "c")))
-        root_index = storage.add_clvm(sexp_nested)
+        root_index = storage.intern(sexp_nested) # Changed from add_clvm
 
         # Expected state:
         # Atoms: 0: b"", 1: b"a", 2: b"b", 3: b"c"
@@ -108,12 +108,12 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(storage._pairs, [(2, 3), (1, -1)])
         self.assertEqual(storage._pair_to_index, {(2, 3): -1, (1, -1): -2})
 
-    def test_add_clvm_deduplication(self) -> None:
+    def test_intern_deduplication(self) -> None: # Renamed test
         storage = DedupCLVMStorage()
         # Create a structure with repeated elements: (A . (B . (A . C)))
         # A = b"apple", B = b"banana", C = b"cherry"
         sexp_tree = SExp.to(("apple", ("banana", ("apple", "cherry"))))
-        root_index = storage.add_clvm(sexp_tree)
+        root_index = storage.intern(sexp_tree) # Changed from add_clvm
 
         # Expected state:
         # Atoms: 0: b"", 1: b"apple", 2: b"banana", 3: b"cherry"
@@ -134,13 +134,13 @@ class DedupCLVMTest(unittest.TestCase):
         # Check that the pair (A . C) (index -1) was only stored once
         self.assertEqual(len(storage._pairs), 3)
 
-    def test_add_clvm_shared_subtree(self) -> None:
+    def test_intern_shared_subtree(self) -> None: # Renamed test
         storage = DedupCLVMStorage()
         # Create a structure with a shared subtree: ((A . B) . (A . B))
         shared_pair = SExp.to(("a", "b"))
         sexp_tree = SExp.to((shared_pair, shared_pair))
 
-        root_index = storage.add_clvm(sexp_tree)
+        root_index = storage.intern(sexp_tree) # Changed from add_clvm
 
         # Expected state:
         # Atoms: 0: b"", 1: b"a", 2: b"b"
@@ -193,7 +193,7 @@ class DedupCLVMTest(unittest.TestCase):
         original_sexp = SExp.to((sexp_a, (sexp_b, (sexp_a, sexp_c))))
 
         # Add to storage
-        root_index = storage.add_clvm(original_sexp)
+        root_index = storage.intern(original_sexp) # Changed from add_clvm
 
         # Create DedupCLVMObject wrapper
         dedup_root = DedupCLVMObject(storage, root_index)
@@ -242,7 +242,7 @@ class DedupCLVMTest(unittest.TestCase):
         original_sexp = SExp.to((shared_pair_sexp, shared_pair_sexp))
 
         # Add to storage
-        root_index = storage.add_clvm(original_sexp)
+        root_index = storage.intern(original_sexp) # Changed from add_clvm
         self.assertEqual(len(storage._pairs), 2)  # Ensure pair was deduplicated
 
         # Create DedupCLVMObject wrapper
@@ -279,4 +279,5 @@ class DedupCLVMTest(unittest.TestCase):
         # Check that the underlying DedupCLVMObject instances for the shared part might be different
         # (as they are created on demand), but represent the same structure.
         # We don't strictly need them to be the same instance, just equal.
-        self.assertEqual(SExp.to(left1), SExp.to(right1))  # SExp.__eq__ should handle this via structure
+        # Compare using SExp.to() which implements structural equality.
+        self.assertEqual(SExp.to(left1), SExp.to(right1))

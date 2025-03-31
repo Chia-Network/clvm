@@ -77,63 +77,67 @@ class DedupCLVMStorage:
         self._pair_to_index[pair_indices] = negative_index
         return negative_index
 
-    def add_clvm(self, obj: CLVMStorage) -> int:
+    def intern(self, obj: CLVMStorage) -> int:
         """
-        Recursively adds a CLVM object (and its children) to the deduplicated storage.
+        Recursively adds a CLVM object (and its children) to the deduplicated
+        storage if not already present, returning its unique index.
+
+        This process is often called "interning". It ensures that each unique
+        atom and pair structure is stored only once.
 
         This uses a non-recursive approach with stacks to traverse the CLVM object tree.
         Since the CLVM object structure can be deeply nested, a recursive approach
         could lead to a stack overflow. This iterative approach avoids that.
 
-        `to_add` holds the CLVM objects yet to be processed.
+        `to_process` holds the CLVM objects yet to be processed.
         `operator_stack` controls the processing logic:
-            - "Z" (Canonicalize): Process the next object from `to_add`. If it's an
-              atom, add it and push its index to `added_stack`. If it's a pair,
-              push its children to `to_add` and schedule them for canonicalization ("Z")
-              followed by joining ("J").
+            - "I" (Intern): Process the next object from `to_process`. If it's an
+              atom, add it using `add_atom` and push its index to `result_stack`.
+              If it's a pair, push its children to `to_process` and schedule them
+              for interning ("I") followed by joining ("J").
             - "J" (Join): Pop the indices of the right and left children from
-              `added_stack`, create a pair using `add_pair_by_indices`, and push
-              the resulting pair index back onto `added_stack`.
-        `added_stack` stores the indices (positive for atoms, negative for pairs)
+              `result_stack`, create a pair using `add_pair_by_indices`, and push
+              the resulting pair index back onto `result_stack`.
+        `result_stack` stores the indices (positive for atoms, negative for pairs)
         of the processed nodes.
 
         Args:
-            obj: The CLVMStorage object to add.
+            obj: The CLVMStorage object to intern.
 
         Returns:
-            The root index (positive for atom, negative for pair) of the added object
-            within the deduplicated storage.
+            The root index (positive for atom, negative for pair) of the interned
+            object within the deduplicated storage.
         """
-        added_stack: List[int] = []  # Stores indices of processed nodes
-        to_add: List[CLVMStorage] = [obj]  # CLVM objects to process
-        operator_stack: List[str] = ["Z"]  # Operations: "Z" = canonicalize, "J" = join
+        result_stack: List[int] = []  # Stores indices of processed nodes
+        to_process: List[CLVMStorage] = [obj]  # CLVM objects to process
+        operator_stack: List[str] = ["I"]  # Operations: "I" = intern, "J" = join
         while operator_stack:
             op = operator_stack.pop()
-            if op == "Z":
-                o = to_add.pop()
+            if op == "I":
+                o = to_process.pop()
                 if o.pair is None:
                     # It's an atom
                     assert o.atom is not None
                     atom_index = self.add_atom(o.atom)
-                    added_stack.append(atom_index)
+                    result_stack.append(atom_index)
                 else:
                     # It's a pair. Schedule children processing and then joining.
                     # Order matters: process right, then left, then join.
                     operator_stack.append("J")  # Join the results later
-                    operator_stack.append("Z")  # Process right child
-                    operator_stack.append("Z")  # Process left child
-                    to_add.append(o.pair[1])  # Right child
-                    to_add.append(o.pair[0])  # Left child
+                    operator_stack.append("I")  # Process right child
+                    operator_stack.append("I")  # Process left child
+                    to_process.append(o.pair[1])  # Right child
+                    to_process.append(o.pair[0])  # Left child
             else:  # op == "J"
                 # Join the last two processed indices (right then left)
-                right_index = added_stack.pop()
-                left_index = added_stack.pop()
+                right_index = result_stack.pop()
+                left_index = result_stack.pop()
                 pair_index = self.add_pair_by_indices(left_index, right_index)
-                added_stack.append(pair_index)
+                result_stack.append(pair_index)
 
         # The final index on the stack is the root index of the added object
-        assert len(added_stack) == 1
-        return added_stack[0]
+        assert len(result_stack) == 1
+        return result_stack[0]
 
     def __str__(self) -> str:
         """Returns a string representation of the storage for debugging."""
@@ -198,13 +202,15 @@ class DedupCLVMObject(CLVMStorage):
     def __str__(self) -> str:
         """Returns a string representation of the object for debugging."""
         if self.atom is not None:
-            return f"Atom({self.atom.hex()})"
-        left, right = self.pair
-        return f"Pair({left}, {right})"
+            # Use SExp.to for a standard CLVM representation
+            return repr(SExp.to(self))
+        # For pairs, rely on SExp representation as well to handle nesting
+        return repr(SExp.to(self))
 
     def __repr__(self) -> str:
         """Returns a string representation of the object for debugging."""
-        return str(self)
+        # Use SExp for a consistent and readable representation
+        return repr(SExp.to(self))
 
 
 def dedup_clvm(obj: CLVMStorage) -> DedupCLVMObject:
@@ -218,5 +224,8 @@ def dedup_clvm(obj: CLVMStorage) -> DedupCLVMObject:
         A `DedupCLVMObject` instance representing the deduplicated object.
     """
     dedup_storage = DedupCLVMStorage()
-    root_index = dedup_storage.add_clvm(obj)
+    root_index = dedup_storage.intern(obj) # Changed from add_clvm
     return DedupCLVMObject(dedup_storage, root_index)
+
+# Need to import SExp late to avoid circular dependency
+from .SExp import SExp # noqa E402
