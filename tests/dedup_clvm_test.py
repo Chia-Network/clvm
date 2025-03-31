@@ -5,7 +5,7 @@ from clvm.dedup_clvm import DedupCLVMObject, DedupCLVMStorage
 
 
 class DedupCLVMTest(unittest.TestCase):
-    def test_add_atom(self):
+    def test_add_atom(self) -> None:
         storage = DedupCLVMStorage()
         # Empty atom is pre-added
         self.assertEqual(storage._atoms, [b""])
@@ -35,7 +35,7 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(storage._atoms, [b"", b"atom1", b"atom2"])
         self.assertEqual(storage._atom_to_index, {b"": 0, b"atom1": 1, b"atom2": 2})
 
-    def test_add_pair_by_indices(self):
+    def test_add_pair_by_indices(self) -> None:
         storage = DedupCLVMStorage()
         # Add atoms needed for pairs
         idx_a = storage.add_atom(b"a")
@@ -67,7 +67,7 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(storage._pairs, [(1, 2), (2, 1), (1, -1)])
         self.assertEqual(storage._pair_to_index, {(1, 2): -1, (2, 1): -2, (1, -1): -3})
 
-    def test_add_clvm_atom(self):
+    def test_add_clvm_atom(self) -> None:
         storage = DedupCLVMStorage()
         sexp_atom = SExp.to(b"hello")
         root_index = storage.add_clvm(sexp_atom)
@@ -78,7 +78,7 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(storage._pairs, [])
         self.assertEqual(storage._pair_to_index, {})
 
-    def test_add_clvm_simple_pair(self):
+    def test_add_clvm_simple_pair(self) -> None:
         storage = DedupCLVMStorage()
         sexp_pair = SExp.to((b"left", b"right"))
         root_index = storage.add_clvm(sexp_pair)
@@ -92,7 +92,7 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(storage._pairs, [(1, 2)])
         self.assertEqual(storage._pair_to_index, {(1, 2): -1})
 
-    def test_add_clvm_nested_pair(self):
+    def test_add_clvm_nested_pair(self) -> None:
         storage = DedupCLVMStorage()
         # (b"a" . (b"b" . b"c"))
         sexp_nested = SExp.to((b"a", (b"b", b"c")))
@@ -108,7 +108,7 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(storage._pairs, [(2, 3), (1, -1)])
         self.assertEqual(storage._pair_to_index, {(2, 3): -1, (1, -1): -2})
 
-    def test_add_clvm_deduplication(self):
+    def test_add_clvm_deduplication(self) -> None:
         storage = DedupCLVMStorage()
         # Create a structure with repeated elements: (A . (B . (A . C)))
         # A = b"apple", B = b"banana", C = b"cherry"
@@ -138,7 +138,7 @@ class DedupCLVMTest(unittest.TestCase):
         # Check that the pair (A . C) (index -1) was only stored once
         self.assertEqual(len(storage._pairs), 3)
 
-    def test_add_clvm_shared_subtree(self):
+    def test_add_clvm_shared_subtree(self) -> None:
         storage = DedupCLVMStorage()
         # Create a structure with a shared subtree: ((A . B) . (A . B))
         sexp_a = SExp.to(b"a")
@@ -162,7 +162,7 @@ class DedupCLVMTest(unittest.TestCase):
         # Check that the pair (A . B) (index -1) was only stored once
         self.assertEqual(len(storage._pairs), 2)
 
-    def test_dedup_object_atom(self):
+    def test_dedup_object_atom(self) -> None:
         storage = DedupCLVMStorage()
         atom_idx = storage.add_atom(b"test")
         dedup_obj = DedupCLVMObject(storage, atom_idx)
@@ -170,7 +170,7 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(dedup_obj.atom, b"test")
         self.assertIsNone(dedup_obj.pair)
 
-    def test_dedup_object_pair(self):
+    def test_dedup_object_pair(self) -> None:
         storage = DedupCLVMStorage()
         idx_a = storage.add_atom(b"a")
         idx_b = storage.add_atom(b"b")
@@ -190,7 +190,7 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(right.atom, b"b")
         self.assertIsNone(right.pair)
 
-    def test_dedup_object_reconstruction(self):
+    def test_dedup_object_reconstruction(self) -> None:
         storage = DedupCLVMStorage()
         # Original SExp: (A . (B . (A . C)))
         sexp_a = SExp.to(b"apple")
@@ -239,7 +239,7 @@ class DedupCLVMTest(unittest.TestCase):
         self.assertEqual(right3.atom, b"cherry")  # C
         self.assertIsNone(right3.pair)
 
-    def test_dedup_object_reconstruction_shared(self):
+    def test_dedup_object_reconstruction_shared(self) -> None:
         storage = DedupCLVMStorage()
         # Original SExp: ((A . B) . (A . B))
         sexp_a = SExp.to(b"a")
