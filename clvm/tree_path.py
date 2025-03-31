@@ -99,6 +99,9 @@ class TreePath(int):
 
         Then we simply follow the path from here to the remaining part
         of n to get to where n currently is in the stack.
+
+        Note: this is a reference implementation. It's pretty slow so should
+        not be used in performance-critical code.
         """
 
         def get_reversed_path(x: int) -> list[int]:
@@ -151,6 +154,15 @@ class TreePath(int):
         # we are at the case where one path is a prefix of the other
         # the longer path is processed first
         return path1 >= path2
+
+    def __len__(self) -> int:
+        """
+        We define the length of a path as the number of steps it contains.
+        """
+        # we subtract 1 because there is a `1` padding bit
+        # note that this make the length of the empty path 0
+        # and the length of the 0 path -1
+        return self.bit_length() - 1
 
     def __bytes__(self) -> bytes:
         if self == 0:
