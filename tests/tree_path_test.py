@@ -1,7 +1,7 @@
 import io
 
 from clvm.SExp import SExp
-from clvm.tree_path import TOP, relative_pointer, TreePath
+from clvm.tree_path import TOP, relative_pointer, TreePath, remaining_steps, first_steps
 from clvm.serialize import sexp_from_stream, sexp_to_byte_iterator_with_backrefs
 
 
@@ -59,7 +59,7 @@ def test_relative_pointer() -> None:
 def test_tree_path_first_steps() -> None:
     def check(path: str, n: int, expected: str) -> None:
         t = TreePath(int(path, 2))
-        v = t.first_steps(n)
+        v = first_steps(t, n)
         assert bin(int(v)) == expected
 
     check("0b10010", 1, "0b10")
@@ -71,7 +71,7 @@ def test_tree_path_first_steps() -> None:
 def test_tree_path_remaining_steps() -> None:
     def check(path: str, n: int, expected: str) -> None:
         t = TreePath(int(path, 2))
-        v = t.remaining_steps(n)
+        v = remaining_steps(t, n)
         assert bin(int(v)) == expected
 
     check("0b10010", 1, "0b1001")

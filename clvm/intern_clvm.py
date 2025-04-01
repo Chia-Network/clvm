@@ -139,6 +139,30 @@ class InternCLVMStorage:
         assert len(result_stack) == 1
         return result_stack[0]
 
+    def atom_for_index(self, index: int) -> bytes:
+        """
+        Returns the atom stored at the given index.
+
+        Args:
+            index: The index of the atom to retrieve.
+
+        Returns:
+            The byte string atom stored at the given index.
+        """
+        return self._atoms[index]
+
+    def pair_indices_for_index(self, index: int) -> Tuple[int, int]:
+        """
+        Returns the pair indices stored at the given negative index.
+
+        Args:
+            index: The negative index of the pair to retrieve.
+
+        Returns:
+            A tuple of the left and right child indices stored at the given index.
+        """
+        return self._pairs[-index - 1]
+
     def __str__(self) -> str:
         """Returns a string representation of the storage for debugging."""
         return f"InternCLVMStorage(atom_count={len(self._atoms)}, pair_count={len(self._pairs)})"
@@ -171,7 +195,7 @@ class InternCLVMObject(CLVMStorage):
         self.atom: Optional[bytes] = None
         # If the index is non-negative, it represents an atom.
         if index >= 0:
-            self.atom = intern_storage._atoms[index]
+            self.atom = intern_storage.atom_for_index(index)
         # The `pair` property handles negative indices dynamically.
 
     @property
@@ -194,8 +218,9 @@ class InternCLVMObject(CLVMStorage):
         """
         if self._index < 0:
             # Negative index means it's a pair. Convert back to list index.
-            pair_list_index = -self._index - 1
-            left_idx, right_idx = self._intern_storage._pairs[pair_list_index]
+            left_idx, right_idx = self._intern_storage.pair_indices_for_index(
+                self._index
+            )
             # Recursively create InternCLVMObject wrappers for the children
             left_child = InternCLVMObject(self._intern_storage, left_idx)
             right_child = InternCLVMObject(self._intern_storage, right_idx)
@@ -243,7 +268,9 @@ class InternObjectCache(Generic[T]):
     objects locally).
     """
 
-    def __init__(self, f: Callable[["InternObjectCache[T]", CLVMStorage], Optional[T]]):
+    def __init__(
+        self, f: Callable[["InternObjectCache[T]", InternCLVMObject], Optional[T]]
+    ):
         """
         `f`: Callable[InternObjectCache, CLVMObject] -> Union[None, T]
 
@@ -256,7 +283,7 @@ class InternObjectCache(Generic[T]):
         Don't recurse in f; that's part of the point of this function.
         """
         self.f = f
-        self.lookup: Dict[int, Tuple[T, CLVMStorage]] = dict()
+        self.lookup: Dict[int, Tuple[T, InternCLVMObject]] = dict()
 
     def get(self, obj: InternCLVMObject) -> T:
         obj_id = obj.index
@@ -279,3 +306,34 @@ class InternObjectCache(Generic[T]):
 
     def contains(self, obj: InternCLVMObject) -> bool:
         return obj.index in self.lookup
+
+
+def serialized_length(cache: InternObjectCache[int], obj: InternCLVMObject) -> Optional[int]:
+    """
+    This function can be fed to `ObjectCache` to calculate the serialized
+    length for all objects in a tree.
+    """
+    if obj.pair:
+        left, right = obj.pair
+
+        # ensure both `left` and `right` have cached values
+        if cache.contains(left) and cache.contains(right):
+            left_length = cache.get(left)
+            right_length = cache.get(right)
+            return 1 + left_length + right_length
+        return None
+    assert obj.atom is not None
+    lb = len(obj.atom)
+    if lb == 0 or (lb == 1 and obj.atom[0] < 128):
+        return 1
+    if lb < 0x40:
+        return 1 + lb
+    if lb < 0x2000:
+        return 2 + lb
+    if lb < 0x100000:
+        return 3 + lb
+    if lb < 0x8000000:
+        return 4 + lb
+    if lb < 0x400000000:
+        return 5 + lb
+    raise ValueError("atom of size %d too long" % lb)

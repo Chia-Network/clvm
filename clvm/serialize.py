@@ -14,19 +14,22 @@
 #   1000 0000 -> 0 bytes : nil
 #   0000 0000 -> 1 byte : zero (b'\x00')
 
-from collections import Counter
 from enum import IntEnum
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Dict, Iterator, List, Tuple
 
 
 import io
 import typing
 
-from .casts import limbs_for_int
-from .intern_clvm import intern_clvm, InternCLVMObject, InternObjectCache
+from .intern_clvm import (
+    intern_clvm,
+    InternCLVMObject,
+    InternObjectCache,
+    serialized_length as serialized_length_for_intern,
+)
 from .object_cache import ObjectCache, treehash, serialized_length
 from .read_cache_lookup import ReadCacheLookup
-from .tree_path import TreePath, TOP, relative_pointer
+from .tree_path import TreePath, TOP
 from .tree_path_trie import TreePathTrie
 
 from .CLVMObject import CLVMStorage
@@ -352,19 +355,9 @@ def _atom_from_stream(f: typing.BinaryIO, b: int) -> bytes:
     return blob
 
 
-def all_nodes(obj: CLVMStorage) -> Iterator[Tuple[CLVMStorage, TreePath]]:
-    to_yield: List[Tuple[CLVMStorage, TreePath]] = [(obj, TOP)]
-    while to_yield:
-        obj, path = to_yield.pop()
-        yield obj, path
-        if obj.pair is not None:
-            to_yield.append((obj.pair[1], path.right()))
-            to_yield.append((obj.pair[0], path.left()))
-
-
 def sexp_to_byte_iterator_with_backrefs_fast(obj: CLVMStorage) -> Iterator[bytes]:
     intern_obj = intern_clvm(obj)
-    slc = InternObjectCache(serialized_length)
+    slc = InternObjectCache(serialized_length_for_intern)
     slc.get(intern_obj)
 
     # in `read_op_stack`:
@@ -415,24 +408,3 @@ def sexp_to_byte_iterator_with_backrefs_fast(obj: CLVMStorage) -> Iterator[bytes
 
         while read_op_stack[-1:] == ["C"]:
             read_op_stack.pop()
-
-
-def find_short_path(
-    tree_path: TreePath,
-    possible_paths: List[TreePath],
-    node_serialized_length: int,
-) -> Optional[TreePath]:
-    if possible_paths is None or len(possible_paths) == 1:
-        return None
-    best_size: int = node_serialized_length
-    best_path: Optional[TreePath] = None
-    for path in possible_paths:
-        if tree_path < path:
-            break
-        # the paths are in order
-        relative_path = relative_pointer(path, tree_path)
-        size = limbs_for_int(relative_path) + 1
-        if size < best_size:
-            best_size = size
-            best_path = relative_path
-    return best_path

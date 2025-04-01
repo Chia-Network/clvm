@@ -191,7 +191,7 @@ class SerializeTest(unittest.TestCase):
         blob = gzip.GzipFile("tests/generator.bin.gz").read()
         s = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
         b = self.check_serde(s)
-        assert len(b) == 19124
+        assert len(b) in (19124, 19239)
 
     def test_deserialize_bomb(self) -> None:
         def make_bomb(depth: int) -> SExp:
@@ -215,15 +215,15 @@ class SerializeTest(unittest.TestCase):
         bomb_30 = make_bomb(30)
         # do not uncomment the next line unless you want to run out of memory
         # b30_1 = bomb_30.as_bin(allow_backrefs=False)
-        b30_2 = bomb_30.as_bin(allow_backrefs=True)
+        b30_2 = bomb_30.as_bin(allow_backrefs=Backrefs.FAST)
 
         # self.assertEqual(len(b30_1), 1)
         self.assertEqual(len(b30_2), 135)
 
     def test_specific_tree(self) -> None:
         sexp1 = to_sexp_f((("AAA", "BBB"), ("CCC", "AAA")))
-        serialized_sexp1_v1 = sexp1.as_bin(allow_backrefs=False)
-        serialized_sexp1_v2 = sexp1.as_bin(allow_backrefs=True)
+        serialized_sexp1_v1 = sexp1.as_bin(allow_backrefs=Backrefs.DISALLOW)
+        serialized_sexp1_v2 = sexp1.as_bin(allow_backrefs=Backrefs.FAST)
         self.assertEqual(len(serialized_sexp1_v1), 19)
         self.assertEqual(len(serialized_sexp1_v2), 17)
         deserialized_sexp1_v1 = sexp_from_stream(

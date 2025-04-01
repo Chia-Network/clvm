@@ -36,49 +36,6 @@ class TreePath(int):
                 raise ValueError(f"invalid path character {c}")
         return t
 
-    def first_steps(self, n: int) -> "TreePath":
-        """
-        Returns the first `n` steps of the given path.
-        """
-        new_path = self & ((1 << n) - 1)
-        new_path |= 1 << n
-        return TreePath(new_path)
-
-    def remaining_steps(self, n: int) -> "TreePath":
-        """
-        Returns the path with the first `n` steps removed.
-        """
-        return TreePath(self >> n)
-
-    def split(self, n: int) -> Tuple["TreePath", "TreePath"]:
-        """
-        Split the path into two parts: the first `n` steps
-        and the remaining steps.
-        """
-        return self.first_steps(n), self.remaining_steps(n)
-
-    def common_prefix_count(self, other: "TreePathType") -> int:
-        """
-        Returns the number of common prefix bits between `self` and `other`.
-        """
-        path1 = int(self)
-        path2 = int(other)
-        count = 0
-        # Loop while both paths have steps left (are > 1)
-        # and the current step (LSB) is the same.
-        while (path1 > 1 and path2 > 1) and ((path1 & 1) == (path2 & 1)):
-            count += 1
-            path1 >>= 1
-            path2 >>= 1
-        return count
-
-    def common_ancestor(self, other: TreePathType) -> "TreePath":
-        """
-        Returns the common ancestor of `path1` and `path2`.
-        """
-        count = self.common_prefix_count(other)
-        return self.first_steps(count)
-
     def relative_pointer(self, other: TreePathType) -> "TreePath":
         """
         Given two absolute path numbers n and m (with n to the left of m),
@@ -155,15 +112,6 @@ class TreePath(int):
         # the longer path is processed first
         return path1 >= path2
 
-    def __len__(self) -> int:
-        """
-        We define the length of a path as the number of steps it contains.
-        """
-        # we subtract 1 because there is a `1` padding bit
-        # note that this make the length of the empty path 0
-        # and the length of the 0 path -1
-        return self.bit_length() - 1
-
     def __bytes__(self) -> bytes:
         if self == 0:
             return b""
@@ -175,14 +123,64 @@ class TreePath(int):
         return r
 
 
+def path_length(t: TreePathType) -> int:
+    """
+    We define the length of a path as the number of steps it contains.
+    """
+    # we subtract 1 because there is a `1` padding bit
+    # note that this make the length of the empty path 0
+    # and the length of the 0 path -1
+    return t.bit_length() - 1
+
+
+def path_is_prefix_of(tree: TreePathType, other: TreePathType) -> bool:
+    """
+    Returns True if `self` is a prefix of `other`.
+    """
+    bit_count = path_length(tree)
+    mask = (1 << bit_count) - 1
+    return (tree ^ other) & mask == 0
+
+
+def common_prefix_count(maybe_prefix: TreePathType, other: TreePathType) -> int:
+    """
+    Returns the number of common prefix bits between `self` and `other`.
+    """
+    count = 0
+    # Loop while both paths have steps left (are > 1)
+    # and the current step (LSB) is the same.
+    while (maybe_prefix > 1 and other > 1) and ((maybe_prefix & 1) == (other & 1)):
+        count += 1
+        maybe_prefix >>= 1
+        other >>= 1
+    return count
+
+
+def first_steps(path: TreePathType, n: int) -> TreePath:
+    """
+    Returns the first `n` steps of the given path.
+    """
+    new_path = path & ((1 << n) - 1)
+    new_path |= 1 << n
+    return TreePath(new_path)
+
+
+def remaining_steps(path: TreePathType, n: int) -> TreePath:
+    """
+    Returns the path with the first `n` steps removed.
+    """
+    return TreePath(path >> n)
+
+
+def split_path(path: TreePathType, n: int) -> Tuple[TreePath, TreePath]:
+    """
+    Split the path into two parts: the first `n` steps
+    and the remaining steps.
+    """
+    return first_steps(path, n), remaining_steps(path, n)
+
+
 TOP = TreePath(1)
-
-
-def common_ancestor(n: TreePathType, m: TreePathType) -> TreePath:
-    """
-    Returns the common ancestor of `n` and `m`.
-    """
-    return TreePath(n).common_ancestor(m)
 
 
 def relative_pointer(n: TreePathType, m: TreePathType) -> TreePath:

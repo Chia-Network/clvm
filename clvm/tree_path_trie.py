@@ -1,13 +1,20 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from .tree_path import TreePath
+from .tree_path import (
+    TreePath,
+    TreePathType,
+    path_length,
+    path_is_prefix_of,
+    common_prefix_count,
+    split_path,
+)
 
 
 @dataclass
 class TrieNode:
     closest_leaf_distance: int  # this is from the *parent*
-    path_from_parent: TreePath
+    path_from_parent: TreePathType
     to_left: "Branch"
     to_right: "Branch"
 
@@ -17,18 +24,6 @@ class Branch:
     value: Optional[TrieNode]
 
 
-def is_prefix(prefix: TreePath, path: TreePath) -> bool:
-    p1 = int(prefix)
-    p2 = int(path)
-    while True:
-        if p1 == 1:
-            return True
-        if p1 & 1 != p2 & 1:
-            return False
-        p1 >>= 1
-        p2 >>= 1
-
-
 @dataclass
 class TreePathTrie:
     root: Branch
@@ -36,9 +31,9 @@ class TreePathTrie:
     def __init__(self) -> None:
         self.root = Branch(None)
 
-    def insert(self, path: TreePath) -> None:
+    def insert(self, path: TreePathType) -> None:
         branch: Branch = self.root
-        path_size = len(path)
+        path_size = path_length(path)
         while True:
             trie_node = branch.value
             if trie_node is None:
@@ -47,13 +42,13 @@ class TreePathTrie:
                 right_branch = Branch(None)
                 branch.value = TrieNode(total_distance, path, left_branch, right_branch)
                 return
-            if is_prefix(trie_node.path_from_parent, path):
+            if path_is_prefix_of(trie_node.path_from_parent, path):
                 # this is a proper prefix. Let's go down the tree to the next branch
                 trie_node.closest_leaf_distance = min(
                     trie_node.closest_leaf_distance, path_size
                 )
-                trie_path_size = len(bin(trie_node.path_from_parent)[3:])
-                path = path.remaining_steps(trie_path_size)
+                trie_path_size = path_length(trie_node.path_from_parent)
+                path >>= trie_path_size
                 path_size -= trie_path_size
                 assert int(path) > 1, "path is not a proper prefix"
                 branch = trie_node.to_right if path & 1 else trie_node.to_left
@@ -64,14 +59,13 @@ class TreePathTrie:
             # we create a 1 and a 2. The 1 has the same root as the original node and
             # the 2 has the same destination as the original node
 
-            prefix_path = trie_node.path_from_parent.common_ancestor(path)
-            prefix_path_size = len(bin(prefix_path)[3:])
+            prefix_path_size = common_prefix_count(trie_node.path_from_parent, path)
 
             new_branch_value = split_branch(trie_node, prefix_path_size)
             branch.value = new_branch_value
 
     def find_shortest_relative_pointer(
-        self, source_node_path: TreePath, max_path_length: int
+        self, source_node_path_tp: TreePath, max_path_length: int
     ) -> Optional[TreePath]:
         # set up a list of things `to_consider`
         # each thing has: a potential branch; a "right count" of 1 bits to get to the common branch of
@@ -82,6 +76,7 @@ class TreePathTrie:
         # whenever the branch also goes to the right when we're going left. (The other case does not
         # matter due to the order we're serializing)
 
+        source_node_path = int(source_node_path_tp)
         branch = self.root
 
         best_path_trie_node: Optional[TrieNode] = None
@@ -96,19 +91,18 @@ class TreePathTrie:
 
         while branch.value is not None:
             trie_node = branch.value
-            prefix_path = trie_node.path_from_parent.common_ancestor(source_node_path)
-            prefix_path_size = len(bin(prefix_path)[3:])
-            if prefix_path == trie_node.path_from_parent:
+            if path_is_prefix_of(trie_node.path_from_parent, source_node_path):
                 # Iterate prefix_path_size times, checking bits and counting right turns
+                prefix_path_size = path_length(trie_node.path_from_parent)
                 current_path_segment = source_node_path
                 for _ in range(prefix_path_size):
                     if current_path_segment & 1:
                         source_node_path_right_count -= 1
                     # Move to the next bit for the next iteration's check
-                    current_path_segment = current_path_segment.remaining_steps(1)
+                    current_path_segment >>= 1
 
                 # Update source_node_path *after* iterating through the prefix
-                source_node_path = source_node_path.remaining_steps(prefix_path_size)
+                source_node_path >>= prefix_path_size
 
                 # do we need to consider the left branch as a relative pointer?
                 if trie_node.to_left.value is not None and source_node_path & 1:
@@ -127,6 +121,9 @@ class TreePathTrie:
                 )
             else:
                 # we have to split this branch
+                prefix_path_size = common_prefix_count(
+                    trie_node.path_from_parent, source_node_path
+                )
                 temp_trie_node = split_branch(trie_node, prefix_path_size)
                 branch = Branch(temp_trie_node)
 
@@ -161,7 +158,7 @@ class TreePathTrie:
         return TreePath(int(best_path_str, 2))
 
 
-def right_count_for_path(path: TreePath) -> int:
+def right_count_for_path(path: TreePathType) -> int:
     """
     Count the number of "right" branches in a path.
     """
@@ -170,7 +167,7 @@ def right_count_for_path(path: TreePath) -> int:
 
 
 def split_branch(trie_node: TrieNode, prefix_path_size: int) -> TrieNode:
-    new_path_1, new_path_2 = trie_node.path_from_parent.split(prefix_path_size)
+    new_path_1, new_path_2 = split_path(trie_node.path_from_parent, prefix_path_size)
 
     new_total_distance_2 = trie_node.closest_leaf_distance - prefix_path_size
 
