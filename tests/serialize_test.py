@@ -10,6 +10,7 @@ from clvm.serialize import (
     sexp_from_stream,
     sexp_buffer_from_stream,
     atom_to_byte_iterator,
+    Backrefs,
 )
 
 
@@ -69,7 +70,7 @@ class SerializeTest(unittest.TestCase):
 
         # now turn on backrefs and make sure everything still works
 
-        b2 = v.as_bin(allow_backrefs=True)
+        b2 = v.as_bin(allow_backrefs=Backrefs.FAST)
         self.assertTrue(len(b2) <= len(b))
         if has_backrefs(b2) or len(b2) < len(b):
             # if we have any backrefs, ensure they actually save space
@@ -200,14 +201,14 @@ class SerializeTest(unittest.TestCase):
             return bomb
 
         bomb_10 = make_bomb(10)
-        b10_1 = bomb_10.as_bin(allow_backrefs=False)
-        b10_2 = bomb_10.as_bin(allow_backrefs=True)
+        b10_1 = bomb_10.as_bin(allow_backrefs=Backrefs.DISALLOW)
+        b10_2 = bomb_10.as_bin(allow_backrefs=Backrefs.FAST)
         self.assertEqual(len(b10_1), 47103)
         self.assertEqual(len(b10_2), 75)
 
         bomb_20 = make_bomb(20)
-        b20_1 = bomb_20.as_bin(allow_backrefs=False)
-        b20_2 = bomb_20.as_bin(allow_backrefs=True)
+        b20_1 = bomb_20.as_bin(allow_backrefs=Backrefs.DISALLOW)
+        b20_2 = bomb_20.as_bin(allow_backrefs=Backrefs.FAST)
         self.assertEqual(len(b20_1), 48234495)
         self.assertEqual(len(b20_2), 105)
 

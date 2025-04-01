@@ -23,6 +23,7 @@ import io
 import typing
 
 from .casts import limbs_for_int
+from .intern_clvm import intern_clvm, InternCLVMObject, InternObjectCache
 from .object_cache import ObjectCache, treehash, serialized_length
 from .read_cache_lookup import ReadCacheLookup
 from .tree_path import TreePath, TOP, relative_pointer
@@ -362,25 +363,20 @@ def all_nodes(obj: CLVMStorage) -> Iterator[Tuple[CLVMStorage, TreePath]]:
 
 
 def sexp_to_byte_iterator_with_backrefs_fast(obj: CLVMStorage) -> Iterator[bytes]:
-    thc = ObjectCache(treehash)
-    slc = ObjectCache(serialized_length)
+    intern_obj = intern_clvm(obj)
+    slc = InternObjectCache(serialized_length)
+    slc.get(intern_obj)
 
     # in `read_op_stack`:
     #  "P" = "push"
     #  "C" = "pop two objects, create and push a new cons with them"
 
-    hash_counter = Counter(thc.get(node) for node, path in all_nodes(obj))
-
-    trie_for_hash: Dict[bytes, TreePathTrie] = {}
-    for key, value in hash_counter.items():
-        if value > 1:
-            trie_for_hash[key] = TreePathTrie()
+    trie_for_hash: Dict[int, TreePathTrie] = {}
 
     read_op_stack = ["P"]
 
-    write_stack: List[Tuple[CLVMStorage, TreePath]] = [(obj, TOP)]
+    write_stack: List[Tuple[InternCLVMObject, TreePath]] = [(intern_obj, TOP)]
 
-    # breakpoint()
     while write_stack:
         node_to_write, tree_path = write_stack.pop()
         op = read_op_stack.pop()
@@ -388,15 +384,19 @@ def sexp_to_byte_iterator_with_backrefs_fast(obj: CLVMStorage) -> Iterator[bytes
 
         node_serialized_length = slc.get(node_to_write)
 
-        node_tree_hash = thc.get(node_to_write)
+        node_index = node_to_write.index
         maybe_path = None
-        if node_tree_hash in trie_for_hash:
-            trie = trie_for_hash[node_tree_hash]
+        if node_index in trie_for_hash:
+            trie = trie_for_hash[node_index]
             node_serialized_length_bits = (node_serialized_length - 1) * 8
             maybe_path = trie.find_shortest_relative_pointer(
                 tree_path, node_serialized_length_bits
             )
             trie.insert(tree_path)
+        else:
+            trie_path_trie = TreePathTrie()
+            trie_path_trie.insert(tree_path)
+            trie_for_hash[node_index] = trie_path_trie
         if maybe_path is not None:
             yield bytes([BACK_REFERENCE])
             yield from atom_to_byte_iterator(bytes(maybe_path))

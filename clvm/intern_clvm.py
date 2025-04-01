@@ -11,7 +11,7 @@ represent pairs.
 the interned objects stored within an `InternCLVMStorage` instance.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, Generic, List, Optional, Tuple, TypeVar
 
 from .CLVMObject import CLVMStorage
 
@@ -175,7 +175,12 @@ class InternCLVMObject(CLVMStorage):
         # The `pair` property handles negative indices dynamically.
 
     @property
-    def pair(self) -> Optional[Tuple[CLVMStorage, CLVMStorage]]:
+    def index(self) -> int:
+        """Returns the index of the object within the interned storage."""
+        return self._index
+
+    @property
+    def pair(self) -> Optional[Tuple["InternCLVMObject", "InternCLVMObject"]]:
         """
         Provides the pair tuple if this object represents a pair.
 
@@ -201,16 +206,11 @@ class InternCLVMObject(CLVMStorage):
 
     def __str__(self) -> str:
         """Returns a string representation of the object for debugging."""
-        if self.atom is not None:
-            # Use SExp.to for a standard CLVM representation
-            return repr(SExp.to(self))
-        # For pairs, rely on SExp representation as well to handle nesting
-        return repr(SExp.to(self))
+        return f"InternCLVMObject({self._index})"
 
     def __repr__(self) -> str:
         """Returns a string representation of the object for debugging."""
-        # Use SExp for a consistent and readable representation
-        return repr(SExp.to(self))
+        return str(self)
 
 
 def intern_clvm(obj: CLVMStorage) -> InternCLVMObject:
@@ -227,5 +227,55 @@ def intern_clvm(obj: CLVMStorage) -> InternCLVMObject:
     root_index = intern_storage.intern(obj)
     return InternCLVMObject(intern_storage, root_index)
 
-# Need to import SExp late to avoid circular dependency
-from .SExp import SExp # noqa E402
+
+T = TypeVar("T")
+
+
+class InternObjectCache(Generic[T]):
+    """
+    `InternObjectCache` provides a way to calculate and cache values for each node
+    in an interned clvm object tree. It can be used to calculate the sha256 tree hash
+    for an object and save the hash for all the child objects for building
+    usage tables, for example.
+
+    It also allows a function that's defined recursively on a clvm tree to
+    have a non-recursive implementation (as it keeps a stack of uncached
+    objects locally).
+    """
+
+    def __init__(self, f: Callable[["InternObjectCache[T]", CLVMStorage], Optional[T]]):
+        """
+        `f`: Callable[InternObjectCache, CLVMObject] -> Union[None, T]
+
+        The function `f` is expected to calculate its T value recursively based
+        on the T values for the left and right child for a pair. For an atom, the
+        function f must calculate the T value directly.
+
+        If a pair is passed and one of the children does not have its T value cached
+        in `ObjectCache` yet, return `None` and f will be called with each child in turn.
+        Don't recurse in f; that's part of the point of this function.
+        """
+        self.f = f
+        self.lookup: Dict[int, Tuple[T, CLVMStorage]] = dict()
+
+    def get(self, obj: InternCLVMObject) -> T:
+        obj_id = obj.index
+        if obj_id not in self.lookup:
+            obj_list = [obj]
+            while obj_list:
+                node = obj_list.pop()
+                node_id = node.index
+                if node_id not in self.lookup:
+                    v = self.f(self, node)
+                    if v is None:
+                        if node.pair is None:
+                            raise ValueError("f returned None for atom", node)
+                        obj_list.append(node)
+                        obj_list.append(node.pair[0])
+                        obj_list.append(node.pair[1])
+                    else:
+                        self.lookup[node_id] = (v, node)
+        return self.lookup[obj_id][0]
+
+    def contains(self, obj: InternCLVMObject) -> bool:
+        return obj.index in self.lookup
