@@ -4,8 +4,13 @@ import unittest
 from typing import Optional
 
 from clvm import to_sexp_f
-from clvm.SExp import CastableType
-from clvm.serialize import (_atom_from_stream, sexp_from_stream, sexp_buffer_from_stream, atom_to_byte_iterator)
+from clvm.SExp import CastableType, SExp
+from clvm.serialize import (
+    _atom_from_stream,
+    sexp_from_stream,
+    sexp_buffer_from_stream,
+    atom_to_byte_iterator,
+)
 
 
 TEXT = b"the quick brown fox jumps over the lazy dogs"
@@ -40,13 +45,13 @@ def has_backrefs(blob: bytes) -> bool:
         if b == 0xff:
             obj_count += 1
         else:
-            _atom_from_stream(f, b, lambda x: x)
+            _atom_from_stream(f, b)
             obj_count -= 1
     return False
 
 
 class SerializeTest(unittest.TestCase):
-    def check_serde(self, s: CastableType) -> None:
+    def check_serde(self, s: CastableType) -> bytes:
         v = to_sexp_f(s)
         b = v.as_bin()
         v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)
@@ -182,16 +187,15 @@ class SerializeTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             sexp_buffer_from_stream(InfiniteStream(bytes_in))
 
-    def test_deserialize_generator(self):
+    def test_deserialize_generator(self) -> None:
         blob = gzip.GzipFile("tests/generator.bin.gz").read()
         s = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
         b = self.check_serde(s)
         assert len(b) == 19124
 
-    def test_deserialize_bomb(self):
-
-        def make_bomb(depth):
-            bomb = TEXT
+    def test_deserialize_bomb(self) -> None:
+        def make_bomb(depth: int) -> SExp:
+            bomb = to_sexp_f(TEXT)
             for _ in range(depth):
                 bomb = to_sexp_f((bomb, bomb))
             return bomb
@@ -216,7 +220,7 @@ class SerializeTest(unittest.TestCase):
         # self.assertEqual(len(b30_1), 1)
         self.assertEqual(len(b30_2), 135)
 
-    def test_specific_tree(self):
+    def test_specific_tree(self) -> None:
         sexp1 = to_sexp_f((("AAA", "BBB"), ("CCC", "AAA")))
         serialized_sexp1_v1 = sexp1.as_bin(allow_backrefs=False)
         serialized_sexp1_v2 = sexp1.as_bin(allow_backrefs=True)

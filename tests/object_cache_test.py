@@ -6,14 +6,14 @@ from clvm_tools.binutils import assemble
 
 
 class ObjectCacheTest(unittest.TestCase):
-    def check(self, obj_text, expected_hash, expected_length):
+    def check(self, obj_text: str, expected_hash: str, expected_length: int) -> None:
         obj = assemble(obj_text)
         th = ObjectCache(treehash)
         self.assertEqual(th.get(obj).hex(), expected_hash)
         sl = ObjectCache(serialized_length)
         self.assertEqual(sl.get(obj), expected_length)
 
-    def test_various(self):
+    def test_various(self) -> None:
         self.check(
             "0x00",
             "47dc540c94ceb704a23875c11273e16bb0b8a87aed84de911f2133568115f254",

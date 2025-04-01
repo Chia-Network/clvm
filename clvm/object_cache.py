@@ -1,7 +1,13 @@
+from typing import Callable, Dict, Generic, Optional, Tuple, TypeVar
+
 import hashlib
 
+from .CLVMObject import CLVMStorage
 
-class ObjectCache:
+T = TypeVar("T")
+
+
+class ObjectCache(Generic[T]):
     """
     `ObjectCache` provides a way to calculate and cache values for each node
     in a clvm object tree. It can be used to calculate the sha256 tree hash
@@ -13,7 +19,7 @@ class ObjectCache:
     objects locally).
     """
 
-    def __init__(self, f):
+    def __init__(self, f: Callable[["ObjectCache[T]", CLVMStorage], Optional[T]]):
         """
         `f`: Callable[ObjectCache, CLVMObject] -> Union[None, T]
 
@@ -26,9 +32,9 @@ class ObjectCache:
         Don't recurse in f; that's part of the point of this function.
         """
         self.f = f
-        self.lookup = dict()
+        self.lookup: Dict[int, Tuple[T, CLVMStorage]] = dict()
 
-    def get(self, obj):
+    def get(self, obj: CLVMStorage) -> T:
         obj_id = id(obj)
         if obj_id not in self.lookup:
             obj_list = [obj]
@@ -47,11 +53,11 @@ class ObjectCache:
                         self.lookup[node_id] = (v, node)
         return self.lookup[obj_id][0]
 
-    def contains(self, obj):
+    def contains(self, obj: CLVMStorage) -> bool:
         return id(obj) in self.lookup
 
 
-def treehash(cache, obj):
+def treehash(cache: ObjectCache[bytes], obj: CLVMStorage) -> Optional[bytes]:
     """
     This function can be fed to `ObjectCache` to calculate the sha256 tree
     hash for all objects in a tree.
@@ -65,10 +71,11 @@ def treehash(cache, obj):
             right_hash = cache.get(right)
             return hashlib.sha256(b"\2" + left_hash + right_hash).digest()
         return None
+    assert obj.atom is not None
     return hashlib.sha256(b"\1" + obj.atom).digest()
 
 
-def serialized_length(cache, obj):
+def serialized_length(cache: ObjectCache[int], obj: CLVMStorage) -> Optional[int]:
     """
     This function can be fed to `ObjectCache` to calculate the serialized
     length for all objects in a tree.
@@ -82,6 +89,7 @@ def serialized_length(cache, obj):
             right_length = cache.get(right)
             return 1 + left_length + right_length
         return None
+    assert obj.atom is not None
     lb = len(obj.atom)
     if lb == 0 or (lb == 1 and obj.atom[0] < 128):
         return 1

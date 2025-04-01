@@ -27,20 +27,27 @@ BACK_REFERENCE = 0xFE
 CONS_BOX_MARKER = 0xFF
 
 T = typing.TypeVar("T")
+_T_CLVMStorage = typing.TypeVar("_T_CLVMStorage", bound=CLVMStorage)
+
+CS = typing.TypeVar("CS", bound=CLVMStorage)
 
 ToCLVMStorage = typing.Callable[
-    [typing.Union[bytes, typing.Tuple[CLVMStorage, CLVMStorage]]], CLVMStorage
+    [typing.Union[CLVMStorage, bytes, typing.Tuple[CLVMStorage, CLVMStorage]]],
+    _T_CLVMStorage,
 ]
+
+ValStackType = CLVMStorage
 
 OpCallable = typing.Callable[
-    ["OpStackType", "ValStackType", typing.BinaryIO, ToCLVMStorage], None
+    ["OpStackType[T]", ValStackType, typing.BinaryIO, ToCLVMStorage[T]], ValStackType
 ]
 
-ValStackType = typing.List[CLVMStorage]
-OpStackType = typing.List[OpCallable]
+OpStackType = typing.List[OpCallable[T]]
 
 
-def sexp_to_byte_iterator(sexp: CLVMStorage, *, allow_backrefs: bool = False) -> typing.Iterator[bytes]:
+def sexp_to_byte_iterator(
+    sexp: CLVMStorage, *, allow_backrefs: bool = False
+) -> typing.Iterator[bytes]:
     if allow_backrefs:
         yield from sexp_to_byte_iterator_with_backrefs(sexp)
         return
@@ -59,7 +66,6 @@ def sexp_to_byte_iterator(sexp: CLVMStorage, *, allow_backrefs: bool = False) ->
 
 
 def sexp_to_byte_iterator_with_backrefs(sexp: CLVMStorage) -> typing.Iterator[bytes]:
-
     # in `read_op_stack`:
     #  "P" = "push"
     #  "C" = "pop two objects, create and push a new cons with them"
@@ -146,7 +152,9 @@ def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
     yield as_atom
 
 
-def sexp_to_stream(sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False) -> None:
+def sexp_to_stream(
+    sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False
+) -> None:
     for b in sexp_to_byte_iterator(sexp, allow_backrefs=allow_backrefs):
         f.write(b)
 
@@ -158,7 +166,9 @@ def msb_mask(byte: int) -> int:
     return (byte + 1) >> 1
 
 
-def traverse_path(obj: CLVMStorage, path: bytes, to_sexp: ToCLVMStorage) -> CLVMStorage:
+def traverse_path(
+    obj: CLVMStorage, path: bytes, to_sexp: ToCLVMStorage[CS]
+) -> CLVMStorage:
     path_as_int = int.from_bytes(path, "big")
     if path_as_int == 0:
         return to_sexp(b"")
@@ -172,7 +182,12 @@ def traverse_path(obj: CLVMStorage, path: bytes, to_sexp: ToCLVMStorage) -> CLVM
     return obj
 
 
-def _op_cons(op_stack: OpStackType, val_stack: CLVMStorage, f: typing.BinaryIO, to_sexp: ToCLVMStorage) -> CLVMStorage:
+def _op_cons(
+    op_stack: OpStackType[CS],
+    val_stack: ValStackType,
+    f: typing.BinaryIO,
+    to_sexp: ToCLVMStorage[CS],
+) -> ValStackType:
     assert val_stack.pair is not None
     right, val_stack = val_stack.pair
     assert val_stack.pair is not None
@@ -182,11 +197,11 @@ def _op_cons(op_stack: OpStackType, val_stack: CLVMStorage, f: typing.BinaryIO, 
 
 
 def _op_read_sexp(
-    op_stack: OpStackType,
+    op_stack: OpStackType[CS],
     val_stack: ValStackType,
     f: typing.BinaryIO,
-    to_sexp: ToCLVMStorage,
-) -> None:
+    to_sexp: ToCLVMStorage[CS],
+) -> ValStackType:
     blob = f.read(1)
     if len(blob) == 0:
         raise ValueError("bad encoding")
@@ -196,10 +211,16 @@ def _op_read_sexp(
         op_stack.append(_op_read_sexp)
         op_stack.append(_op_read_sexp)
         return val_stack
-    return to_sexp((_atom_from_stream(f, b, to_sexp), val_stack))
+    atom_as_sexp = to_sexp(_atom_from_stream(f, b))
+    return to_sexp((atom_as_sexp, val_stack))
 
 
-def _op_read_sexp_allow_backrefs(op_stack, val_stack, f, to_sexp):
+def _op_read_sexp_allow_backrefs(
+    op_stack: OpStackType[CS],
+    val_stack: ValStackType,
+    f: typing.BinaryIO,
+    to_sexp: ToCLVMStorage[CS],
+) -> CLVMStorage:
     blob = f.read(1)
     if len(blob) == 0:
         raise ValueError("bad encoding")
@@ -213,20 +234,26 @@ def _op_read_sexp_allow_backrefs(op_stack, val_stack, f, to_sexp):
         blob = f.read(1)
         if len(blob) == 0:
             raise ValueError("bad encoding")
-        path = _atom_from_stream(f, blob[0], lambda x: x)
+        path = _atom_from_stream(f, blob[0])
         backref = traverse_path(val_stack, path, to_sexp)
         return to_sexp((backref, val_stack))
-    return to_sexp((_atom_from_stream(f, b, to_sexp), val_stack))
+    atom_as_sexp = to_sexp(_atom_from_stream(f, b))
+    return to_sexp((atom_as_sexp, val_stack))
 
 
-def sexp_from_stream(f: typing.BinaryIO, to_sexp: ToCLVMStorage, *, allow_backrefs=False) -> CLVMStorage:
-    op_stack = [_op_read_sexp_allow_backrefs if allow_backrefs else _op_read_sexp]
-    val_stack = to_sexp(b"")
+def sexp_from_stream(
+    f: typing.BinaryIO, to_sexp: ToCLVMStorage[CS], *, allow_backrefs: bool = False
+) -> CS:
+    op_stack: OpStackType[CS] = [
+        _op_read_sexp_allow_backrefs if allow_backrefs else _op_read_sexp
+    ]
+    val_stack: ValStackType = to_sexp(b"")
 
     while op_stack:
         func = op_stack.pop()
         val_stack = func(op_stack, val_stack, f, to_sexp)
-    return val_stack.pair[0]
+    assert val_stack.pair is not None
+    return to_sexp(val_stack.pair[0])
 
 
 def _op_consume_sexp(f: typing.BinaryIO) -> typing.Tuple[bytes, int]:
@@ -281,9 +308,7 @@ def sexp_buffer_from_stream(f: typing.BinaryIO) -> bytes:
     return ret.getvalue()
 
 
-def _atom_from_stream(
-    f: typing.BinaryIO, b: int, to_sexp: ToCLVMStorage
-) -> bytes:
+def _atom_from_stream(f: typing.BinaryIO, b: int) -> bytes:
     if b == 0x80:
         return b""
     if b <= MAX_SINGLE_BYTE:

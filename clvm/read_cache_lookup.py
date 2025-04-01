@@ -1,5 +1,5 @@
 from collections import Counter
-from typing import Optional, List, Set, Tuple
+from typing import Dict, Optional, List, Set, Tuple
 
 import hashlib
 
@@ -29,15 +29,15 @@ class ReadCacheLookup:
     All hashes correspond to sha256 tree hashes.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Create a new `ReadCacheLookup` object with just the null terminator
         (ie. an empty list of objects).
         """
         self.root_hash = hashlib.sha256(b"\1").digest()
-        self.read_stack = []
-        self.count = Counter()
-        self.parent_paths_for_child = {}
+        self.read_stack: List[Tuple[bytes, bytes]] = []
+        self.count: Counter[bytes] = Counter()
+        self.parent_paths_for_child: Dict[bytes, List[Tuple[bytes, int]]] = {}
 
     def push(self, obj_hash: bytes) -> None:
         """
@@ -101,11 +101,11 @@ class ReadCacheLookup:
         This function looks for a path from the root to a child node with a given hash
         by using the read cache.
         """
-        valid_paths = set()
+        valid_paths: Set[bytes] = set()
         if serialized_length < 3:
             return valid_paths
 
-        seen_ids = set()
+        seen_ids: Set[bytes] = set()
 
         max_bytes_for_path_encoding = serialized_length - 2
         # 1 byte for 0xfe, 1 min byte for savings
@@ -113,12 +113,12 @@ class ReadCacheLookup:
         max_path_length = max_bytes_for_path_encoding * 8 - 1
         seen_ids.add(obj_hash)
 
-        partial_paths = [(obj_hash, [])]
+        partial_paths: List[Tuple[bytes, List[int]]] = [(obj_hash, [])]
 
         while partial_paths:
             new_seen_ids = set(seen_ids)
             new_partial_paths = []
-            for (node, path) in partial_paths:
+            for node, path in partial_paths:
                 if node == self.root_hash:
                     valid_paths.add(reversed_path_to_bytes(path))
                     continue
@@ -126,7 +126,7 @@ class ReadCacheLookup:
                 parent_paths = self.parent_paths_for_child.get(node)
 
                 if parent_paths:
-                    for (parent, direction) in parent_paths:
+                    for parent, direction in parent_paths:
                         if self.count[parent] > 0 and parent not in seen_ids:
                             new_path = list(path)
                             new_path.append(direction)
@@ -137,7 +137,7 @@ class ReadCacheLookup:
             partial_paths = new_partial_paths
             if valid_paths:
                 return valid_paths
-            seen_ids = frozenset(new_seen_ids)
+            seen_ids = set(new_seen_ids)
         return valid_paths
 
     def find_path(self, obj_hash: bytes, serialized_length: int) -> Optional[bytes]:
