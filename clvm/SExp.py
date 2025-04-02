@@ -179,9 +179,9 @@ class SExp:
             raise TypeError("Unable to convert a pair to an int")
         return int_from_bytes(self.atom)
 
-    def as_bin(self) -> bytes:
+    def as_bin(self, *, allow_backrefs: bool = False) -> bytes:
         f = io.BytesIO()
-        sexp_to_stream(self, f)
+        sexp_to_stream(self, f, allow_backrefs=allow_backrefs)
         return f.getvalue()
 
     # TODO: should be `v: CastableType`
