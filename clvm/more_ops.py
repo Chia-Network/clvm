@@ -120,9 +120,9 @@ def op_add(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     total = 0
     cost = ARITH_BASE_COST
     arg_size = 0
-    for r, l in args_as_ints("+", args):
+    for r, arg_len in args_as_ints("+", args):
         total += r
-        arg_size += l
+        arg_size += arg_len
         cost += ARITH_COST_PER_ARG
     cost += arg_size * ARITH_COST_PER_BYTE
     return malloc_cost(cost, args.to(total))
@@ -135,10 +135,10 @@ def op_subtract(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     sign = 1
     total = 0
     arg_size = 0
-    for r, l in args_as_ints("-", args):
+    for r, arg_len in args_as_ints("-", args):
         total += sign * r
         sign = -1
-        arg_size += l
+        arg_size += arg_len
         cost += ARITH_COST_PER_ARG
     cost += arg_size * ARITH_COST_PER_BYTE
     return malloc_cost(cost, args.to(total))
@@ -334,9 +334,9 @@ def binop_reduction(
     total = initial_value
     arg_size = 0
     cost = LOG_BASE_COST
-    for r, l in args_as_ints(op_name, args):
+    for r, arg_len in args_as_ints(op_name, args):
         total = op_f(total, r)
-        arg_size += l
+        arg_size += arg_len
         cost += LOG_COST_PER_ARG
     cost += arg_size * LOG_COST_PER_BYTE
     return malloc_cost(cost, args.to(total))
