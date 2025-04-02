@@ -47,7 +47,6 @@ def get_test_cases(path: str) -> List[Tuple[str, List[str], str, List[str], str]
 
 class TestCmds(unittest.TestCase):
     def invoke_tool(self, cmd_line: str) -> Tuple[Optional[int], str, str]:
-
         # capture io
         stdout_buffer = io.StringIO()
         stderr_buffer = io.StringIO()
@@ -59,7 +58,9 @@ class TestCmds(unittest.TestCase):
         sys.stderr = stderr_buffer
 
         args = shlex.split(cmd_line)
-        [entry_point] = importlib_metadata.entry_points(group="console_scripts", name=args[0])
+        [entry_point] = importlib_metadata.entry_points(
+            group="console_scripts", name=args[0]
+        )
         v: Optional[int] = entry_point.load()(args)
 
         sys.stdout = old_stdout

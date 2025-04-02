@@ -40,9 +40,15 @@ def looks_like_clvm_object(o: typing.Any) -> typing_extensions.TypeGuard[CLVMSto
 
 # this function recognizes some common types and turns them into plain bytes,
 def convert_atom_to_bytes(
-    v: typing.Union[bytes, str, int, None, typing.List[typing_extensions.Never], typing.SupportsBytes],
+    v: typing.Union[
+        bytes,
+        str,
+        int,
+        None,
+        typing.List[typing_extensions.Never],
+        typing.SupportsBytes,
+    ],
 ) -> bytes:
-
     if isinstance(v, bytes):
         return v
     if isinstance(v, str):
@@ -141,6 +147,7 @@ class SExp:
        elements implementing the CLVM object protocol.
     Exactly one of "atom" and "pair" must be None.
     """
+
     true: typing.ClassVar[SExp]
     false: typing.ClassVar[SExp]
     __null__: typing.ClassVar[SExp]
