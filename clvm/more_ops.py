@@ -87,15 +87,21 @@ def args_as_int32(op_name: str, args: SExp) -> typing.Iterator[int]:
         if arg.atom is None:
             raise EvalError("%s requires int32 args" % op_name, arg)
         if len(arg.atom) > 4:
-            raise EvalError("%s requires int32 args (with no leading zeros)" % op_name, arg)
+            raise EvalError(
+                "%s requires int32 args (with no leading zeros)" % op_name, arg
+            )
         yield arg.as_int()
 
 
-def args_as_int_list(op_name: str, args: SExp, count: int) -> typing.List[typing.Tuple[int, int]]:
+def args_as_int_list(
+    op_name: str, args: SExp, count: int
+) -> typing.List[typing.Tuple[int, int]]:
     int_list = list(args_as_ints(op_name, args))
     if len(int_list) != count:
         plural = "s" if count != 1 else ""
-        raise EvalError("%s takes exactly %d argument%s" % (op_name, count, plural), args)
+        raise EvalError(
+            "%s takes exactly %d argument%s" % (op_name, count, plural), args
+        )
     return int_list
 
 
@@ -112,7 +118,9 @@ def args_as_bool_list(op_name: str, args: SExp, count: int) -> typing.List[SExp]
     bool_list = list(args_as_bools(op_name, args))
     if len(bool_list) != count:
         plural = "s" if count != 1 else ""
-        raise EvalError("%s takes exactly %d argument%s" % (op_name, count, plural), args)
+        raise EvalError(
+            "%s takes exactly %d argument%s" % (op_name, count, plural), args
+        )
     return bool_list
 
 
@@ -120,9 +128,9 @@ def op_add(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     total = 0
     cost = ARITH_BASE_COST
     arg_size = 0
-    for r, l in args_as_ints("+", args):
+    for r, arg_len in args_as_ints("+", args):
         total += r
-        arg_size += l
+        arg_size += arg_len
         cost += ARITH_COST_PER_ARG
     cost += arg_size * ARITH_COST_PER_BYTE
     return malloc_cost(cost, args.to(total))
@@ -135,10 +143,10 @@ def op_subtract(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     sign = 1
     total = 0
     arg_size = 0
-    for r, l in args_as_ints("-", args):
+    for r, arg_len in args_as_ints("-", args):
         total += sign * r
         sign = -1
-        arg_size += l
+        arg_size += arg_len
         cost += ARITH_COST_PER_ARG
     cost += arg_size * ARITH_COST_PER_BYTE
     return malloc_cost(cost, args.to(total))
@@ -265,7 +273,7 @@ def op_substr(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     assert s0 is not None
 
     if arg_count == 2:
-        i1, = list(args_as_int32("substr", args.rest()))
+        (i1,) = list(args_as_int32("substr", args.rest()))
         i2 = len(s0)
     else:
         i1, i2 = list(args_as_int32("substr", args.rest()))
@@ -294,7 +302,9 @@ def op_concat(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
 def op_ash(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     (i0, l0), (i1, l1) = args_as_int_list("ash", args, 2)
     if l1 > 4:
-        raise EvalError("ash requires int32 args (with no leading zeros)", args.rest().first())
+        raise EvalError(
+            "ash requires int32 args (with no leading zeros)", args.rest().first()
+        )
     if abs(i1) > 65535:
         raise EvalError("shift too large", args.to(i1))
     if i1 >= 0:
@@ -309,7 +319,9 @@ def op_ash(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
 def op_lsh(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
     (i0, l0), (i1, l1) = args_as_int_list("lsh", args, 2)
     if l1 > 4:
-        raise EvalError("lsh requires int32 args (with no leading zeros)", args.rest().first())
+        raise EvalError(
+            "lsh requires int32 args (with no leading zeros)", args.rest().first()
+        )
     if abs(i1) > 65535:
         raise EvalError("shift too large", args.to(i1))
     # we actually want i0 to be an *unsigned* int
@@ -334,9 +346,9 @@ def binop_reduction(
     total = initial_value
     arg_size = 0
     cost = LOG_BASE_COST
-    for r, l in args_as_ints(op_name, args):
+    for r, arg_len in args_as_ints(op_name, args):
         total = op_f(total, r)
-        arg_size += l
+        arg_size += arg_len
         cost += LOG_COST_PER_ARG
     cost += arg_size * LOG_COST_PER_BYTE
     return malloc_cost(cost, args.to(total))
@@ -367,7 +379,7 @@ def op_logxor(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
 
 
 def op_lognot(args: _T_SExp) -> typing.Tuple[int, _T_SExp]:
-    (i0, l0), = args_as_int_list("lognot", args, 1)
+    ((i0, l0),) = args_as_int_list("lognot", args, 1)
     cost = LOGNOT_BASE_COST + l0 * LOGNOT_COST_PER_BYTE
     return malloc_cost(cost, args.to(~i0))
 

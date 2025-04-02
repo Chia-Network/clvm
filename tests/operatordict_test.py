@@ -8,8 +8,8 @@ from clvm.operators import OperatorProtocol, OperatorDict
 class OperatorDictTest(unittest.TestCase):
     def test_operatordict_constructor(self) -> None:
         """Constructing should fail if quote or apply are not specified,
-           either by object property or by keyword argument.
-           Note that they cannot be specified in the operator dictionary itself.
+        either by object property or by keyword argument.
+        Note that they cannot be specified in the operator dictionary itself.
         """
         # ignoring because apparently it doesn't matter for this test that the types are all wrong
         d: Dict[bytes, OperatorProtocol] = {b"\01": "hello", b"\02": "goodbye"}  # type: ignore [dict-item]
