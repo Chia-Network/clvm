@@ -3,6 +3,8 @@ import io
 import unittest
 from typing import Optional
 
+import pytest
+
 from clvm import to_sexp_f
 from clvm.SExp import CastableType, SExp
 from clvm.serialize import (
@@ -10,6 +12,7 @@ from clvm.serialize import (
     sexp_from_stream,
     sexp_buffer_from_stream,
     atom_to_byte_iterator,
+    sexp_to_stream,
 )
 
 
@@ -54,6 +57,7 @@ class SerializeTest(unittest.TestCase):
     def check_serde(self, s: CastableType) -> bytes:
         v = to_sexp_f(s)
         b = v.as_bin()
+        f = io.BytesIO()
         v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)
         if v != v1:
             print("%s: %d %r %s" % (v, len(b), b, v1))
@@ -61,6 +65,9 @@ class SerializeTest(unittest.TestCase):
             b = v.as_bin()
             v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)
         self.assertEqual(v, v1)
+        sexp_to_stream(v1, f)
+        length = len(f.getvalue())
+        assert f.getbuffer() == b
         # this copies the bytes that represent a single s-expression, just to
         # know where the message ends. It doesn't build a python representaion
         # of it
@@ -85,6 +92,11 @@ class SerializeTest(unittest.TestCase):
             self.assertEqual(v2, s)
             b3 = v2.as_bin()
             self.assertEqual(b, b3)
+        with pytest.raises(ValueError):
+            f = io.BytesIO()
+            sexp_to_stream(v1, f, max_size=length-5000)
+        f = io.BytesIO()
+        sexp_to_stream(v1, f, max_size=length)
         return b2
 
     def test_zero(self) -> None:
