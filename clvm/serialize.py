@@ -156,14 +156,12 @@ def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
 
 
 def sexp_to_stream(
-    sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False, max_size: Optional[int] = None
+    sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False, max_size: int = MAX_SAFE_BYTES
 ) -> None:
-    remaining = max_size
     for b in sexp_to_byte_iterator(sexp, allow_backrefs=allow_backrefs):
-        if remaining is not None:
-            remaining -= len(b)
-            if remaining < 0:
-                raise ValueError("SExp exceeds maximum size")
+        max_size -= len(b)
+        if max_size < 0:
+            raise ValueError("SExp exceeds maximum size")
         f.write(b)
 
 

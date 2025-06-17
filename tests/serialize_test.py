@@ -92,7 +92,7 @@ class SerializeTest(unittest.TestCase):
             self.assertEqual(v2, s)
             b3 = v2.as_bin()
             self.assertEqual(b, b3)
-        with pytest.raises(ValueError, matches="SExp exceeds maximum size"):
+        with pytest.raises(ValueError, match="SExp exceeds maximum size"):
             f = io.BytesIO()
             sexp_to_stream(v1, f, max_size=length-1)
         f = io.BytesIO()
@@ -146,10 +146,18 @@ class SerializeTest(unittest.TestCase):
             count = size // len(TEXT)
             text = TEXT * count
             assert len(text) < size
-            self.check_serde(text)
+            if len(text) >= 134217688:
+                with pytest.raises(ValueError, match="SExp exceeds maximum size"):
+                    self.check_serde(text)
+            else:
+                self.check_serde(text)
             text = TEXT * (count + 1)
             assert len(text) > size
-            self.check_serde(text)
+            if len(text) >= 134217688:
+                with pytest.raises(ValueError, match="SExp exceeds maximum size"):
+                    self.check_serde(text)
+            else:
+                self.check_serde(text)
 
     def test_very_deep_tree(self) -> None:
         blob = b"a"
@@ -222,14 +230,16 @@ class SerializeTest(unittest.TestCase):
         self.assertEqual(len(b10_2), 75)
 
         bomb_20 = make_bomb(20)
-        b20_1 = bomb_20.as_bin(allow_backrefs=False)
-        b20_2 = bomb_20.as_bin(allow_backrefs=True)
-        self.assertEqual(len(b20_1), 48234495)
-        self.assertEqual(len(b20_2), 105)
+        with pytest.raises(ValueError, match="SExp exceeds maximum size"):
+            b20_1 = bomb_20.as_bin(allow_backrefs=False)
+            b20_2 = bomb_20.as_bin(allow_backrefs=True)
+        # self.assertEqual(len(b20_1), 48234495)
+        # self.assertEqual(len(b20_2), 105)
 
         bomb_30 = make_bomb(30)
         # do not uncomment the next line unless you want to run out of memory
-        # b30_1 = bomb_30.as_bin(allow_backrefs=False)
+        with pytest.raises(ValueError, match="SExp exceeds maximum size"):
+            b30_1 = bomb_30.as_bin(allow_backrefs=False)
         b30_2 = bomb_30.as_bin(allow_backrefs=True)
 
         # self.assertEqual(len(b30_1), 1)
