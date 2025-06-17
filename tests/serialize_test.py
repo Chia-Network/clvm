@@ -94,7 +94,7 @@ class SerializeTest(unittest.TestCase):
             self.assertEqual(b, b3)
         with pytest.raises(ValueError):
             f = io.BytesIO()
-            sexp_to_stream(v1, f, max_size=length-5000)
+            sexp_to_stream(v1, f, max_size=length-1)
         f = io.BytesIO()
         sexp_to_stream(v1, f, max_size=length)
         return b2

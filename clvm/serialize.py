@@ -48,13 +48,6 @@ OpCallable = typing.Callable[
 OpStackType = typing.List[OpCallable[T]]
 
 
-def decrement_counter(count: Optional[int], amount: int) -> None:
-    if count is not None:
-        count -= amount
-        if count < 0:
-            raise ValueError("SExp exceeds maximum size")
-
-
 def sexp_to_byte_iterator(
     sexp: CLVMStorage, *, allow_backrefs: bool = False
 ) -> typing.Iterator[bytes]:
@@ -165,8 +158,12 @@ def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
 def sexp_to_stream(
     sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False, max_size: Optional[int] = None
 ) -> None:
+    remaining = max_size
     for b in sexp_to_byte_iterator(sexp, allow_backrefs=allow_backrefs):
-        decrement_counter(max_size, 1)
+        if remaining is not None:
+            remaining -= len(b)
+            if remaining < 0:
+                raise ValueError("SExp exceeds maximum size")
         f.write(b)
 
 
