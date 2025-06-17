@@ -92,7 +92,7 @@ class SerializeTest(unittest.TestCase):
             self.assertEqual(v2, s)
             b3 = v2.as_bin()
             self.assertEqual(b, b3)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, matches="SExp exceeds maximum size"):
             f = io.BytesIO()
             sexp_to_stream(v1, f, max_size=length-1)
         f = io.BytesIO()
