@@ -47,11 +47,13 @@ OpCallable = typing.Callable[
 
 OpStackType = typing.List[OpCallable[T]]
 
+
 def decrement_counter(count: Optional[int], amount: int):
     if count is not None:
         count -= amount
         if count <= 0:
             raise ValueError("SExp too big")
+
 
 def sexp_to_byte_iterator(
     sexp: CLVMStorage, *, allow_backrefs: bool = False, max_size: Optional[int] = None
