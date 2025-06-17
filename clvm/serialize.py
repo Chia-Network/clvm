@@ -48,7 +48,7 @@ OpCallable = typing.Callable[
 OpStackType = typing.List[OpCallable[T]]
 
 
-def decrement_counter(count: Optional[int], amount: int):
+def decrement_counter(count: Optional[int], amount: int) -> None:
     if count is not None:
         count -= amount
         if count < 0:

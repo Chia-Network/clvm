@@ -242,7 +242,9 @@ def op_point_add(items: _T_SExp) -> typing.Tuple[int, _T_SExp]:
         if _.pair:
             raise EvalError("point_add on list", _)
         try:
-            p += G1Element.from_bytes(_.as_atom())
+            atom = _.as_atom()
+            assert atom is not None
+            p += G1Element.from_bytes(atom)
             cost += POINT_ADD_COST_PER_ARG
         except Exception as ex:
             raise EvalError("point_add expects blob, got %s: %s" % (_, ex), items)
