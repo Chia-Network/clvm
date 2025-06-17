@@ -17,6 +17,7 @@
 import io
 import typing
 
+from typing import Optional
 from .read_cache_lookup import ReadCacheLookup
 from .object_cache import ObjectCache, treehash, serialized_length
 
@@ -25,6 +26,8 @@ from .CLVMObject import CLVMStorage
 MAX_SINGLE_BYTE = 0x7F
 BACK_REFERENCE = 0xFE
 CONS_BOX_MARKER = 0xFF
+
+MAX_SAFE_BYTES = 2_000_000
 
 T = typing.TypeVar("T")
 _T_CLVMStorage = typing.TypeVar("_T_CLVMStorage", bound=CLVMStorage)
@@ -44,12 +47,17 @@ OpCallable = typing.Callable[
 
 OpStackType = typing.List[OpCallable[T]]
 
+def decrement_counter(count: Optional[int], amount: int):
+    if count is not None:
+        count -= amount
+        if count <= 0:
+            raise ValueError("SExp too big")
 
 def sexp_to_byte_iterator(
-    sexp: CLVMStorage, *, allow_backrefs: bool = False
+    sexp: CLVMStorage, *, allow_backrefs: bool = False, max_size: Optional[int] = None
 ) -> typing.Iterator[bytes]:
     if allow_backrefs:
-        yield from sexp_to_byte_iterator_with_backrefs(sexp)
+        yield from sexp_to_byte_iterator_with_backrefs(sexp, max_size=max_size)
         return
 
     todo_stack = [sexp]
@@ -58,14 +66,15 @@ def sexp_to_byte_iterator(
         pair = sexp.pair
         if pair:
             yield bytes([CONS_BOX_MARKER])
+            decrement_counter(max_size, 1)
             todo_stack.append(pair[1])
             todo_stack.append(pair[0])
         else:
             assert sexp.atom is not None
-            yield from atom_to_byte_iterator(sexp.atom)
+            yield from atom_to_byte_iterator(sexp.atom, max_size=max_size)
 
 
-def sexp_to_byte_iterator_with_backrefs(sexp: CLVMStorage) -> typing.Iterator[bytes]:
+def sexp_to_byte_iterator_with_backrefs(sexp: CLVMStorage, max_size: Optional[int] = None) -> typing.Iterator[bytes]:
     # in `read_op_stack`:
     #  "P" = "push"
     #  "C" = "pop two objects, create and push a new cons with them"
@@ -90,11 +99,13 @@ def sexp_to_byte_iterator_with_backrefs(sexp: CLVMStorage) -> typing.Iterator[by
         path = read_cache_lookup.find_path(node_tree_hash, node_serialized_length)
         if path:
             yield bytes([BACK_REFERENCE])
-            yield from atom_to_byte_iterator(path)
+            decrement_counter(max_size, 1)
+            yield from atom_to_byte_iterator(path, max_size=max_size)
             read_cache_lookup.push(node_tree_hash)
         elif node_to_write.pair:
             left, right = node_to_write.pair
             yield bytes([CONS_BOX_MARKER])
+            decrement_counter(max_size, 1)
             write_stack.append(right)
             write_stack.append(left)
             read_op_stack.append("C")
@@ -103,7 +114,7 @@ def sexp_to_byte_iterator_with_backrefs(sexp: CLVMStorage) -> typing.Iterator[by
         else:
             atom = node_to_write.atom
             assert atom is not None
-            yield from atom_to_byte_iterator(atom)
+            yield from atom_to_byte_iterator(atom, max_size=max_size)
             read_cache_lookup.push(node_tree_hash)
 
         while read_op_stack[-1:] == ["C"]:
@@ -111,14 +122,16 @@ def sexp_to_byte_iterator_with_backrefs(sexp: CLVMStorage) -> typing.Iterator[by
             read_cache_lookup.pop2_and_cons()
 
 
-def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
+def atom_to_byte_iterator(as_atom: bytes, max_size: Optional[int] = None) -> typing.Iterator[bytes]:
     size = len(as_atom)
     if size == 0:
         yield b"\x80"
+        decrement_counter(max_size, 1)
         return
     if size == 1:
         if as_atom[0] <= MAX_SINGLE_BYTE:
             yield as_atom
+            decrement_counter(max_size, size)
             return
     if size < 0x40:
         size_blob = bytes([0x80 | size])
@@ -149,13 +162,15 @@ def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
         raise ValueError(f"sexp too long {as_atom!r}")
 
     yield size_blob
+    decrement_counter(max_size, size_blob)
     yield as_atom
+    decrement_counter(max_size, as_atom)
 
 
 def sexp_to_stream(
-    sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False
+    sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False, max_size: Optional[int] = None
 ) -> None:
-    for b in sexp_to_byte_iterator(sexp, allow_backrefs=allow_backrefs):
+    for b in sexp_to_byte_iterator(sexp, allow_backrefs=allow_backrefs, max_size=max_size):
         f.write(b)
 
 
