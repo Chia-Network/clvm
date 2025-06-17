@@ -17,7 +17,6 @@
 import io
 import typing
 
-from typing import Optional
 from .read_cache_lookup import ReadCacheLookup
 from .object_cache import ObjectCache, treehash, serialized_length
 
