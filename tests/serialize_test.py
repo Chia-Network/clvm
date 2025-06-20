@@ -231,20 +231,16 @@ class SerializeTest(unittest.TestCase):
 
         bomb_20 = make_bomb(20)
         with pytest.raises(ValueError, match="SExp exceeds maximum size"):
-            # b20_1 = bomb_20.as_bin(allow_backrefs=False)
             bomb_20.as_bin(allow_backrefs=False)
         b20_2 = bomb_20.as_bin(allow_backrefs=True)
-        # self.assertEqual(len(b20_1), 48234495)
         self.assertEqual(len(b20_2), 105)
 
         bomb_30 = make_bomb(30)
         # do not uncomment the next line unless you want to run out of memory
         with pytest.raises(ValueError, match="SExp exceeds maximum size"):
-            # b30_1 = bomb_30.as_bin(allow_backrefs=False)
             bomb_30.as_bin(allow_backrefs=False)
         b30_2 = bomb_30.as_bin(allow_backrefs=True)
 
-        # self.assertEqual(len(b30_1), 1)
         self.assertEqual(len(b30_2), 135)
 
     def test_specific_tree(self) -> None:
