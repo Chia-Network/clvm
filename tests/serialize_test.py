@@ -8,6 +8,7 @@ import pytest
 from clvm import to_sexp_f
 from clvm.SExp import CastableType, SExp
 from clvm.serialize import (
+    MAX_SAFE_BYTES,
     _atom_from_stream,
     sexp_from_stream,
     sexp_buffer_from_stream,
@@ -146,14 +147,14 @@ class SerializeTest(unittest.TestCase):
             count = size // len(TEXT)
             text = TEXT * count
             assert len(text) < size
-            if len(text) >= 134217688:
+            if len(text) >= MAX_SAFE_BYTES:
                 with pytest.raises(ValueError, match="SExp exceeds maximum size"):
                     self.check_serde(text)
             else:
                 self.check_serde(text)
             text = TEXT * (count + 1)
             assert len(text) > size
-            if len(text) >= 134217688:
+            if len(text) >= MAX_SAFE_BYTES:
                 with pytest.raises(ValueError, match="SExp exceeds maximum size"):
                     self.check_serde(text)
             else:
