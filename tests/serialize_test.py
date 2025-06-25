@@ -261,12 +261,11 @@ class SerializeTest(unittest.TestCase):
     # This tests that the max_size parameter in as_bin allows currently
     # impossible objects to be converted to binary by passing max_size
     # down to sexp_from_stream.
-    def test_as_bin_from_large_blob(self) -> None:
+    def test_as_bin_creating_large_blob(self) -> None:
         # Code cribbed from clvm_tools::serialize_test
-        text = b"the quick brown fox jumps over the lazy dogs"
         size = 0x8000000
-        count = size // len(text)
-        s = text * count
+        count = size // len(TEXT)
+        s = TEXT * count
         v = to_sexp_f(s)
 
         # Test that converting this results in an error without max_size
