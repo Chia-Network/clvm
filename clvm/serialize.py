@@ -26,6 +26,8 @@ MAX_SINGLE_BYTE = 0x7F
 BACK_REFERENCE = 0xFE
 CONS_BOX_MARKER = 0xFF
 
+MAX_SAFE_BYTES = 2_000_000
+
 T = typing.TypeVar("T")
 _T_CLVMStorage = typing.TypeVar("_T_CLVMStorage", bound=CLVMStorage)
 
@@ -153,9 +155,12 @@ def atom_to_byte_iterator(as_atom: bytes) -> typing.Iterator[bytes]:
 
 
 def sexp_to_stream(
-    sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False
+    sexp: CLVMStorage, f: typing.BinaryIO, *, allow_backrefs: bool = False, max_size: int = MAX_SAFE_BYTES
 ) -> None:
     for b in sexp_to_byte_iterator(sexp, allow_backrefs=allow_backrefs):
+        max_size -= len(b)
+        if max_size < 0:
+            raise ValueError("SExp exceeds maximum size")
         f.write(b)
 
 

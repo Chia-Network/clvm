@@ -3,13 +3,17 @@ import io
 import unittest
 from typing import Optional
 
+import pytest
+
 from clvm import to_sexp_f
 from clvm.SExp import CastableType, SExp
 from clvm.serialize import (
+    MAX_SAFE_BYTES,
     _atom_from_stream,
     sexp_from_stream,
     sexp_buffer_from_stream,
     atom_to_byte_iterator,
+    sexp_to_stream,
 )
 
 
@@ -54,6 +58,7 @@ class SerializeTest(unittest.TestCase):
     def check_serde(self, s: CastableType) -> bytes:
         v = to_sexp_f(s)
         b = v.as_bin()
+        f = io.BytesIO()
         v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)
         if v != v1:
             print("%s: %d %r %s" % (v, len(b), b, v1))
@@ -61,6 +66,9 @@ class SerializeTest(unittest.TestCase):
             b = v.as_bin()
             v1 = sexp_from_stream(io.BytesIO(b), to_sexp_f)
         self.assertEqual(v, v1)
+        sexp_to_stream(v1, f)
+        length = len(f.getvalue())
+        assert f.getbuffer() == b
         # this copies the bytes that represent a single s-expression, just to
         # know where the message ends. It doesn't build a python representaion
         # of it
@@ -85,6 +93,11 @@ class SerializeTest(unittest.TestCase):
             self.assertEqual(v2, s)
             b3 = v2.as_bin()
             self.assertEqual(b, b3)
+        with pytest.raises(ValueError, match="SExp exceeds maximum size"):
+            f = io.BytesIO()
+            sexp_to_stream(v1, f, max_size=length-1)
+        f = io.BytesIO()
+        sexp_to_stream(v1, f, max_size=length)
         return b2
 
     def test_zero(self) -> None:
@@ -134,10 +147,18 @@ class SerializeTest(unittest.TestCase):
             count = size // len(TEXT)
             text = TEXT * count
             assert len(text) < size
-            self.check_serde(text)
+            if len(text) >= MAX_SAFE_BYTES:
+                with pytest.raises(ValueError, match="SExp exceeds maximum size"):
+                    self.check_serde(text)
+            else:
+                self.check_serde(text)
             text = TEXT * (count + 1)
             assert len(text) > size
-            self.check_serde(text)
+            if len(text) >= MAX_SAFE_BYTES:
+                with pytest.raises(ValueError, match="SExp exceeds maximum size"):
+                    self.check_serde(text)
+            else:
+                self.check_serde(text)
 
     def test_very_deep_tree(self) -> None:
         blob = b"a"
@@ -210,17 +231,16 @@ class SerializeTest(unittest.TestCase):
         self.assertEqual(len(b10_2), 75)
 
         bomb_20 = make_bomb(20)
-        b20_1 = bomb_20.as_bin(allow_backrefs=False)
+        with pytest.raises(ValueError, match="SExp exceeds maximum size"):
+            bomb_20.as_bin(allow_backrefs=False)
         b20_2 = bomb_20.as_bin(allow_backrefs=True)
-        self.assertEqual(len(b20_1), 48234495)
         self.assertEqual(len(b20_2), 105)
 
         bomb_30 = make_bomb(30)
-        # do not uncomment the next line unless you want to run out of memory
-        # b30_1 = bomb_30.as_bin(allow_backrefs=False)
+        with pytest.raises(ValueError, match="SExp exceeds maximum size"):
+            bomb_30.as_bin(allow_backrefs=False)
         b30_2 = bomb_30.as_bin(allow_backrefs=True)
 
-        # self.assertEqual(len(b30_1), 1)
         self.assertEqual(len(b30_2), 135)
 
     def test_specific_tree(self) -> None:
