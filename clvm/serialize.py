@@ -28,7 +28,7 @@ CONS_BOX_MARKER = 0xFF
 
 MAX_SAFE_BYTES = 2_000_000
 
-T = typing.TypeVar("T")
+T = typing.TypeVar("T", bound=CLVMStorage)
 _T_CLVMStorage = typing.TypeVar("_T_CLVMStorage", bound=CLVMStorage)
 
 CS = typing.TypeVar("CS", bound=CLVMStorage)
