@@ -28,7 +28,7 @@ CONS_BOX_MARKER = 0xFF
 
 MAX_SAFE_BYTES = 2_000_000
 
-T = typing.TypeVar("T", bound=CLVMStorage)
+T = typing.TypeVar("T")
 _T_CLVMStorage = typing.TypeVar("_T_CLVMStorage", bound=CLVMStorage)
 
 CS = typing.TypeVar("CS", bound=CLVMStorage)
@@ -44,7 +44,7 @@ OpCallable = typing.Callable[
     ["OpStackType[T]", ValStackType, typing.BinaryIO, ToCLVMStorage[T]], ValStackType
 ]
 
-OpStackType = typing.List[OpCallable[T]]
+OpStackType = typing.List[OpCallable[_T_CLVMStorage]]
 
 
 def sexp_to_byte_iterator(
