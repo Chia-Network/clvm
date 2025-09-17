@@ -44,7 +44,7 @@ OpCallable = typing.Callable[
     ["OpStackType[T]", ValStackType, typing.BinaryIO, ToCLVMStorage[T]], ValStackType
 ]
 
-OpStackType = typing.List[OpCallable[T]]
+OpStackType = typing.List[OpCallable[_T_CLVMStorage]]
 
 
 def sexp_to_byte_iterator(
