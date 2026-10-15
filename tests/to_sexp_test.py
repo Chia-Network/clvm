@@ -199,8 +199,9 @@ class ToSExpTest(unittest.TestCase):
 
         assert convert_atom_to_bytes(DummyByteConvertible()) == b"foobar"
 
+        nonempty_list = [1, 2, 3]
         with self.assertRaises(ValueError):
-            convert_atom_to_bytes([1, 2, 3])  # type: ignore[arg-type]
+            convert_atom_to_bytes(nonempty_list)  # type: ignore[arg-type]
 
         with self.assertRaises(ValueError):
             convert_atom_to_bytes((1, 2))  # type: ignore[arg-type]
